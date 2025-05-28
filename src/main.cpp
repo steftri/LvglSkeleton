@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #endif
 
+#include "gfx_conf.h"
 
 
 void setup()
@@ -17,6 +18,22 @@ void setup()
   std::cout << APPLICATION_NAME << std::endl;
   std::cout << __DATE__ " " __TIME__ << std::endl;
 #endif
+
+  tft.init();
+
+  tft.fillScreen(TFT_BLUE);
+  delay(1000);
+  tft.fillScreen(TFT_YELLOW);
+  delay(1000);
+  tft.fillScreen(TFT_GREEN);
+  delay(1000);
+  tft.fillScreen(TFT_WHITE);
+  delay(1000);
+  tft.fillScreen(TFT_BLACK);
+  tft.fillCircle    ( 100, 100      , 50, TFT_YELLOW);
+  tft.setCursor(200, 240);
+  tft.print("Hello, Elecrow");
+  Serial.println( "Hello, my Display" );
 }
 
 
