@@ -1,8 +1,5 @@
 #ifdef ARDUINO 
 #include <Arduino.h> 
-#if (ARDUINO_AVR_UNO || ARDUINO_AVR_NANO || ARDUINO_AVR_MINI || ARDUINO_AVR_MEGA || ARDUINO_AVR_MEGA2560)
-#include <avr8-stub.h>  // needed for debug_init() - works only on Arduinos with ATmega CPU 
-#endif
 #else
 #include <iostream>
 #include <inttypes.h>
@@ -13,15 +10,11 @@
 void setup()
 { 
 #ifdef ARDUINO
-# if (ARDUINO_AVR_UNO || ARDUINO_AVR_NANO || ARDUINO_AVR_MINI || ARDUINO_AVR_MEGA || ARDUINO_AVR_MEGA2560)
-  debug_init();
-# else
   Serial.begin(115200);
-  Serial.println(__LIBRARY_NAME__);
+  Serial.println(APPLICATION_NAME);
   Serial.println(__DATE__ " " __TIME__);
-# endif
 #else
-  std::cout << __LIBRARY_NAME__ << std::endl;
+  std::cout << APPLICATION_NAME << std::endl;
   std::cout << __DATE__ " " __TIME__ << std::endl;
 #endif
 }

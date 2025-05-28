@@ -1,4 +1,0 @@
-[submodule "lib/ArduinoLibrarySkeleton"]
-	path = lib/ArduinoLibrarySkeleton
-	url = https://github.com/steftri/ArduinoLibrarySkeleton
-	branch = develop
