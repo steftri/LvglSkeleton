@@ -19,7 +19,11 @@ void setup()
   std::cout << __DATE__ " " __TIME__ << std::endl;
 #endif
 
-  tft.init();
+  //Display Prepare
+  tft.begin();
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextSize(3);
+  delay(100);
 
   tft.fillScreen(TFT_BLUE);
   delay(1000);
@@ -40,8 +44,17 @@ void setup()
 
 void loop()
 {
-  static volatile uint8_t value = 0;
-  value = value+1;   // do something very simple
+  uint16_t touchX, touchY;
+  bool touched = tft.getTouch( &touchX, &touchY);
+  if( touched )
+  {
+    tft.fillCircle(touchX, touchY, 10, TFT_WHITE);
+    Serial.print( "Data x " );
+    Serial.println( touchX );
+
+    Serial.print( "Data y " );
+    Serial.println( touchY );
+  }
 }
 
 
