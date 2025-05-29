@@ -88,18 +88,18 @@ void setup()
   tft.begin();
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(2);
-  delay(200);
+  tft.setCursor(200, 240);
+  tft.print("booting...");  
+  delay(1000);
 
   lv_init();
-
-  delay(100);
 
   lv_disp_draw_buf_init(&draw_buf, disp_draw_buf1, disp_draw_buf2, screenWidth * screenHeight/10);
   /* Initialize the display */
   lv_disp_drv_init(&disp_drv);
   /* Change the following line to your display resolution */
-  disp_drv.hor_res = screenWidth;
-  disp_drv.ver_res = screenHeight;
+  disp_drv.hor_res = screenHeight;  // swapped to match the display orientation
+  disp_drv.ver_res = screenWidth;
   disp_drv.flush_cb = my_disp_flush;
   disp_drv.full_refresh = 1;
   disp_drv.draw_buf = &draw_buf;
@@ -112,8 +112,7 @@ void setup()
   indev_drv.read_cb = my_touchpad_read;
   lv_indev_drv_register(&indev_drv);
 
-  tft.fillScreen(TFT_BLACK);
-
+  tft.setRotation(1);
   lv_demo_widgets();    // LVGL demo
   
   Serial.println( "Setup done" );
