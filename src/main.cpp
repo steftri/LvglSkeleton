@@ -11,8 +11,7 @@ if you want to use the LVGL demo. you need to include <demos/lv_demos.h> and <ex
 if not, please do not include it. It will waste your Flash space.
 **************************************************************/
 #include <lvgl.h>
-#include <demos/lv_demos.h>
-#include <examples/lv_examples.h>
+#include "lv_demo_widgets.h"
 /**************************LVGL and UI END************************/
 
 

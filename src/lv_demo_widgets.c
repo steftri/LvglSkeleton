@@ -11,8 +11,6 @@
 
 #include "lv_demo_widgets.h"
 
-#if LV_USE_DEMO_WIDGETS
-
 #if LV_MEM_CUSTOM == 0 && LV_MEM_SIZE < (38ul * 1024ul)
     #error Insufficient memory for lv_demo_widgets. Please set LV_MEM_SIZE to at least 38KB (38ul * 1024ul).  48KB is recommended.
 #endif
@@ -1618,5 +1616,3 @@ static void meter3_anim_cb(void * var, int32_t v)
     lv_obj_t * label = lv_obj_get_child(meter3, 0);
     lv_label_set_text_fmt(label, "%"LV_PRId32, v);
 }
-
-#endif
