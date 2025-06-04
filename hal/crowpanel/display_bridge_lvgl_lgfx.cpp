@@ -10,14 +10,15 @@ DisplayBridgeLvglLgfx::DisplayBridgeLvglLgfx(DisplayLGFX *p_DisplayLGFX)
 }
 
 /* Display flushing */
-void DisplayBridgeLvglLgfx::flushCallback(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
+void DisplayBridgeLvglLgfx::flushCallback(lv_display_t *disp, const lv_area_t *area, uint8_t * px_map)
 {
-  uint32_t w = ( area->x2 - area->x1 + 1 );
-  uint32_t h = ( area->y2 - area->y1 + 1 );
+  uint32_t w = lv_area_get_width(area);
+  uint32_t h = lv_area_get_height(area);
 
   if(mp_DisplayLGFX != nullptr)
   {
-    mp_DisplayLGFX->pushImageDMA(area->x1, area->y1, w, h,(lgfx::rgb565_t*)&color_p->full);
+    lv_draw_sw_rgb565_swap(px_map, w*h);
+    mp_DisplayLGFX->pushImageDMA(area->x1, area->y1, w, h, (uint16_t*)px_map);
   }
 
   lv_disp_flush_ready( disp );
@@ -25,7 +26,7 @@ void DisplayBridgeLvglLgfx::flushCallback(lv_disp_drv_t *disp, const lv_area_t *
 
 
 
-void DisplayBridgeLvglLgfx::readTouchpanelCallback(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
+void DisplayBridgeLvglLgfx::readTouchpanelCallback(lv_indev_t *indev_driver, lv_indev_data_t *data)
 {
   uint16_t u16_TouchX;
   uint16_t u16_TouchY;
