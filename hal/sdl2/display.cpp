@@ -50,15 +50,10 @@ void Display::setup()
   #endif
 
   /* Add a display
-   * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
-std::cout << "lv_sdl_window_create()" << std::endl;
-
+   * Use the 'monitor' driver which creates window on PC's monitor to simulate a display */
   lvDisplay = lv_sdl_window_create(screenWidth, screenHeight);
-std::cout << "lv_sdl_mouse_create()" << std::endl;
   lvMouse = lv_sdl_mouse_create();
-std::cout << "lv_sdl_mousewheel_create()" << std::endl;
   lvMouseWheel = lv_sdl_mousewheel_create();
-std::cout << "lv_sdl_keyboard_create()" << std::endl;
   lvKeyboard = lv_sdl_keyboard_create();
 
   mu32_LastTick = SDL_GetTicks();
