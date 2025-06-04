@@ -6,9 +6,6 @@ project(ArduinoLibrarySkeletonProject LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add the library
-add_subdirectory(lib/ArduinoLibrarySkeleton)
-
 # Add the example application
 add_executable(ExampleApp src/main.cpp)
 

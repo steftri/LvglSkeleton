@@ -1,5 +1,5 @@
-#include "display.h"
-
+#include <iostream>
+#include <inttypes.h>
 
 /**************************LVGL and UI************************
 if you want to use the LVGL demo. you need to include <demos/lv_demos.h> and <examples/lv_examples.h>. 
@@ -13,6 +13,7 @@ if not, please do not include it. It will waste your Flash space.
 #include "drivers/sdl/lv_sdl_mousewheel.h"
 #include "drivers/sdl/lv_sdl_keyboard.h"
 
+#include "display.h"
 
 
 static lv_display_t *lvDisplay;
@@ -22,8 +23,8 @@ static lv_indev_t *lvKeyboard;
 
 
 
-static constexpr uint16_t screenWidth = 800;
-static constexpr uint16_t screenHeight = 480;
+static constexpr uint16_t screenHeight = 800;
+static constexpr uint16_t screenWidth = 480;
 
 
 
@@ -50,10 +51,14 @@ void Display::setup()
 
   /* Add a display
    * Use the 'monitor' driver which creates window on PC's monitor to simulate a display*/
+std::cout << "lv_sdl_window_create()" << std::endl;
 
   lvDisplay = lv_sdl_window_create(screenWidth, screenHeight);
+std::cout << "lv_sdl_mouse_create()" << std::endl;
   lvMouse = lv_sdl_mouse_create();
+std::cout << "lv_sdl_mousewheel_create()" << std::endl;
   lvMouseWheel = lv_sdl_mousewheel_create();
+std::cout << "lv_sdl_keyboard_create()" << std::endl;
   lvKeyboard = lv_sdl_keyboard_create();
 
   mu32_LastTick = SDL_GetTicks();

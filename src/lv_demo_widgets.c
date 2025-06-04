@@ -213,11 +213,11 @@ void lv_demo_widgets(void)
         lv_obj_align_to(label, logo, LV_ALIGN_OUT_RIGHT_BOTTOM, 10, 0);
     }
 
-    profile_create(t1);
-    analytics_create(t2);
-    shop_create(t3);
+  //  profile_create(t1);
+  //  analytics_create(t2);
+  //  shop_create(t3);
 
-    color_changer_create(tv);
+  //  color_changer_create(tv);
 }
 
 void lv_demo_widgets_start_slideshow(void)

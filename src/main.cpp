@@ -8,7 +8,12 @@
 
 #include <lvgl.h>
 
+#ifdef ARDUINO
 #include "../hal/crowpanel/display.h"
+#else
+#include "../hal/sdl2/display.h"
+#endif
+
 
 #include "lv_demo_widgets.h"
 /**************************LVGL and UI END************************/
@@ -39,6 +44,8 @@ void setup()
   pinMode(42, OUTPUT);
   digitalWrite(42, LOW);
 */
+  lv_init();
+
   g_Display.setup();  // Initialize the display
 
   lv_demo_widgets();    // LVGL demo
