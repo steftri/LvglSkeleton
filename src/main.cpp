@@ -11,13 +11,19 @@
 #ifdef ARDUINO
 #include "../hal/crowpanel/display.h"
 #else
+#define SDL_MAIN_HANDLED        /*To fix SDL's "undefined reference to WinMain" issue*/
+#include <SDL2/SDL.h>
 #include "../hal/sdl2/display.h"
 #endif
 
 
-#include "lv_demo_widgets.h"
+#include "ui/ui.h"
 /**************************LVGL and UI END************************/
 
+
+extern lv_obj_t * ui_Screen1;
+extern lv_obj_t * ui_Screen2;
+extern lv_obj_t * ui_Screen3;
 
 
 Display g_Display;
@@ -48,7 +54,7 @@ void setup()
 
   g_Display.setup();  // Initialize the display
 
-  lv_demo_widgets();    // LVGL demo
+  ui_init();    // LVGL demo
   
 //  Serial.println( "Setup done" );
 
@@ -56,6 +62,17 @@ void setup()
 
 void loop()
 {
+  static bool b_SplashScreen = true;
+
+#ifdef ARDUINO
+  if(b_SplashScreen && millis()>4000) 
+#else
+  if(b_SplashScreen && SDL_GetTicks()>2000)  // Show the splash screen for 2 seconds
+#endif
+  {
+    lv_disp_load_scr(ui_Screen3); 
+    b_SplashScreen = false;
+  }
   g_Display.loop();  // Update the display
 }
 
