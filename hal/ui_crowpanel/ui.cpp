@@ -1,4 +1,4 @@
-#include "display.h"
+#include "ui.h"
 
 
 /**************************LVGL and UI************************
@@ -6,8 +6,8 @@ if you want to use the LVGL demo. you need to include <demos/lv_demos.h> and <ex
 if not, please do not include it. It will waste your Flash space.
 **************************************************************/
 #include <lvgl.h>
-#include "../hal/crowpanel/hw_display_lgfx.h"
-#include "../hal/crowpanel/display_bridge_lvgl_lgfx.h"
+#include "../hal/ui_crowpanel/hw_display_lgfx.h"
+#include "../hal/ui_crowpanel/display_bridge_lvgl_lgfx.h"
 
 
 
@@ -27,12 +27,12 @@ static DisplayBridgeLvglLgfx displayBridge(&tft);
 
 
 
-Display::Display()
+Ui::Ui()
 {
     // Constructor implementation (if needed)
 }
 
-void Display::setup()
+void Ui::setup()
 {
   //Display Prepare
   tft.begin();
@@ -65,7 +65,7 @@ void Display::setup()
 }
 
 
-void Display::loop()
+void Ui::loop()
 {
   delay(5);
   lv_tick_inc(5);

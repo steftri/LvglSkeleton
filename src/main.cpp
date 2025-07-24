@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #endif
 
+#ifdef BLADFADSF
 
 #include <lvgl.h>
 
@@ -61,12 +62,5 @@ void loop()
 
 
 
-#ifndef ARDUINO  
-int main(int argc, char *argv[])
-{
-  setup();
-  while(true)
-    loop();
-  return 0;
-}
+
 #endif

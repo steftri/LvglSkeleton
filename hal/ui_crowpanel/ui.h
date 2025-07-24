@@ -1,17 +1,17 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef UI_H
+#define UI_H
 
-#include "display_interface.h"
+#include "interfaces/ui_interface.h"
 
 
-class Display : public DisplayInterface
+class Ui : public UiInterface
 { 
 public:
     // Constructor
-    Display();
+    Ui();
 
     // Destructor
-    virtual ~Display() = default;
+    virtual ~Ui() = default;
 
     // Initialize the display
     void setup() override;

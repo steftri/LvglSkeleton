@@ -13,7 +13,7 @@ if not, please do not include it. It will waste your Flash space.
 #include "drivers/sdl/lv_sdl_mousewheel.h"
 #include "drivers/sdl/lv_sdl_keyboard.h"
 
-#include "display.h"
+#include "ui.h"
 
 
 static lv_display_t *lvDisplay;
@@ -30,14 +30,14 @@ static constexpr uint16_t screenWidth = 480;
 
 
 
-Display::Display()
+Ui::Ui()
 {
     // Constructor implementation (if needed)
 }
 
 
 
-void Display::setup()
+void Ui::setup()
 {
   // Workaround for sdl2 `-m32` crash
   // https://bugs.launchpad.net/ubuntu/+source/libsdl2/+bug/1775067/comments/7
@@ -60,7 +60,7 @@ void Display::setup()
 }
 
 
-void Display::loop()
+void Ui::loop()
 {
   uint32_t u32_CurrentTick;
 
