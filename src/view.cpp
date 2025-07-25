@@ -10,12 +10,10 @@ void View::setup(void)
   // Initialize the view components here
   // For example, setting up UI elements, loading resources, etc.
 
-  lv_init();
-
+  lv_init();  
   m_ui.setup();
-
+  
   lv_demo_widgets();    // LVGL demo
-
 }
 
 

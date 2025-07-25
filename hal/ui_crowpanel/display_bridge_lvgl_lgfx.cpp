@@ -9,7 +9,7 @@ DisplayBridgeLvglLgfx::DisplayBridgeLvglLgfx(DisplayLGFX *p_DisplayLGFX)
   mp_DisplayLGFX = p_DisplayLGFX;
 }
 
-/* Display flushing */
+
 void DisplayBridgeLvglLgfx::flushCallback(lv_display_t *disp, const lv_area_t *area, uint8_t * px_map)
 {
   uint32_t w = lv_area_get_width(area);
@@ -21,7 +21,10 @@ void DisplayBridgeLvglLgfx::flushCallback(lv_display_t *disp, const lv_area_t *a
     mp_DisplayLGFX->pushImageDMA(area->x1, area->y1, w, h, (uint16_t*)px_map);
   }
 
-  lv_disp_flush_ready( disp );
+  if(disp != nullptr)
+  {
+    lv_disp_flush_ready(disp);
+  }
 }
 
 
@@ -32,7 +35,7 @@ void DisplayBridgeLvglLgfx::readTouchpanelCallback(lv_indev_t *indev_driver, lv_
   uint16_t u16_TouchY;
   bool b_Touched;
 
-  if(mp_DisplayLGFX == nullptr)
+  if((mp_DisplayLGFX == nullptr) || (data == nullptr))
   {
     return;
   }

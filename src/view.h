@@ -1,12 +1,12 @@
 #ifndef VIEW_H
 #define VIEW_H
 
-#include "ui.h"
+#include "ui_c64.h"
 
 
 class View
 {
-  Ui m_ui;
+  UiC64 m_ui;
 
 public:
   // Constructor
