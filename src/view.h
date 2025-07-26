@@ -7,6 +7,12 @@
 #include "ui.h"
 #endif
 
+
+
+
+
+
+
 class View
 {
 #ifdef ARDUINO

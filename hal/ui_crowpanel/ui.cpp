@@ -12,8 +12,35 @@ uint8_t Ui::mau8_DispDrawBuf2[screenWidth * screenHeight / 10] __attribute__((al
 
 Ui::Ui()
   : m_DisplayBridge(&m_DisplayLGFX)
+#ifdef USE_FREERTOS  
+  , mp_lvglTaskHandle(nullptr)
+#endif  
 {
 }
+
+
+#ifdef USE_FREERTOS
+void Ui::lvglTask(void *pvParameters)
+{
+  Ui *p_ui = static_cast<Ui *>(pvParameters);
+  if(p_ui == nullptr)
+  {
+    Serial.println("Error: UI interface is null");
+    vTaskDelete(nullptr);
+    return;
+  }
+  
+  Serial.println("LVGL Task started");
+
+  p_ui->setBrightness(255);
+  while (true)
+  {
+    lv_tick_inc(5);
+    lv_timer_handler();
+    vTaskDelay(pdMS_TO_TICKS(5)); // 5 ms Delay für regelmäßige Updates
+  }
+}
+#endif
 
 
 void Ui::initDisplay(void)
@@ -22,6 +49,11 @@ void Ui::initDisplay(void)
   m_DisplayLGFX.init_without_reset();
 }
 
+
+void Ui::setBrightness(uint8_t brightness)
+{
+  m_DisplayLGFX.setBrightness(brightness);
+}
 
 
 void Ui::setup()
@@ -47,15 +79,34 @@ void Ui::setup()
   lv_indev_set_read_cb(mp_IndevTouchpad, DisplayBridgeLvglLgfx::readTouchpanelCallback);
 
   lv_timer_handler();
+
+#ifdef USE_FREERTOS
+  // Create a FreeRTOS task for LVGL updates
+  mp_lvglTaskHandle = xTaskCreateStatic(
+     lvglTask,         // Task function
+     "LVGL",           // Task name
+     LVGL_TASK_STACK_SIZE, // Stack size
+     this,                  // Parameters
+     tskIDLE_PRIORITY + 1,     // Priority
+     m_lvglTaskStack,  // Task handle
+     &m_lvglTaskBuffer // Static task buffer
+  );
+
+#else
   m_DisplayLGFX.setBrightness(255);
+#endif  
 }
 
 
 void Ui::loop()
 {
+  // If using FreeRTOS, the UI updates are handled in the lvglTask; 
+  // otherwise, call the lvgl update functions directly
+#ifndef USE_FREERTOS    
   delay(5);
   lv_tick_inc(5);
   lv_timer_handler();
+#endif  
 }
 
 
