@@ -18,6 +18,7 @@ Ui::Ui()
 
 void Ui::initDisplay(void)
 {
+  m_DisplayLGFX.setBrightness(0);
   m_DisplayLGFX.init_without_reset();
 }
 
@@ -45,6 +46,7 @@ void Ui::setup()
   lv_indev_set_type(mp_IndevTouchpad, LV_INDEV_TYPE_POINTER);
   lv_indev_set_read_cb(mp_IndevTouchpad, DisplayBridgeLvglLgfx::readTouchpanelCallback);
 
+  lv_timer_handler();
   m_DisplayLGFX.setBrightness(255);
 }
 

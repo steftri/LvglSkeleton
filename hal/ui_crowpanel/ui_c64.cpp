@@ -70,8 +70,9 @@ void UiC64::initDisplay(void)
   m_DisplayLGFX.fillRect(0, 0, screenWidth, screenHeight, C64_COLOR_PALETTE[static_cast<uint8_t>(C64Color::LIGHT_BLUE)]);
   flushScreen();
   m_DisplayLGFX.setBrightness(255);
-  setColor(C64Color::LIGHT_BLUE, C64Color::BLUE);
+  setColor(C64Color::LIGHT_BLUE, C64Color::BLUE); 
   clearScreen();
+  delay(400);
   setCursor(1, 4);
   print("**** COMMODORE 64 BASIC V2 ****");
   setCursor(3, 1);
