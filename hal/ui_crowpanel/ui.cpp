@@ -2,12 +2,22 @@
 if you want to use the LVGL demo. you need to include <demos/lv_demos.h> and <examples/lv_examples.h>. 
 if not, please do not include it. It will waste your Flash space.
 **************************************************************/
+#include <Arduino.h>
 
 #include "ui.h"
 
 
 uint8_t Ui::mau8_DispDrawBuf1[screenWidth * screenHeight / 10] __attribute__((aligned(32)));
 uint8_t Ui::mau8_DispDrawBuf2[screenWidth * screenHeight / 10] __attribute__((aligned(32)));
+
+
+void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
+{
+  Serial.print("LVGL Log [");
+  Serial.print(level);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
 
 
 Ui::Ui()
@@ -58,6 +68,10 @@ void Ui::setBrightness(uint8_t brightness)
 
 void Ui::setup()
 {
+  #if LV_USE_LOG != 0
+  lv_log_register_print_cb(lv_log_print_g_cb);
+  #endif
+
   lv_init();
 
   initDisplay();

@@ -15,7 +15,7 @@ void View::setup(void)
   lv_init();  
   m_ui.setup();
   
-  lv_demo_widgets();    // LVGL demo
+  m_LvMain.setup();
 }
 
 
