@@ -11,6 +11,8 @@ Controller::Controller(Model *p_model, View *p_view)
 
 void Controller::setup(void)
 {
+  m_os.setup(); // Initialize the OS interface
+
   // Initialize the model and view
   if(mp_model != nullptr)
   {
@@ -25,6 +27,8 @@ void Controller::setup(void)
 
 void Controller::loop(void)
 {
+  m_os.loop(); // Call the OS loop function
+
   // Update the model and view
   if(mp_model != nullptr)
   {

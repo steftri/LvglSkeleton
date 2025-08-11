@@ -27,6 +27,10 @@ static constexpr uint16_t screenHeight = 800;
 static constexpr uint16_t screenWidth = 480;
 
 
+void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
+{
+  std::cerr << "LVGL Log [" << level << "]: " << buf << std::endl;
+}
 
 
 
@@ -45,9 +49,11 @@ void Ui::setup()
       setenv("DBUS_FATAL_WARNINGS", "0", 1);
   #endif
 
+  /*
   #if LV_USE_LOG != 0
   lv_log_register_print_cb(lv_log_print_g_cb);
   #endif
+  */
 
   /* Add a display
    * Use the 'monitor' driver which creates window on PC's monitor to simulate a display */

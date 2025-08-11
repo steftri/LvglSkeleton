@@ -5,10 +5,18 @@
 #include "view.h"
 
 
+#include "os.h"
+
+
+
+
+
 class Controller
 {
   Model *mp_model; // Pointer to the model
   View *mp_view;   // Pointer to the view
+
+  Os m_os; // OS interface
 
 public:
   // Constructor

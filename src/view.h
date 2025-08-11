@@ -7,6 +7,12 @@
 #include "ui.h"
 #endif
 
+
+#include "view/lv_main.h"
+
+
+
+
 class View
 {
 #ifdef ARDUINO
@@ -14,6 +20,8 @@ class View
 #else
   Ui m_ui;
 #endif
+
+  LvMain m_LvMain;
 
 public:
   // Constructor

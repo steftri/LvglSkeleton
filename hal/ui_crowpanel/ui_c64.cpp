@@ -49,8 +49,6 @@ UiC64::UiC64()
   : mu8_CursorX(0)
   , mu8_CursorY(0)
 {
-  randomSeed(analogRead(0));
-
   // Initialize the screen buffer
   for (uint8_t u8_Row = 0; u8_Row < MAX_C64_ROWS; u8_Row++)
   {

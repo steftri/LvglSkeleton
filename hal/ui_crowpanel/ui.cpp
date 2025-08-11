@@ -2,6 +2,7 @@
 if you want to use the LVGL demo. you need to include <demos/lv_demos.h> and <examples/lv_examples.h>. 
 if not, please do not include it. It will waste your Flash space.
 **************************************************************/
+#include <Arduino.h>
 
 #include "ui.h"
 
@@ -10,10 +11,46 @@ uint8_t Ui::mau8_DispDrawBuf1[screenWidth * screenHeight / 10] __attribute__((al
 uint8_t Ui::mau8_DispDrawBuf2[screenWidth * screenHeight / 10] __attribute__((aligned(32)));
 
 
+void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
+{
+  Serial.print("LVGL Log [");
+  Serial.print(level);
+  Serial.print("]: ");
+  Serial.println(buf);
+}
+
+
 Ui::Ui()
   : m_DisplayBridge(&m_DisplayLGFX)
+#ifdef USE_FREERTOS  
+  , mp_lvglTaskHandle(nullptr)
+#endif  
 {
 }
+
+
+#ifdef USE_FREERTOS
+void Ui::lvglTask(void *pvParameters)
+{
+  Ui *p_ui = static_cast<Ui *>(pvParameters);
+  if(p_ui == nullptr)
+  {
+    Serial.println("Error: UI interface is null");
+    vTaskDelete(nullptr);
+    return;
+  }
+  
+  Serial.println("LVGL Task started");
+
+  p_ui->setBrightness(255);
+  while (true)
+  {
+    lv_tick_inc(5);
+    lv_timer_handler();
+    vTaskDelay(pdMS_TO_TICKS(5)); // 5 ms Delay für regelmäßige Updates
+  }
+}
+#endif
 
 
 void Ui::initDisplay(void)
@@ -23,9 +60,18 @@ void Ui::initDisplay(void)
 }
 
 
+void Ui::setBrightness(uint8_t brightness)
+{
+  m_DisplayLGFX.setBrightness(brightness);
+}
+
 
 void Ui::setup()
 {
+  #if LV_USE_LOG != 0
+  lv_log_register_print_cb(lv_log_print_g_cb);
+  #endif
+
   lv_init();
 
   initDisplay();
@@ -47,15 +93,34 @@ void Ui::setup()
   lv_indev_set_read_cb(mp_IndevTouchpad, DisplayBridgeLvglLgfx::readTouchpanelCallback);
 
   lv_timer_handler();
+
+#ifdef USE_FREERTOS
+  // Create a FreeRTOS task for LVGL updates
+  mp_lvglTaskHandle = xTaskCreateStatic(
+     lvglTask,         // Task function
+     "LVGL",           // Task name
+     LVGL_TASK_STACK_SIZE, // Stack size
+     this,                  // Parameters
+     tskIDLE_PRIORITY + 1,     // Priority
+     m_lvglTaskStack,  // Task handle
+     &m_lvglTaskBuffer // Static task buffer
+  );
+
+#else
   m_DisplayLGFX.setBrightness(255);
+#endif  
 }
 
 
 void Ui::loop()
 {
+  // If using FreeRTOS, the UI updates are handled in the lvglTask; 
+  // otherwise, call the lvgl update functions directly
+#ifndef USE_FREERTOS    
   delay(5);
   lv_tick_inc(5);
   lv_timer_handler();
+#endif  
 }
 
 
