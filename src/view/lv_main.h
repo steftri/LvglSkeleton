@@ -18,7 +18,9 @@ public:
 
   void setup(void);
 
-  void setWifiSymbolVisible(bool visible);
+  void updateWlanSymbol(void);
+
+  LvTabSettings *getTabSettings(void);
 };
 
 

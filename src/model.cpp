@@ -41,3 +41,7 @@ Settings *Model::getSettings(void)
   return &m_Settings;
 }
 
+Data *Model::getData(void)
+{
+  return &m_Data;
+}

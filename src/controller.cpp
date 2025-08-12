@@ -11,6 +11,16 @@ Controller::Controller(Model *p_model, View *p_view)
 
 void Controller::setup(void)
 {
+  const char *pac_AvailableNetworks[] = {
+    "Network1",
+    "Network2",
+    "Network3"
+  };
+  mp_model->getData()->getWifiData()->setAvaliableNetworks(pac_AvailableNetworks, 3); // Example networks
+  mp_model->getData()->getWifiData()->setSelectedNetwork(0); // Select the first network
+  mp_model->getData()->getWifiData()->setNetworkPassword("password123"); // Set password for the selected network
+  mp_model->getData()->getWifiData()->setIPAddress(192, 168, 1, 100); // Example IP address
+
   m_os.setup(); // Initialize the OS interface
 
   // Initialize the model and view

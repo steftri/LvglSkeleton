@@ -26,10 +26,10 @@ Settings::ERc Settings::save(void)
 {
   uint8_t au8_VersionBuffer[2];
 
-  uint8_t au8_WifiSettingBuffer[WIFI_SETTINGS_SIZE];
+  uint8_t au8_WifiSettingBuffer[WifiSettings::WIFI_SETTINGS_SIZE];
   uint16_t u16_WifiSettingSize; 
 
-  uint8_t au8_MqttSettingBuffer[MQTT_SETTINGS_SIZE];
+  uint8_t au8_MqttSettingBuffer[MqttSettings::MQTT_SETTINGS_SIZE];
   uint16_t u16_MqttSettingSize; 
 
   CRC32 crc;
@@ -76,9 +76,9 @@ Settings::ERc Settings::load(void)
   uint8_t au8_VersionBuffer[2];
   uint16_t u16_Version;
   
-  uint8_t au8_WifiSettingBuffer[WIFI_SETTINGS_SIZE];
+  uint8_t au8_WifiSettingBuffer[WifiSettings::WIFI_SETTINGS_SIZE];
 
-  uint8_t au8_MqttSettingBuffer[MQTT_SETTINGS_SIZE];
+  uint8_t au8_MqttSettingBuffer[MqttSettings::MQTT_SETTINGS_SIZE];
 
   CRC32 crc;
   uint32_t u32_crc;
@@ -110,12 +110,12 @@ Settings::ERc Settings::load(void)
   }
 
   // load WIFI settings to flat buffer
-  m_DataStorage.read(au8_WifiSettingBuffer, WIFI_SETTINGS_SIZE);
-  crc.add(au8_WifiSettingBuffer, WIFI_SETTINGS_SIZE);  
+  m_DataStorage.read(au8_WifiSettingBuffer, WifiSettings::WIFI_SETTINGS_SIZE);
+  crc.add(au8_WifiSettingBuffer, WifiSettings::WIFI_SETTINGS_SIZE);  
 
   // load MQTT settings to flat buffer
-  m_DataStorage.read(au8_MqttSettingBuffer, MQTT_SETTINGS_SIZE);
-  crc.add(au8_MqttSettingBuffer, MQTT_SETTINGS_SIZE);  
+  m_DataStorage.read(au8_MqttSettingBuffer, MqttSettings::MQTT_SETTINGS_SIZE);
+  crc.add(au8_MqttSettingBuffer, MqttSettings::MQTT_SETTINGS_SIZE);  
 
   u32_crc  = static_cast<uint32_t>(m_DataStorage.read())<<24;
   u32_crc |= static_cast<uint32_t>(m_DataStorage.read())<<16;

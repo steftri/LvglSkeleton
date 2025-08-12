@@ -24,17 +24,14 @@ void View::loop(void)
 }
 
 
-void View::onWifiStateChange(void)
+void View::updateWlanState(void)
 {
-  static bool b_Visible = false;
-
-  b_Visible = !b_Visible;
-
-  /* TODO: implement; for now, simply toggle it */
-  m_LvMain.setWifiSymbolVisible(b_Visible);
+  m_LvMain.updateWlanSymbol();
+  m_LvMain.getTabSettings()->updateWlanStatePanel();
 }
 
 
-void View::onWifiListChange(void)
+void View::updateWlanList(void)
 {
+  m_LvMain.getTabSettings()->updateWlanSelectList();
 }

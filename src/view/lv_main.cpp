@@ -1,7 +1,12 @@
 #include "lv_main.h"
+#include "controller.h"
 
 
 static const uint8_t SCREEN_BAR_HEIGHT = 32;
+
+
+extern Controller g_controller;
+
 
 LvMain::LvMain(void)
 {
@@ -32,19 +37,7 @@ void LvMain::setup(void)
     lv_obj_t *p_TitleBar = lv_obj_create(p_Grid);
     {
       lv_obj_set_grid_cell(p_TitleBar, LV_GRID_ALIGN_STRETCH, 0, 1,  //column
-                                  LV_GRID_ALIGN_STRETCH, 0, 1);      //row
-
-      /*
-      static lv_style_t StyleTitleBar;
-      lv_style_init(&StyleTitleBar);
-      lv_style_set_bg_color(&StyleTitleBar, lv_color_white());
-      lv_style_set_bg_opa(&StyleTitleBar, LV_OPA_100);
-      lv_style_set_border_side(&StyleTitleBar, LV_BORDER_SIDE_BOTTOM);
-      lv_style_set_border_width(&StyleTitleBar, 1);
-      lv_style_set_border_color(&StyleTitleBar, lv_palette_main(LV_PALETTE_GREY));     
-      lv_obj_remove_style_all(p_TitleBar);
-      lv_obj_add_style(p_TitleBar, &StyleTitleBar, LV_STATE_DEFAULT);
-      */
+                                       LV_GRID_ALIGN_STRETCH, 0, 1); //row
 
       lv_obj_remove_style_all(p_TitleBar);
       lv_obj_set_size(p_TitleBar, lv_pct(100), SCREEN_BAR_HEIGHT);
@@ -61,7 +54,7 @@ void LvMain::setup(void)
       mp_WifiSymbol = lv_label_create(p_TitleBar);
       lv_obj_align(mp_WifiSymbol, LV_ALIGN_RIGHT_MID, 0, 0);
       lv_label_set_text(mp_WifiSymbol, LV_SYMBOL_WIFI);
-      setWifiSymbolVisible(false); // Initially hide the WiFi symbol
+      lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
     }
 
 
@@ -91,19 +84,26 @@ void LvMain::setup(void)
 }
 
 
-void LvMain::setWifiSymbolVisible(bool visible)
+LvTabSettings *LvMain::getTabSettings(void)
 {
-  if(mp_WifiSymbol != nullptr)
+  return &m_TabSettings;
+}
+
+
+void LvMain::updateWlanSymbol(void)
+{
+  if(mp_WifiSymbol == nullptr)
+    return;
+
+  WifiData::EState e_State = g_controller.getModel()->getData()->getWifiData()->getState();
+  if(e_State == WifiData::EState::Connected)
   {
-    if(visible)
-    {
-      lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-      LV_LOG_USER("Wifi visible");
-    }
-    else
-    {
-      lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-      LV_LOG_USER("Wifi hidden");
-    }
+    lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
+    LV_LOG_USER("Wifi visible");
+  }
+  else
+  {
+    lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
+    LV_LOG_USER("Wifi hidden");
   }
 }

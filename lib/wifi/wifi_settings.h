@@ -13,12 +13,6 @@
 
 #include <inttypes.h>
 
-#define MAX_WIFI_NETWORKS           4
-#define MAX_SSID_LENGTH            32
-#define MAX_WPA2_PASSWORD_LENGTH   63
-
-#define WIFI_SETTINGS_SIZE        (1+MAX_WIFI_NETWORKS*(MAX_SSID_LENGTH+MAX_WPA2_PASSWORD_LENGTH))
-
 /**
  * @class WifiSettings
  * @brief Manages Wi-Fi network settings including SSID and password.
@@ -28,6 +22,10 @@
  */
 class WifiSettings
 {
+  static const uint8_t MAX_WIFI_NETWORKS = 8; ///< Maximum number of Wi-Fi networks
+  static const uint8_t MAX_SSID_LENGTH = 32; ///< Maximum length of SSID
+  static const uint8_t MAX_WPA2_PASSWORD_LENGTH = 63; ///< Maximum length of WPA2 password
+
   struct 
   {
     char ac_SSID[MAX_SSID_LENGTH+1]; ///< SSID of the Wi-Fi network
@@ -37,6 +35,8 @@ class WifiSettings
   uint8_t mu8_WifiNetworkCount; ///< Number of Wi-Fi networks stored
 
 public:
+  static const uint16_t WIFI_SETTINGS_SIZE = 1UL + MAX_WIFI_NETWORKS * (MAX_SSID_LENGTH + MAX_WPA2_PASSWORD_LENGTH); ///< Size of the Wi-Fi settings in bytes
+
   WifiSettings(void);
 
   void init(void);

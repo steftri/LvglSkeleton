@@ -1,3 +1,4 @@
+#include "lv_tab_settings.h"
 #include "lv_main.h"
 
 
@@ -35,9 +36,92 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
       lv_obj_add_event_cb(mp_WlanEnableSwitch, wlanEnableCallback, LV_EVENT_CLICKED, NULL);
       lv_obj_align_to(p_WlanEnableLabel, mp_WlanEnableSwitch, LV_ALIGN_OUT_TOP_MID, 0, -15);
     }
+
+    mp_WlanStatePanel = lv_obj_create(p_WlanPanel);
+    {
+      lv_obj_set_size(mp_WlanStatePanel, lv_pct(100), LV_SIZE_CONTENT);
+      lv_obj_set_flex_flow(mp_WlanStatePanel, LV_FLEX_FLOW_COLUMN);
+
+      mp_CurrentWlan = lv_label_create(mp_WlanStatePanel); 
+      lv_label_set_text(mp_CurrentWlan, "");
+      mp_CurrentIp = lv_label_create(mp_WlanStatePanel); 
+      lv_label_set_text(mp_CurrentIp, "");
+    }
+
+    mp_WlanSelectList = lv_list_create(p_WlanPanel);
+    {
+      lv_obj_set_size(mp_WlanSelectList, lv_pct(100), LV_SIZE_CONTENT);
+
+      //lv_obj_set_style_pad_row(p_WlanSelectList, 4, 0);
+
+      /*Add buttons to the list*/
+      for(uint8_t i = 0; i < WifiData::MAX_WIFI_NETWORKS; i++) 
+      {
+        mp_WlanSsidButton[i] = lv_list_add_button(mp_WlanSelectList, nullptr, nullptr);
+        mp_WlanSsidLabel[i] = lv_label_create(mp_WlanSsidButton[i]);
+        lv_obj_add_flag(mp_WlanSsidButton[i], LV_OBJ_FLAG_HIDDEN);
+      }
+    }  
+    updateWlanStatePanel();
+    updateWlanSelectList(); // Populate the Wi-Fi list with available networks
+      
   }
 }
 
+
+void LvTabSettings::updateWlanStatePanel(void)
+{
+  WifiData *p_WifiData = g_controller.getModel()->getData()->getWifiData();
+  char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
+  WifiData::EState e_WifiState = p_WifiData->getState();
+
+  if(e_WifiState == WifiData::EState::Disabled)
+  {
+    lv_obj_add_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
+  }
+  else
+  {
+    if(e_WifiState == WifiData::EState::Connected || e_WifiState == WifiData::EState::Connecting)
+    {
+      lv_obj_clear_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+    }
+    else
+    {
+      lv_obj_add_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_obj_clear_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
+  }
+
+  p_WifiData->getSelectedNetwork(ac_Ssid, nullptr);
+  lv_label_set_text(mp_CurrentWlan, ac_Ssid);
+
+  uint8_t au8_IPAddress[4];
+  p_WifiData->getIPAddress(au8_IPAddress);
+  lv_label_set_text_fmt(mp_CurrentIp, "%d.%d.%d.%d", au8_IPAddress[0], au8_IPAddress[1], au8_IPAddress[2], au8_IPAddress[3]);
+}
+
+
+
+void LvTabSettings::updateWlanSelectList(void)
+{
+  uint8_t u8_NumberOfNetworks = g_controller.getModel()->getData()->getWifiData()->getAvailableNetworkCount();
+    
+  for(uint8_t i = 0; i < WifiData::MAX_WIFI_NETWORKS; i++) 
+  {
+    if(i<u8_NumberOfNetworks)
+    {
+      char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
+      g_controller.getModel()->getData()->getWifiData()->getAvailableNetwork(ac_Ssid, sizeof(ac_Ssid), i);
+      lv_obj_clear_flag(mp_WlanSsidButton[i], LV_OBJ_FLAG_HIDDEN);
+      lv_label_set_text(mp_WlanSsidLabel[i], ac_Ssid);
+    } 
+    else 
+    {
+      lv_obj_add_flag(mp_WlanSsidButton[i], LV_OBJ_FLAG_HIDDEN);
+    }
+  }
+}
 
 
 
@@ -47,5 +131,6 @@ void LvTabSettings::wlanEnableCallback(lv_event_t *p_Event)
   bool b_IsChecked = lv_obj_has_state(p_Switch, LV_STATE_CHECKED);
   
   LV_LOG_USER("WLAN Enable Switch is %s", b_IsChecked ? "ON" : "OFF");
-  g_controller.getView()->onWifiStateChange();
+  g_controller.getModel()->getData()->getWifiData()->setState(b_IsChecked?WifiData::EState::Connected:WifiData::EState::Disabled);
+  g_controller.getView()->updateWlanState();
 }
