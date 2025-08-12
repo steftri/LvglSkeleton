@@ -33,7 +33,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
       lv_label_set_text(p_WlanEnableLabel, "WLAN");
 
       mp_WlanEnableSwitch = lv_switch_create(p_WlanEnablePanel);
-      lv_obj_add_event_cb(mp_WlanEnableSwitch, wlanEnableCallback, LV_EVENT_CLICKED, NULL);
+      lv_obj_add_event_cb(mp_WlanEnableSwitch, onWlanEnableCallback, LV_EVENT_CLICKED, NULL);
       lv_obj_align_to(p_WlanEnableLabel, mp_WlanEnableSwitch, LV_ALIGN_OUT_TOP_MID, 0, -15);
     }
 
@@ -58,6 +58,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
       for(uint8_t i = 0; i < WifiData::MAX_WIFI_NETWORKS; i++) 
       {
         mp_WlanSsidButton[i] = lv_list_add_button(mp_WlanSelectList, nullptr, nullptr);
+        lv_obj_add_event_cb(mp_WlanSsidButton[i], onWlanSsidButtonCallback, LV_EVENT_CLICKED, nullptr);
         mp_WlanSsidLabel[i] = lv_label_create(mp_WlanSsidButton[i]);
         lv_obj_add_flag(mp_WlanSsidButton[i], LV_OBJ_FLAG_HIDDEN);
       }
@@ -125,7 +126,7 @@ void LvTabSettings::updateWlanSelectList(void)
 
 
 
-void LvTabSettings::wlanEnableCallback(lv_event_t *p_Event)
+void LvTabSettings::onWlanEnableCallback(lv_event_t *p_Event)
 {
   lv_obj_t *p_Switch = lv_event_get_target_obj(p_Event);
   bool b_IsChecked = lv_obj_has_state(p_Switch, LV_STATE_CHECKED);
@@ -133,4 +134,36 @@ void LvTabSettings::wlanEnableCallback(lv_event_t *p_Event)
   LV_LOG_USER("WLAN Enable Switch is %s", b_IsChecked ? "ON" : "OFF");
   g_controller.getModel()->getData()->getWifiData()->setState(b_IsChecked?WifiData::EState::Connected:WifiData::EState::Disabled);
   g_controller.getView()->updateWlanState();
+}
+
+
+void LvTabSettings::onWlanSsidButtonCallback(lv_event_t *p_Event)
+{
+  lv_obj_t *p_Button = lv_event_get_target_obj(p_Event);
+  lv_obj_t *p_List = lv_obj_get_parent(p_Button);
+  uint8_t u8_Index;
+
+  if(p_List == nullptr)
+  {
+    LV_LOG_ERROR("Parent list not found for the button");
+    return;
+  }
+
+  // Find the index of the button in the list
+  for(u8_Index = 0; u8_Index < lv_obj_get_child_count(p_List); u8_Index++) 
+  {
+    if(p_Button == lv_obj_get_child(p_List, u8_Index)) 
+    {
+      break;
+    }
+  }
+
+  if(u8_Index < WifiData::MAX_WIFI_NETWORKS) 
+  {
+    LV_LOG_USER("Selected Wi-Fi network %d", u8_Index);
+    g_controller.getModel()->getData()->getWifiData()->setSelectedNetwork(u8_Index);
+    g_controller.getView()->updateWlanState();
+
+    g_controller.getView()->showWlanPasswordDialog();
+  }
 }

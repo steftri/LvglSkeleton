@@ -12,7 +12,6 @@
 
 
 
-
 class View
 {
 #ifdef ARDUINO
@@ -38,6 +37,8 @@ public:
 
   void updateWlanState(void);
   void updateWlanList(void);
+
+  void showWlanPasswordDialog(void);
 };
 
 #endif // VIEW_H

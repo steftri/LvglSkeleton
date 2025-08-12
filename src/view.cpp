@@ -35,3 +35,9 @@ void View::updateWlanList(void)
 {
   m_LvMain.getTabSettings()->updateWlanSelectList();
 }
+
+
+void View::showWlanPasswordDialog(void)
+{
+  m_LvMain.showWlanPasswordDialog();
+}

@@ -79,6 +79,7 @@ void LvMain::setup(void)
       }
 
       m_TabSettings.setup(p_TabSettings);
+      m_WlanPasswordDialogbox.setup(p_TabSettings);
     }
   }
 }
@@ -87,6 +88,15 @@ void LvMain::setup(void)
 LvTabSettings *LvMain::getTabSettings(void)
 {
   return &m_TabSettings;
+}
+
+
+void LvMain::showWlanPasswordDialog(void)
+{
+  char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
+  g_controller.getModel()->getData()->getWifiData()->getSelectedNetwork(ac_Ssid, nullptr);
+  
+  m_WlanPasswordDialogbox.show(ac_Ssid, nullptr);
 }
 
 

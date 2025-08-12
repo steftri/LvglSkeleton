@@ -16,7 +16,8 @@ class LvTabSettings
   lv_obj_t *mp_WlanSsidLabel[WifiData::MAX_WIFI_NETWORKS];
 
 private:
-  static void wlanEnableCallback(lv_event_t *p_Event);
+  static void onWlanEnableCallback(lv_event_t *p_Event);
+  static void onWlanSsidButtonCallback(lv_event_t *p_Event);
 
 public:
   LvTabSettings();
