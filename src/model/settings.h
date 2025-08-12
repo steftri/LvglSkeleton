@@ -4,7 +4,7 @@
 
 #include <inttypes.h>
 
-#include "data.h"
+#include "datastorage.h"
 
 #include "wifi_settings.h"
 #include "mqtt_settings.h"
@@ -22,7 +22,7 @@ public:
   };
 
 private:
-  Data m_Data;
+  DataStorage m_DataStorage;
   WifiSettings m_WifiSettings;
   MqttSettings m_MqttSettings;
   bool mb_Valid;

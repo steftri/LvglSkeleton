@@ -35,34 +35,34 @@ Settings::ERc Settings::save(void)
   CRC32 crc;
   uint32_t u32_crc;
 
-  m_Data.open(Data::EMode::Write);
-  m_Data.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>24));
-  m_Data.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>16));
-  m_Data.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>8));
-  m_Data.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC));
+  m_DataStorage.open(DataStorage::EMode::Write);
+  m_DataStorage.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>24));
+  m_DataStorage.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>16));
+  m_DataStorage.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>8));
+  m_DataStorage.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC));
 
   au8_VersionBuffer[0] = static_cast<uint8_t>(EEPROM_SETTINGS_VERSION>>8);
   au8_VersionBuffer[1] = static_cast<uint8_t>(EEPROM_SETTINGS_VERSION);
-  m_Data.write(au8_VersionBuffer, 2);  
+  m_DataStorage.write(au8_VersionBuffer, 2);  
   crc.add(au8_VersionBuffer, 2);
   
   // serialize and store WIFI settings 
   u16_WifiSettingSize = m_WifiSettings.serialize(au8_WifiSettingBuffer, sizeof(au8_WifiSettingBuffer));
-  m_Data.write(au8_WifiSettingBuffer, u16_WifiSettingSize);  
+  m_DataStorage.write(au8_WifiSettingBuffer, u16_WifiSettingSize);  
   crc.add(au8_WifiSettingBuffer, u16_WifiSettingSize);
 
   // serialize and store MQTT settings 
   u16_MqttSettingSize = m_MqttSettings.serialize(au8_MqttSettingBuffer, sizeof(au8_MqttSettingBuffer));
-  m_Data.write(au8_MqttSettingBuffer, u16_MqttSettingSize);  
+  m_DataStorage.write(au8_MqttSettingBuffer, u16_MqttSettingSize);  
   crc.add(au8_MqttSettingBuffer, u16_MqttSettingSize);
 
   u32_crc = crc.getResult();
-  m_Data.write(static_cast<uint8_t>(u32_crc>>24));
-  m_Data.write(static_cast<uint8_t>(u32_crc>>16));
-  m_Data.write(static_cast<uint8_t>(u32_crc>>8));
-  m_Data.write(static_cast<uint8_t>(u32_crc));  
+  m_DataStorage.write(static_cast<uint8_t>(u32_crc>>24));
+  m_DataStorage.write(static_cast<uint8_t>(u32_crc>>16));
+  m_DataStorage.write(static_cast<uint8_t>(u32_crc>>8));
+  m_DataStorage.write(static_cast<uint8_t>(u32_crc));  
 
-  m_Data.close();
+  m_DataStorage.close();
 
   mb_Valid = true;
   return ERc::Ok;     
@@ -85,44 +85,44 @@ Settings::ERc Settings::load(void)
 
   mb_Valid = false;
 
-  m_Data.open(Data::EMode::Read);
+  m_DataStorage.open(DataStorage::EMode::Read);
 
-  u32_Magic  = static_cast<uint32_t>(m_Data.read())<<24;
-  u32_Magic |= static_cast<uint32_t>(m_Data.read())<<16;
-  u32_Magic |= static_cast<uint32_t>(m_Data.read())<<8;
-  u32_Magic |= static_cast<uint32_t>(m_Data.read()); 
+  u32_Magic  = static_cast<uint32_t>(m_DataStorage.read())<<24;
+  u32_Magic |= static_cast<uint32_t>(m_DataStorage.read())<<16;
+  u32_Magic |= static_cast<uint32_t>(m_DataStorage.read())<<8;
+  u32_Magic |= static_cast<uint32_t>(m_DataStorage.read()); 
 
   if(u32_Magic != EEPROM_SETTINGS_MAGIC)
   {
-    m_Data.close();
+    m_DataStorage.close();
     return ERc::NotFoundError;     
   }
 
   for(uint16_t i=0; i<2; i++)
-    au8_VersionBuffer[i] = m_Data.read();
+    au8_VersionBuffer[i] = m_DataStorage.read();
   crc.add(au8_VersionBuffer, 2);    
 
   u16_Version = (static_cast<uint16_t>(au8_VersionBuffer[0])<<8) | static_cast<uint16_t>(au8_VersionBuffer[1]);
   if(u16_Version!=EEPROM_SETTINGS_VERSION)
   {
-    m_Data.close();
+    m_DataStorage.close();
     return ERc::VersionMismatchError;
   }
 
   // load WIFI settings to flat buffer
-  m_Data.read(au8_WifiSettingBuffer, WIFI_SETTINGS_SIZE);
+  m_DataStorage.read(au8_WifiSettingBuffer, WIFI_SETTINGS_SIZE);
   crc.add(au8_WifiSettingBuffer, WIFI_SETTINGS_SIZE);  
 
   // load MQTT settings to flat buffer
-  m_Data.read(au8_MqttSettingBuffer, MQTT_SETTINGS_SIZE);
+  m_DataStorage.read(au8_MqttSettingBuffer, MQTT_SETTINGS_SIZE);
   crc.add(au8_MqttSettingBuffer, MQTT_SETTINGS_SIZE);  
 
-  u32_crc  = static_cast<uint32_t>(m_Data.read())<<24;
-  u32_crc |= static_cast<uint32_t>(m_Data.read())<<16;
-  u32_crc |= static_cast<uint32_t>(m_Data.read())<<8;
-  u32_crc |= static_cast<uint32_t>(m_Data.read()); 
+  u32_crc  = static_cast<uint32_t>(m_DataStorage.read())<<24;
+  u32_crc |= static_cast<uint32_t>(m_DataStorage.read())<<16;
+  u32_crc |= static_cast<uint32_t>(m_DataStorage.read())<<8;
+  u32_crc |= static_cast<uint32_t>(m_DataStorage.read()); 
 
-  m_Data.close();
+  m_DataStorage.close();
 
   if(u32_crc != crc.getResult())
   {

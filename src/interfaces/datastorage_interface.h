@@ -1,10 +1,10 @@
-#ifndef DATA_INTERFACE_H
-#define DATA_INTERFACE_H
+#ifndef DATASTORAGE_INTERFACE_H
+#define DATASTORAGE_INTERFACE_H
 
 #include <inttypes.h>
 
 
-class DataInterface
+class DataStorageInterface
 {
 public:
   enum class ERc
@@ -19,7 +19,7 @@ public:
     Write
   };
 
-  virtual ~DataInterface() = default; 
+  virtual ~DataStorageInterface() = default; 
 
   virtual ERc open(const EMode e_Mode) = 0;
   virtual ERc close(void) = 0;
@@ -33,4 +33,4 @@ public:
 
 
 
-#endif  // DATA_INTERFACE_H
+#endif  // DATASTORAGE_INTERFACE_H

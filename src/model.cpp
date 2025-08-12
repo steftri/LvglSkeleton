@@ -24,7 +24,6 @@ void Model::setup(void)
     {
       Os::log("Settings verification failed, using defaults.");
     }
-    m_Settings.save();
   }
 }
 

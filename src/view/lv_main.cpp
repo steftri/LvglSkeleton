@@ -14,7 +14,7 @@ void LvMain::setup(void)
   lv_theme_t *p_Theme = lv_theme_default_init(nullptr,  /*Use the DPI, size, etc from this display*/
                                         lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_CYAN),   /*Primary and secondary palette*/
                                         false,    /* false = Light or true = dark mode*/
-                                        &lv_font_montserrat_14); 
+                                        &lv_font_montserrat_18); 
 
   lv_disp_set_theme(nullptr, p_Theme); /*Assign the theme to the display*/
 

@@ -1,18 +1,16 @@
-#ifndef DATA_H
-#define DATA_H
+#ifndef DATASTORAGE_H
+#define DATASTORAGE_H
 
-#include <stdio.h>
-
-#include "interfaces/data_interface.h"
+#include "interfaces/datastorage_interface.h"
 
 
-class Data : public DataInterface
+class DataStorage : public DataStorageInterface
 {
-  FILE *mp_File; // Pointer to the file for reading/writing
+  uint16_t mu16_EepromPos; // Position in EEPROM for reading/writing
   EMode me_Mode; // Current mode of the data interface (Read/Write)
 
 public:
-  Data();
+  DataStorage();
 
   ERc open(const EMode e_Mode) override;
   ERc close(void) override;
@@ -25,4 +23,4 @@ public:
 };
 
 
-#endif // DATA_H
+#endif // DATASTORAGE_H
