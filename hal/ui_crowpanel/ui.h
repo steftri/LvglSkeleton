@@ -1,6 +1,7 @@
 #ifndef UI_H
 #define UI_H
 
+#include <inttypes.h>
 #include <lvgl.h>
 
 #ifdef USE_FREERTOS
@@ -52,6 +53,9 @@ protected:
   DisplayLGFX m_DisplayLGFX;
 
   virtual void initDisplay(void);
+
+private: 
+  void initBacklight(void);
 };
 
 

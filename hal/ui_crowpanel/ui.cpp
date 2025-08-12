@@ -3,6 +3,7 @@ if you want to use the LVGL demo. you need to include <demos/lv_demos.h> and <ex
 if not, please do not include it. It will waste your Flash space.
 **************************************************************/
 #include <Arduino.h>
+#include <driver/ledc.h> // Include LEDC driver for ledc_timer_config_t and related functions
 
 #include "ui.h"
 
@@ -16,7 +17,7 @@ void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
   Serial.print("LVGL Log [");
   Serial.print(level);
   Serial.print("]: ");
-  Serial.println(buf);
+  Serial.print(buf);
 }
 
 
@@ -53,6 +54,32 @@ void Ui::lvglTask(void *pvParameters)
 #endif
 
 
+void Ui::initBacklight(void)
+{
+  ledc_timer_config_t LedcTimer = 
+  {
+    .speed_mode = LEDC_LOW_SPEED_MODE,
+    .duty_resolution = LEDC_TIMER_13_BIT,
+    .timer_num = LEDC_TIMER_0,
+    .freq_hz = 1000,
+    .clk_cfg = LEDC_AUTO_CLK
+  };
+  ledc_channel_config_t LedcChannel = 
+  {
+    .gpio_num = GPIO_NUM_2, // Backlight pin
+    .speed_mode = LEDC_LOW_SPEED_MODE,
+    .channel = LEDC_CHANNEL_0,
+    .intr_type = LEDC_INTR_DISABLE,
+    .timer_sel = LEDC_TIMER_0,
+    .duty = 0,
+    .hpoint = 0
+  };
+
+  ledc_timer_config(&LedcTimer);
+  ledc_channel_config(&LedcChannel);
+}
+
+
 void Ui::initDisplay(void)
 {
   m_DisplayLGFX.setBrightness(0);
@@ -72,8 +99,7 @@ void Ui::setup()
   lv_log_register_print_cb(lv_log_print_g_cb);
   #endif
 
-  lv_init();
-
+  initBacklight();
   initDisplay();
   m_DisplayLGFX.setRotation(1);
 

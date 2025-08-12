@@ -4,24 +4,23 @@
 #include <Arduino.h>   // needed for service delay
 #endif
 
-#include "ArduinoLibrarySkeleton.h"
+#include "crc32.h"
 
 
 
-ArduinoLibrarySkeleton myArduinoLibrary;
+CRC32 myCrc32Library;
 
 
 
 void setUp(void) 
 {
   // set stuff up here
-  (void)myArduinoLibrary.begin();
+  (void)myCrc32Library.init();
 }
 
 void tearDown(void) 
 {
   // clean stuff up here
-  myArduinoLibrary.end();
 }
 
 
@@ -29,15 +28,16 @@ void tearDown(void)
 void default_value_test(void) 
 {
   // check default value
-  TEST_ASSERT_EQUAL_UINT32(0, myArduinoLibrary.getValue());
+  TEST_ASSERT_EQUAL_UINT32(0, myCrc32Library.get());
 }
 
 
 void set_value_test(void) 
 {
   // check set value
-  myArduinoLibrary.setValue(4711);
-  TEST_ASSERT_EQUAL_UINT32(4711, myArduinoLibrary.getValue());
+  myCrc32Library.init();
+  myCrc32Library.add(47);
+  TEST_ASSERT_EQUAL_UINT32(47, myCrc32Library.get());
 }
 
 

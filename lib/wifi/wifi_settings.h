@@ -1,0 +1,52 @@
+/**
+ * @file wifi_settings.h
+ * @brief This file contains the definition of the WifiSettings class, which manages Wi-Fi network settings.
+ *
+ * The WifiSettings class allows for the initialization, setting, and retrieval of Wi-Fi network credentials.
+ * It supports serialization and deserialization of the network settings for storage and retrieval.
+ *
+ * @author Stefan Trippler, ERNI (Deutschland) GmbH
+ */
+
+#ifndef WIFI_SETTINGS_H
+#define WIFI_SETTINGS_H
+
+#include <inttypes.h>
+
+#define MAX_WIFI_NETWORKS           4
+#define MAX_SSID_LENGTH            32
+#define MAX_WPA2_PASSWORD_LENGTH   63
+
+#define WIFI_SETTINGS_SIZE        (1+MAX_WIFI_NETWORKS*(MAX_SSID_LENGTH+MAX_WPA2_PASSWORD_LENGTH))
+
+/**
+ * @class WifiSettings
+ * @brief Manages Wi-Fi network settings including SSID and password.
+ *
+ * The WifiSettings class provides methods to initialize, set, and retrieve Wi-Fi network credentials.
+ * It also supports serialization and deserialization of the network settings.
+ */
+class WifiSettings
+{
+  struct 
+  {
+    char ac_SSID[MAX_SSID_LENGTH+1]; ///< SSID of the Wi-Fi network
+    char ac_Password[MAX_WPA2_PASSWORD_LENGTH+1]; ///< Password of the Wi-Fi network
+  } ma_Networks[MAX_WIFI_NETWORKS]; ///< Array of Wi-Fi networks
+
+  uint8_t mu8_WifiNetworkCount; ///< Number of Wi-Fi networks stored
+
+public:
+  WifiSettings(void);
+
+  void init(void);
+  void setNetwork(const char *pc_SSID, const char *pc_Password);
+  uint8_t getNetworkCount(void);
+  const char *getNetworkSSID(const uint8_t u8_Index);
+  const char *getNetworkPassword(const uint8_t u8_Index);
+
+  uint16_t serialize(uint8_t *pu8_Buffer, const uint16_t u16_BufferSize);
+  void unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_Size);
+};
+
+#endif

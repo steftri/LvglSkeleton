@@ -11,10 +11,14 @@ class LvMain
   lv_obj_t *mp_TabView;
   LvTabSettings m_TabSettings;
 
+  lv_obj_t *mp_WifiSymbol; 
+
 public:
   LvMain();
 
   void setup(void);
+
+  void setWifiSymbolVisible(bool visible);
 };
 
 

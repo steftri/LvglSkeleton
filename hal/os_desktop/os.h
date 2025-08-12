@@ -15,6 +15,8 @@ public:
 
   // Loop function for periodic updates
   void loop();
+
+  static void log(const char *pc_Message);
 };
 
 #endif // OS_H

@@ -38,7 +38,16 @@ void Os::surveillanceTask(void *pvParameters)
 
 void Os::setup()
 {
-#ifdef USE_FREERTOS    
+#ifdef USE_FREERTOS
+  ledc_timer_config_t ledc_timer = {
+  .speed_mode       = LEDC_LOW_SPEED_MODE,
+  .timer_num        = LEDC_TIMER_0,
+  .duty_resolution  = LEDC_TIMER_13_BIT,
+  .freq_hz          = 1000,
+  .clk_cfg          = LEDC_AUTO_CLK
+  };
+  ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+
   mp_surveillanceTaskHandle = xTaskCreateStatic(
      surveillanceTask,         // Task function
      "Surveillance",           // Task name
@@ -57,3 +66,9 @@ void Os::loop()
     // Currently empty, can be extended for periodic updates
 }
 
+
+void Os::log(const char *pc_Message)
+{
+    // Log the message to the console or a file
+    Serial.println(pc_Message);
+}

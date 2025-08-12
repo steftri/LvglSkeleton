@@ -49,11 +49,19 @@ void LvMain::setup(void)
       lv_obj_remove_style_all(p_TitleBar);
       lv_obj_set_size(p_TitleBar, lv_pct(100), SCREEN_BAR_HEIGHT);
       lv_obj_set_style_pad_left(p_TitleBar, 10, LV_PART_MAIN);
+      lv_obj_set_style_pad_right(p_TitleBar, 10, LV_PART_MAIN);
       lv_obj_set_style_pad_top(p_TitleBar, 6, LV_PART_MAIN);
       lv_obj_set_style_pad_bottom(p_TitleBar, 6, LV_PART_MAIN);
+      lv_obj_set_flex_flow(p_TitleBar, LV_FLEX_FLOW_ROW);
 
       lv_obj_t *p_Title = lv_label_create(p_TitleBar);
       lv_label_set_text(p_Title, APPLICATION_NAME);
+      lv_obj_set_flex_grow(p_Title, 1); 
+
+      mp_WifiSymbol = lv_label_create(p_TitleBar);
+      lv_obj_align(mp_WifiSymbol, LV_ALIGN_RIGHT_MID, 0, 0);
+      lv_label_set_text(mp_WifiSymbol, LV_SYMBOL_WIFI);
+      setWifiSymbolVisible(false); // Initially hide the WiFi symbol
     }
 
 
@@ -78,6 +86,24 @@ void LvMain::setup(void)
       }
 
       m_TabSettings.setup(p_TabSettings);
+    }
+  }
+}
+
+
+void LvMain::setWifiSymbolVisible(bool visible)
+{
+  if(mp_WifiSymbol != nullptr)
+  {
+    if(visible)
+    {
+      lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
+      LV_LOG_USER("Wifi visible");
+    }
+    else
+    {
+      lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
+      LV_LOG_USER("Wifi hidden");
     }
   }
 }

@@ -34,6 +34,7 @@ public:
   Model *getModel(void) const;
 
   View *getView(void) const;
+
 };
 
 #endif

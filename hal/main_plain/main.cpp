@@ -8,8 +8,8 @@
 
 
 
-Model g_model;
-View g_view;
+static Model g_model;
+static View g_view;
 Controller g_controller(&g_model, &g_view);
 
 

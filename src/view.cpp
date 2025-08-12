@@ -6,7 +6,6 @@
 
 
 
-
 void View::setup(void)
 {
   // Initialize the view components here
@@ -22,4 +21,20 @@ void View::setup(void)
 void View::loop(void)
 {
   m_ui.loop();
+}
+
+
+void View::onWifiStateChange(void)
+{
+  static bool b_Visible = false;
+
+  b_Visible = !b_Visible;
+
+  /* TODO: implement; for now, simply toggle it */
+  m_LvMain.setWifiSymbolVisible(b_Visible);
+}
+
+
+void View::onWifiListChange(void)
+{
 }

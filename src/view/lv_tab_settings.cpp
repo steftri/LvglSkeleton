@@ -1,6 +1,8 @@
 #include "lv_main.h"
 
 
+#include "controller.h"
+extern Controller g_controller;
 
 
 LvTabSettings::LvTabSettings(void)
@@ -37,10 +39,13 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 }
 
 
+
+
 void LvTabSettings::wlanEnableCallback(lv_event_t *p_Event)
 {
   lv_obj_t *p_Switch = lv_event_get_target_obj(p_Event);
   bool b_IsChecked = lv_obj_has_state(p_Switch, LV_STATE_CHECKED);
   
   LV_LOG_USER("WLAN Enable Switch is %s", b_IsChecked ? "ON" : "OFF");
+  g_controller.getView()->onWifiStateChange();
 }

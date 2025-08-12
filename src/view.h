@@ -35,6 +35,9 @@ public:
 
   // Update the view
   void loop(void);
+
+  void onWifiStateChange(void);
+  void onWifiListChange(void);
 };
 
 #endif // VIEW_H
