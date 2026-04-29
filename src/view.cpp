@@ -24,6 +24,19 @@ void View::loop(void)
 }
 
 
+LvMain *View::getLvMain(void)
+{
+  return &m_LvMain;
+}
+
+
+void View::updateSystemInfo(void)
+{
+  m_LvMain.getTabInfo()->updateFreeRTOSInfo();
+  m_LvMain.getTabInfo()->updateLVGLInfo();
+}
+
+
 void View::updateWlanState(void)
 {
   m_LvMain.updateWlanSymbol();
@@ -37,7 +50,7 @@ void View::updateWlanList(void)
 }
 
 
-void View::showWlanPasswordDialog(void)
+void View::showWlanPasswdDialog(void)
 {
-  m_LvMain.showWlanPasswordDialog();
+  m_LvMain.showWlanPasswdDialog();
 }

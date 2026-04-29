@@ -1,20 +1,18 @@
-#ifndef LV_WLAN_PASSWORD_H
-#define LV_WLAN_PASSWORD_H
+#ifndef LV_WLAN_PASSWD_DIALOG_H
+#define LV_WLAN_PASSWD_DIALOG_H
 
 #include <lvgl.h>
 
 #include "wifi_data.h"
 
-class LvWlanPasswordDialogbox
+class LvWlanPasswdDialog
 {
   lv_obj_t *mp_PasswordPanel;
   lv_obj_t *mp_PasswordInput;
   lv_obj_t *mp_SsidLabel;
 
-  static lv_obj_t *mp_Keyboard; // Keyboard for input
-
 public:
-  LvWlanPasswordDialogbox();
+  LvWlanPasswdDialog();
     
   void setup(lv_obj_t *p_ParentTab);
     
@@ -27,4 +25,4 @@ private:
   static void onCancelButtonEvent(lv_event_t *p_Event);
 };
 
-#endif // LV_WLAN_PASSWORD_H
+#endif // LV_WLAN_PASSWD_DIALOG_H

@@ -28,7 +28,6 @@ void LvMain::setup(void)
     lv_obj_remove_style_all(p_Grid);
 
     lv_coord_t a_ColumnDesc[] = {lv_pct(100), LV_GRID_TEMPLATE_LAST}; 
-
     lv_coord_t a_RowDesc[] = {SCREEN_BAR_HEIGHT, lv_pct(100)-SCREEN_BAR_HEIGHT, LV_GRID_TEMPLATE_LAST}; 
     lv_obj_set_grid_dsc_array(p_Grid, a_ColumnDesc, a_RowDesc);
     lv_obj_set_size(p_Grid, lv_pct(100), lv_pct(100)); // Set the grid to fill the screen
@@ -78,10 +77,27 @@ void LvMain::setup(void)
         lv_obj_set_style_border_side(p_Button, LV_BORDER_SIDE_TOP, LV_STATE_CHECKED);
       }
 
+      m_TabInfo.setup(p_TabInfo);
+      m_TabHistory.setup(p_TabHistory);
       m_TabSettings.setup(p_TabSettings);
-      m_WlanPasswordDialogbox.setup(p_TabSettings);
+      m_WlanPasswdDialog.setup(p_TabSettings);
     }
   }
+
+  mp_Keyboard = lv_keyboard_create(lv_screen_active());
+  lv_obj_set_size(mp_Keyboard, LV_HOR_RES, LV_HOR_RES/2);
+  lv_obj_add_flag(mp_Keyboard, LV_OBJ_FLAG_HIDDEN); // Initially hide the keyboard
+}
+
+
+LvTabInfo *LvMain::getTabInfo(void)
+{
+  return &m_TabInfo;
+}
+
+LvTabHistory *LvMain::getTabHistory(void)
+{
+  return &m_TabHistory;
 }
 
 
@@ -91,12 +107,32 @@ LvTabSettings *LvMain::getTabSettings(void)
 }
 
 
-void LvMain::showWlanPasswordDialog(void)
+void LvMain::showKeyboard(lv_obj_t *p_TargetObj)
+{
+  if(mp_Keyboard == nullptr)
+    return;
+
+  lv_keyboard_set_textarea(mp_Keyboard, p_TargetObj);
+  lv_obj_clear_flag(mp_Keyboard, LV_OBJ_FLAG_HIDDEN); 
+}
+
+
+void LvMain::hideKeyboard(void)
+{
+  if(mp_Keyboard == nullptr)
+    return;
+  lv_obj_add_flag(mp_Keyboard, LV_OBJ_FLAG_HIDDEN); 
+} 
+
+
+
+void LvMain::showWlanPasswdDialog(void)
 {
   char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
-  g_controller.getModel()->getData()->getWifiData()->getSelectedNetwork(ac_Ssid, nullptr);
+  char ac_Password[WifiData::MAX_WPA2_PASSWORD_LENGTH + 1];
+  g_controller.getModel()->getData()->getWifiData()->getSelectedNetwork(ac_Ssid, ac_Password);
   
-  m_WlanPasswordDialogbox.show(ac_Ssid, nullptr);
+  m_WlanPasswdDialog.show(ac_Ssid, ac_Password);
 }
 
 

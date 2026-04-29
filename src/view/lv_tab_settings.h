@@ -21,14 +21,13 @@ private:
 
 public:
   LvTabSettings();
+  ~LvTabSettings() = default;
 
   void setup(lv_obj_t *p_ParentTab);
 
   void updateWlanStatePanel(void);
   void updateWlanSelectList(void);
 };
-
-
 
 
 #endif // LV_TAB_SETTINGS_H

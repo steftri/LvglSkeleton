@@ -35,10 +35,14 @@ public:
   // Update the view
   void loop(void);
 
+  LvMain *getLvMain(void);
+
+  void updateSystemInfo(void);
+
   void updateWlanState(void);
   void updateWlanList(void);
 
-  void showWlanPasswordDialog(void);
+  void showWlanPasswdDialog(void);
 };
 
 #endif // VIEW_H

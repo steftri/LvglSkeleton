@@ -164,6 +164,6 @@ void LvTabSettings::onWlanSsidButtonCallback(lv_event_t *p_Event)
     g_controller.getModel()->getData()->getWifiData()->setSelectedNetwork(u8_Index);
     g_controller.getView()->updateWlanState();
 
-    g_controller.getView()->showWlanPasswordDialog();
+    g_controller.getView()->showWlanPasswdDialog();
   }
 }
