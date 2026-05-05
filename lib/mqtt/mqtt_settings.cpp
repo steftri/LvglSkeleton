@@ -9,7 +9,7 @@
  * @author Stefan Trippler, ERNI (Deutschland) GmbH
  */
 
-#include <memory.h>
+#include <string.h>
 #include "mqtt_settings.h"
 
 /**

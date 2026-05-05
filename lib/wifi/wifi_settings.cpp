@@ -13,7 +13,7 @@
  *
  * @author Stefan Trippler, ERNI (Deutschland) GmbH
  */
-#include <memory.h>
+#include <string.h>
 
 #include "wifi_settings.h"
 

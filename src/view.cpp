@@ -2,9 +2,6 @@
 
 #include "view.h"
 
-#include "view/lv_demo_widgets.h"
-
-
 
 void View::setup(void)
 {
