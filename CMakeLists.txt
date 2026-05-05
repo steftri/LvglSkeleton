@@ -10,16 +10,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(LvglSkeletonApp 
                 hal/main_plain/main.cpp
                 hal/os_desktop/os.cpp
-                hal/data_file/data.cpp)
+                hal/datastorage_file/datastorage.cpp)
 
 # Include directories
 target_include_directories(LvglSkeletonApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
                 hal/main_plain
                 hal/os_desktop
-                hal/data_file)
+                hal/datastorage_file)
 
 # Link the library to the example application
 target_link_libraries(LvglSkeletonApp PRIVATE LvglSkeleton)
+
+
 
 
 
@@ -37,7 +39,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     include(CTest)
     if(BUILD_TESTING)
-      add_subdirectory(test/test_unit_crc32)
+      add_subdirectory(test/test_unit_crc32_gtest)
       #add_subdirectory(test/test_integration_gtest)
 
       find_package(Threads REQUIRED)
