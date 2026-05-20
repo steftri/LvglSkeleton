@@ -7,20 +7,26 @@
 
 #include "os.h"
 
+#include "controller/surveillance_task.h"
+#include "controller/wifi_task.h"
 
+#include "wifi_hal.h"
 
 
 
 class Controller
 {
-  Model *mp_model; // Pointer to the model
-  View *mp_view;   // Pointer to the view
+  Model &m_model; // Reference to the model
+  View &m_view;   // Reference to the view
 
   Os m_os; // OS interface
 
+  SurveillanceTask m_surveillanceTask; // Surveillance task
+  WifiTask m_wifiTask; // Wi-Fi task
+
 public:
   // Constructor
-  Controller(Model *p_model, View *p_view);
+  Controller(Model &model, View &view);
 
   // Destructor
   ~Controller() = default;
@@ -28,12 +34,15 @@ public:
   // Initialize the controller
   void setup(void);
 
-  // Update the controller state
+  // Start the controllers' threads
+  void begin(void);
+
+  // Main loop for the controller (Arduino context: called from the main loop)
   void loop(void);
 
-  Model *getModel(void) const;
+  Model &getModel(void) const;
 
-  View *getView(void) const;
+  View &getView(void) const;
 
 };
 

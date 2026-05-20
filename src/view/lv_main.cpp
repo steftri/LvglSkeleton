@@ -23,6 +23,8 @@ void LvMain::setup(void)
 
   lv_disp_set_theme(nullptr, p_Theme); /*Assign the theme to the display*/
 
+  Serial.println("Creating main grid...");
+
   lv_obj_t *p_Grid = lv_obj_create(lv_screen_active()); /*Create the screen object, this is needed to use the screen as a parent for other objects*/
   {
     lv_obj_remove_style_all(p_Grid);
@@ -87,6 +89,8 @@ void LvMain::setup(void)
   mp_Keyboard = lv_keyboard_create(lv_screen_active());
   lv_obj_set_size(mp_Keyboard, LV_HOR_RES, LV_HOR_RES/2);
   lv_obj_add_flag(mp_Keyboard, LV_OBJ_FLAG_HIDDEN); // Initially hide the keyboard
+
+  Serial.println("LvMain setup completed");
 }
 
 
@@ -130,7 +134,7 @@ void LvMain::showWlanPasswdDialog(void)
 {
   char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
   char ac_Password[WifiData::MAX_WPA2_PASSWORD_LENGTH + 1];
-  g_controller.getModel()->getData()->getWifiData()->getSelectedNetwork(ac_Ssid, ac_Password);
+  g_controller.getModel().getData()->getWifiData()->getSelectedNetwork(ac_Ssid, ac_Password);
   
   m_WlanPasswdDialog.show(ac_Ssid, ac_Password);
 }
@@ -141,7 +145,7 @@ void LvMain::updateWlanSymbol(void)
   if(mp_WifiSymbol == nullptr)
     return;
 
-  WifiData::EState e_State = g_controller.getModel()->getData()->getWifiData()->getState();
+  WifiData::EState e_State = g_controller.getModel().getData()->getWifiData()->getState();
   if(e_State == WifiData::EState::Connected)
   {
     lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);

@@ -2,7 +2,7 @@
 #include <cstring>
 
 
-WifiData::WifiData(void)
+WifiData::WifiData()
   : mu8_NumberOfAvaliableNetworks(0)
 {
     // Initialize the available networks to empty strings
@@ -18,6 +18,7 @@ WifiData::WifiData(void)
     // Initialize IP address to zero
     memset(mau8_IPAddress, 0, sizeof(mau8_IPAddress));
 }
+
 
 
 void WifiData::setState(EState e_State)

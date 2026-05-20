@@ -28,11 +28,16 @@ void Model::setup(void)
 }
 
 
+void Model::begin(void)
+{
+  // Start any threads or background tasks related to the model if needed
+}
+
+
 void Model::loop(void)
 {
-  // Update the model state here
-  // This could involve processing data, handling events, etc.
-  // For example, you might update variables or trigger actions based on certain conditions.
+  // Arduino context; the model's loop can be used for periodic updates if needed,
+  // but for now, we can keep it empty.
 }
 
 

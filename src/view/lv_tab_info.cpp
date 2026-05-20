@@ -2,7 +2,7 @@
 #include <lvgl.h>
 #include <stdio.h>
 
-#ifdef USE_FREERTOS
+#if LV_USE_OS == LV_OS_FREERTOS
 #include <FreeRTOS.h>
 #include <task.h>
 #endif
@@ -63,11 +63,11 @@ void LvTabInfo::updateFreeRTOSInfo()
 {
     if (mp_FreeRTOSInfoLabel)
     {
-#ifdef USE_FREERTOS        
+#if LV_USE_OS == LV_OS_FREERTOS        
         // Retrieve FreeRTOS information
-        UBaseType_t taskCount = uxTaskGetNumberOfTasks();
+        auto taskCount = uxTaskGetNumberOfTasks();
         char buffer[128];
-        snprintf(buffer, sizeof(buffer), "Tasks: %u\n", taskCount);
+        snprintf(buffer, sizeof(buffer), "Tasks: %u\n", taskCount);      
 
         lv_label_set_text_fmt(mp_FreeRTOSInfoLabel, "%s", buffer);
 #endif

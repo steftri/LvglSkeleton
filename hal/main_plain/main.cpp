@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
   std::cout << __DATE__ " " __TIME__ << std::endl;
 
   g_controller.setup();
+  g_controller.begin();
   while (true)
   {
     g_controller.loop();

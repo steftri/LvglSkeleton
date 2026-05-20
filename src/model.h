@@ -20,6 +20,9 @@ public:
   // Initialize the model
   void setup(void);
 
+  // Start the model's threads (if any)
+  void begin(void);
+
   // Update the model state
   void loop(void);
 

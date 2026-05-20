@@ -81,7 +81,7 @@ void LvWlanPasswdDialog::hide(void)
     if (mp_PasswordPanel)
     {
         lv_obj_add_flag(mp_PasswordPanel, LV_OBJ_FLAG_HIDDEN);
-        g_controller.getView()->getLvMain()->hideKeyboard();
+        g_controller.getView().getLvMain()->hideKeyboard();
     }
 }
 
@@ -93,11 +93,11 @@ void LvWlanPasswdDialog::onInputEvent(lv_event_t *p_Event)
 
     if(code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) 
     {
-        g_controller.getView()->getLvMain()->showKeyboard(p_TargetObj);
+        g_controller.getView().getLvMain()->showKeyboard(p_TargetObj);
     }
     else if(code == LV_EVENT_DEFOCUSED) 
     {
-        g_controller.getView()->getLvMain()->hideKeyboard();
+        g_controller.getView().getLvMain()->hideKeyboard();
     }
     else if(code == LV_EVENT_READY) 
     {
@@ -105,7 +105,7 @@ void LvWlanPasswdDialog::onInputEvent(lv_event_t *p_Event)
         const char *pc_Passwd = lv_textarea_get_text(p_TargetObj);
         p_Instance->hide();
         LV_LOG_USER("Password \"%s\" entered", pc_Passwd);
-        g_controller.getModel()->getData()->getWifiData()->setNetworkPassword(pc_Passwd);
+        g_controller.getModel().getData()->getWifiData()->setNetworkPassword(pc_Passwd);
     }
     else if(code == LV_EVENT_CANCEL)
     {
@@ -121,7 +121,7 @@ void LvWlanPasswdDialog::onOkButtonEvent(lv_event_t *p_Event)
     LvWlanPasswdDialog *p_Instance = static_cast<LvWlanPasswdDialog *>(lv_event_get_user_data(p_Event));
     const char *pc_Passwd = lv_textarea_get_text(p_Instance->mp_PasswordInput);
     LV_LOG_USER("Password \"%s\" entered", pc_Passwd);
-    g_controller.getModel()->getData()->getWifiData()->setNetworkPassword(pc_Passwd);
+    g_controller.getModel().getData()->getWifiData()->setNetworkPassword(pc_Passwd);
     p_Instance->hide();
 }
 

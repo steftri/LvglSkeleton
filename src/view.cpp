@@ -1,53 +1,54 @@
-#include <lvgl.h>
-
 #include "view.h"
+
 
 
 void View::setup(void)
 {
-  // Initialize the view components here
-  // For example, setting up UI elements, loading resources, etc.
+  // Initialization is performed inside the UI task (UiTask::setup)
+}
 
-  lv_init();  
-  m_ui.setup();
-  
-  m_LvMain.setup();
+
+void View::begin(void)
+{
+  Serial.println("Starting UiTask");
+  m_UiTask.begin();
 }
 
 
 void View::loop(void)
 {
-  m_ui.loop();
+  // Arduino context: The UI updates are handled in the UiTask, 
+  // so we can keep this loop empty or use it for other periodic updates if needed.
 }
 
 
 LvMain *View::getLvMain(void)
 {
-  return &m_LvMain;
+  return m_UiTask.getLvMain();
 }
 
 
 void View::updateSystemInfo(void)
 {
-  m_LvMain.getTabInfo()->updateFreeRTOSInfo();
-  m_LvMain.getTabInfo()->updateLVGLInfo();
+  m_UiTask.getLvMain()->getTabInfo()->updateFreeRTOSInfo();
+  m_UiTask.getLvMain()->getTabInfo()->updateLVGLInfo();
 }
 
 
 void View::updateWlanState(void)
 {
-  m_LvMain.updateWlanSymbol();
-  m_LvMain.getTabSettings()->updateWlanStatePanel();
+  m_UiTask.getLvMain()->updateWlanSymbol();
+  m_UiTask.getLvMain()->getTabSettings()->updateWlanStatePanel();
 }
 
 
 void View::updateWlanList(void)
 {
-  m_LvMain.getTabSettings()->updateWlanSelectList();
+  m_UiTask.getLvMain()->getTabSettings()->updateWlanSelectList();
 }
 
 
 void View::showWlanPasswdDialog(void)
 {
-  m_LvMain.showWlanPasswdDialog();
+  m_UiTask.getLvMain()->showWlanPasswdDialog();
 }

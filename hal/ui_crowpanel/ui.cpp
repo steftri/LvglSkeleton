@@ -23,35 +23,9 @@ void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
 
 Ui::Ui()
   : m_DisplayBridge(&m_DisplayLGFX)
-#ifdef USE_FREERTOS  
-  , mp_lvglTaskHandle(nullptr)
-#endif  
 {
 }
 
-
-#ifdef USE_FREERTOS
-void Ui::lvglTask(void *pvParameters)
-{
-  Ui *p_ui = static_cast<Ui *>(pvParameters);
-  if(p_ui == nullptr)
-  {
-    Serial.println("Error: UI interface is null");
-    vTaskDelete(nullptr);
-    return;
-  }
-  
-  Serial.println("LVGL Task started");
-
-  p_ui->setBrightness(255);
-  while (true)
-  {
-    lv_tick_inc(5);
-    lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(5)); // 5 ms Delay für regelmäßige Updates
-  }
-}
-#endif
 
 
 void Ui::initBacklight(void)
@@ -120,33 +94,22 @@ void Ui::setup()
 
   lv_timer_handler();
 
-#ifdef USE_FREERTOS
-  // Create a FreeRTOS task for LVGL updates
-  mp_lvglTaskHandle = xTaskCreateStatic(
-     lvglTask,         // Task function
-     "LVGL",           // Task name
-     LVGL_TASK_STACK_SIZE, // Stack size
-     this,                  // Parameters
-     tskIDLE_PRIORITY + 1,     // Priority
-     m_lvglTaskStack,  // Task handle
-     &m_lvglTaskBuffer // Static task buffer
-  );
-
-#else
-  m_DisplayLGFX.setBrightness(255);
-#endif  
+  m_DisplayLGFX.setBrightness(255); 
 }
 
 
 void Ui::loop()
 {
-  // If using FreeRTOS, the UI updates are handled in the lvglTask; 
-  // otherwise, call the lvgl update functions directly
-#ifndef USE_FREERTOS    
-  delay(5);
-  lv_tick_inc(5);
-  lv_timer_handler();
-#endif  
+  static uint32_t lastUpdateTime = 0;
+  uint32_t currentTime = millis();
+
+  if (currentTime - lastUpdateTime >= 5) // Update every 5 milliseconds
+  {
+    lv_tick_inc(currentTime - lastUpdateTime); // Increment LVGL tick count
+    lv_timer_handler();
+
+    lastUpdateTime = currentTime;
+  }
 }
 
 

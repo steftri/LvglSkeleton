@@ -1,26 +1,14 @@
 #ifndef VIEW_H
 #define VIEW_H
 
-#ifdef ARDUINO
-#include "ui_c64.h"
-#else
-#include "ui.h"
-#endif
+#include "view/ui_task.h"
 
-
-#include "view/lv_main.h"
 
 
 
 class View
 {
-#ifdef ARDUINO
-  UiC64 m_ui; // Use C64 UI for Arduino 
-#else
-  Ui m_ui;
-#endif
-
-  LvMain m_LvMain;
+  UiTask m_UiTask;
 
 public:
   // Constructor
@@ -31,6 +19,9 @@ public:
 
   // Initialize the view
   void setup(void);
+
+  // Start the view's threads (if any)
+  void begin(void);
 
   // Update the view
   void loop(void);
