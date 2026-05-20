@@ -44,6 +44,7 @@ public:
 
   View &getView(void) const;
 
+  WifiTask &getWifi(void);
 };
 
 #endif

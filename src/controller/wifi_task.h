@@ -4,10 +4,16 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "wifi_hal.h"
+#include "interfaces/wifi_action_interface.h"
+
+#include "wifi_data.h"
+
+
 static const size_t WIFI_TASK_STACK_SIZE = 4096; // Stack size for the task
 
 
-class WifiTask
+class WifiTask : public WifiActionInterface
 {
 private:
   TaskHandle_t mp_TaskHandle;
@@ -17,14 +23,27 @@ private:
   static void task(void *pvParameters);  
   static WifiTask *mp_thisInstance; // Static instance pointer for task access
 
+  WifiHal m_WifiHal;
+  WifiData &m_WifiData; // Reference to the Wi-Fi data in the model
+
 public:
-  WifiTask();
+  WifiTask(WifiData &wifiData);
 
   void begin(void);
+
+  void enable();
+  void disable();
 
 private:  
   void setup(void);
   void loop(void);
+
+  // WifiActionInterface implementation
+  void onWifiNetworksUpdated() override;
+  void onWifiConnected() override;
+  void onWifiDisconnected() override;
+  void onWifiGotIP() override;
+  void onWifiConnectionFailed(EWifiConnectionError error) override;
 };
 
 

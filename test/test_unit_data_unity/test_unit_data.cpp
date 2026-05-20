@@ -13,13 +13,17 @@
 class ConcreteData : public Data
 {
 public:
+  enum class EField : uint8_t { Value = 0 };
+
   int getValue(void) const { return m_Value; }
 
   void setValue(int i_Value)
   {
     m_Value = i_Value;
-    notifyObservers();
+    notifyObservers(static_cast<EDataField>(EField::Value));
   }
+
+  void notifyObserversPublic(void) { notifyObservers(); }
 
 private:
   int m_Value{0};
@@ -32,13 +36,15 @@ private:
 class TestObserver : public DataObserverInterface
 {
 public:
-  int   notifyCount{0};
-  Data *lastSender{nullptr};
+  int        notifyCount{0};
+  Data      *p_lastSender{nullptr};
+  EDataField e_lastField{EDataField::AllData};
 
-  void onDataChanged(Data &r_Data) override
+  void onDataChanged(Data &r_Data, EDataField e_Field) override
   {
     ++notifyCount;
-    lastSender = &r_Data;
+    p_lastSender = &r_Data;
+    e_lastField  = e_Field;
   }
 };
 
@@ -88,7 +94,7 @@ void observer_receives_correct_sender(void)
   data.registerObserver(&obs);
   data.setValue(3);
 
-  TEST_ASSERT_EQUAL_PTR(&data, obs.lastSender);
+  TEST_ASSERT_EQUAL_PTR(&data, obs.p_lastSender);
 }
 
 
@@ -158,6 +164,36 @@ void data_value_is_correct_after_set(void)
 }
 
 
+void observer_receives_correct_field(void)
+{
+  ConcreteData data;
+  TestObserver obs;
+
+  data.registerObserver(&obs);
+  data.setValue(5);
+
+  TEST_ASSERT_EQUAL_INT(
+    static_cast<uint8_t>(ConcreteData::EField::Value),
+    static_cast<uint8_t>(obs.e_lastField)
+  );
+}
+
+
+void observer_receives_all_fields_when_no_field_given(void)
+{
+  ConcreteData data;
+  TestObserver obs;
+
+  data.registerObserver(&obs);
+  data.notifyObserversPublic();
+
+  TEST_ASSERT_EQUAL_INT(
+    static_cast<uint8_t>(EDataField::ALL_FIELDS),
+    static_cast<uint8_t>(obs.e_lastField)
+  );
+}
+
+
 // ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
@@ -167,7 +203,7 @@ void setup()
   delay(2000); // service delay
 #endif
 
-  UNITY_BEGIN();
+  UNITY_BEGIN();  
 
   RUN_TEST(no_notification_without_observer);
   RUN_TEST(observer_is_notified_on_change);
@@ -177,6 +213,8 @@ void setup()
   RUN_TEST(unregistered_observer_is_no_longer_notified);
   RUN_TEST(observer_can_be_reregistered);
   RUN_TEST(data_value_is_correct_after_set);
+  RUN_TEST(observer_receives_correct_field);
+  RUN_TEST(observer_receives_all_fields_when_no_field_given);
 
   UNITY_END();
 }

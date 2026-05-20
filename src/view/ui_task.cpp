@@ -1,6 +1,12 @@
 #include <Arduino.h>
 
+#include "controller.h"
+
 #include "ui_task.h"
+
+
+extern Controller g_controller; // Declare the global controller instance defined in main.cpp
+
 
 UiTask *UiTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
@@ -54,6 +60,11 @@ void UiTask::task(void *pvParameters)
 void UiTask::setup()
 {
   Serial.println("UiTask running.");
+
+  g_controller.getModel().getData().getWifiData().registerObserver(this); // Register as observer for data changes
+  Serial.println("Observer registered for Wi-Fi data changes");
+
+
   lv_init();
   m_ui.setup(); // Initialize the UI components (display hardware + LVGL display)
   m_LvMain.setup(); // Build LVGL widget tree (display must exist first)
@@ -81,5 +92,42 @@ void UiTask::loop()
                   ((UI_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / UI_TASK_STACK_SIZE); // NULL = aktueller Task
   }
 
-  vTaskDelay(pdMS_TO_TICKS(5)); // Sleep for 5 ms to prevent busy looping
+  uint32_t ulNotifiedValue = 0;
+  xTaskNotifyWait(0, UITASK_NOTIFY_NETWORKS_UPDATED, &ulNotifiedValue, pdMS_TO_TICKS(5));
+  if (ulNotifiedValue & UITASK_NOTIFY_NETWORKS_UPDATED)
+  {
+    updateNetworkList();
+  }
+}
+
+
+
+void UiTask::onDataChanged(Data &r_Data, EDataField e_Field)
+{
+  // Handle data changes and update the UI accordingly
+  switch (static_cast<WifiData::EField>(e_Field))
+  {
+    case WifiData::EField::AvailableNetworks:
+      Serial.println("UI task: Available Wi-Fi networks updated");
+      xTaskNotify(mp_TaskHandle, UITASK_NOTIFY_NETWORKS_UPDATED, eSetBits);
+      break;
+    case WifiData::EField::ConnectionState:
+      Serial.println("UI task: Wi-Fi connection state changed");
+      break;
+    case WifiData::EField::SelectedNetwork:
+      Serial.println("UI task: Selected Wi-Fi network changed");
+      break;
+    case WifiData::EField::IPAddress:
+      Serial.println("UI task: IP address updated");
+      break;
+    default:
+      Serial.println("UI task: Unknown data field changed");
+      break;
+  }
+}
+
+
+void UiTask::updateNetworkList()
+{
+  m_LvMain.getTabSettings()->updateWlanSelectList(); // Update the Wi-Fi network list in the UI
 }

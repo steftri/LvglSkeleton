@@ -72,9 +72,9 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 
 void LvTabSettings::updateWlanStatePanel(void)
 {
-  WifiData *p_WifiData = g_controller.getModel().getData()->getWifiData();
+  WifiData &WifiData = g_controller.getModel().getData().getWifiData();
   char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
-  WifiData::EState e_WifiState = p_WifiData->getState();
+  WifiData::EState e_WifiState = WifiData.getState();
 
   if(e_WifiState == WifiData::EState::Disabled)
   {
@@ -94,19 +94,19 @@ void LvTabSettings::updateWlanStatePanel(void)
     lv_obj_clear_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
   }
 
-  p_WifiData->getSelectedNetwork(ac_Ssid, nullptr);
+  WifiData.getSelectedNetwork(ac_Ssid, nullptr);
   lv_label_set_text(mp_CurrentWlan, ac_Ssid);
 
-  uint8_t au8_IPAddress[4];
-  p_WifiData->getIPAddress(au8_IPAddress);
-  lv_label_set_text_fmt(mp_CurrentIp, "%d.%d.%d.%d", au8_IPAddress[0], au8_IPAddress[1], au8_IPAddress[2], au8_IPAddress[3]);
+  char ac_IPAddress[WifiData::MAX_IP_ADDRESS_LENGTH + 1];
+  WifiData.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress));
+  lv_label_set_text(mp_CurrentIp, ac_IPAddress);
 }
 
 
 
 void LvTabSettings::updateWlanSelectList(void)
 {
-  uint8_t u8_NumberOfNetworks = g_controller.getModel().getData()->getWifiData()->getAvailableNetworkCount();
+  uint8_t u8_NumberOfNetworks = g_controller.getModel().getData().getWifiData().getAvailableNetworkCount();
 
   Serial.printf("Updating WLAN select list with %d networks\n", u8_NumberOfNetworks);
     
@@ -115,7 +115,7 @@ void LvTabSettings::updateWlanSelectList(void)
     if(i<u8_NumberOfNetworks)
     {
       char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
-      g_controller.getModel().getData()->getWifiData()->getAvailableNetwork(ac_Ssid, sizeof(ac_Ssid), i);
+      g_controller.getModel().getData().getWifiData().getAvailableNetwork(ac_Ssid, sizeof(ac_Ssid), i);
       lv_obj_clear_flag(mp_WlanSsidButton[i], LV_OBJ_FLAG_HIDDEN);
       lv_label_set_text(mp_WlanSsidLabel[i], ac_Ssid);
     } 
@@ -134,8 +134,15 @@ void LvTabSettings::onWlanEnableCallback(lv_event_t *p_Event)
   bool b_IsChecked = lv_obj_has_state(p_Switch, LV_STATE_CHECKED);
   
   LV_LOG_USER("WLAN Enable Switch is %s", b_IsChecked ? "ON" : "OFF");
-  g_controller.getModel().getData()->getWifiData()->setState(b_IsChecked?WifiData::EState::Connected:WifiData::EState::Disabled);
-  g_controller.getView().updateWlanState();
+  if(b_IsChecked)
+  {
+    g_controller.getWifi().enable(); // Enable Wi-Fi when the switch is turned on
+  }
+  else
+  {
+    g_controller.getWifi().disable(); // Disable Wi-Fi when the switch is turned off
+  }
+
 }
 
 
@@ -163,7 +170,7 @@ void LvTabSettings::onWlanSsidButtonCallback(lv_event_t *p_Event)
   if(u8_Index < WifiData::MAX_WIFI_NETWORKS) 
   {
     LV_LOG_USER("Selected Wi-Fi network %d", u8_Index);
-    g_controller.getModel().getData()->getWifiData()->setSelectedNetwork(u8_Index);
+    g_controller.getModel().getData().getWifiData().setSelectedNetwork(u8_Index);
     g_controller.getView().updateWlanState();
 
     g_controller.getView().showWlanPasswdDialog();

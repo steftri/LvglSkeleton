@@ -4,8 +4,13 @@
 #include "wifi_hal.h"
 
 
-WifiHal::WifiHal()
+WifiHal *WifiHal::mp_thisInstance = nullptr; // Initialize static instance pointer
+
+
+WifiHal::WifiHal(WifiActionInterface &actionListener)
+  : m_actionListener(actionListener)
 {
+  mp_thisInstance = this; // Set the static instance pointer to this instance
 }
 
 
@@ -24,37 +29,55 @@ void WifiHal::setup()
 
 
 
+void WifiHal::enable()
+{
+  Serial.println("Enabling Wi-Fi");
+  WiFi.begin(); // Start Wi-Fi connection
+
+  WiFi.scanNetworks(true); // Start scanning for Wi-Fi networks in the background
+}
+
+
+void WifiHal::disable()
+{
+  Serial.println("Disabling Wi-Fi");
+  WiFi.disconnect(true); // Disconnect and erase credentials
+}
+
+
+
 void WifiHal::scanNetworks()
 {
-  WifiHal::b_ScanComplete = false;
   WiFi.scanNetworks(true); // Start an asynchronous Wi-Fi scan
 }
 
 uint8_t WifiHal::getAvailableNetworkCount() const
 {
-  int scanResult = WiFi.scanComplete();
+  int16_t s16_scanResult = WiFi.scanComplete();
 
-  if (scanResult == WIFI_SCAN_RUNNING) 
+  if (s16_scanResult == WIFI_SCAN_RUNNING) 
   {
     return 0; // Scan is still running, no results available yet
   }
-  return static_cast<uint8_t>(scanResult); // Return the number of networks found
+  return static_cast<uint8_t>(s16_scanResult); // Return the number of networks found
 }
 
-void WifiHal::getAvailableNetworkSSID(char* buffer, size_t bufferSize, uint8_t index) const
+void WifiHal::getAvailableNetworkSSID(char *pc_buffer, size_t bufferSize, uint8_t u8_index) const
 {
   if(bufferSize < 1) 
     return;
-  strncpy(buffer, WiFi.SSID(index).c_str(), bufferSize - 1); // Copy SSID to buffer, ensuring null-termination
-  buffer[bufferSize - 1] = '\0'; // Ensure null-termination
+  strncpy(pc_buffer, WiFi.SSID(u8_index).c_str(), bufferSize - 1); // Copy SSID to buffer, ensuring null-termination
+  pc_buffer[bufferSize - 1] = '\0'; // Ensure null-termination
 }
 
-void WifiHal::getAvailableNetworkSignalStrength(int* signalStrength, uint8_t index) const
+void WifiHal::getAvailableNetworkSignalStrength(int32_t *ps32_signalStrength, uint8_t u8_index) const
 {
-  // Implement logic to get the signal strength of the available network at the specified index
+  if(ps32_signalStrength == nullptr) 
+    return;
+  *ps32_signalStrength = WiFi.RSSI(u8_index); // Get the signal strength (RSSI) of the network at the specified index
 }
 
-void WifiHal::connect(const char* ssid, const char* password)
+void WifiHal::connect(const char* pc_ssid, const char* pc_password)
 {
   // Implement Wi-Fi connection logic here
 } 
@@ -70,7 +93,7 @@ bool WifiHal::isConnected() const
   return false; // Placeholder
 }
 
-void WifiHal::getIPAddress(char* buffer, size_t bufferSize) const
+void WifiHal::getIPAddress(char* pc_buffer, size_t bufferSize) const
 {
   // Implement logic to get the IP address of the device
 }
@@ -82,27 +105,37 @@ int WifiHal::getSignalStrength() const
 }
 
 
-bool WifiHal::b_ScanComplete = false;
-
 void WifiHal::onEvent(WiFiEvent_t event) 
 {
   Serial.printf("[WiFi-event] event: %d\n", event);
+  if(mp_thisInstance == nullptr) 
+  {
+    Serial.println("Error: WifiHal instance not set");
+    return; // No instance to handle the event
+  }
 
   switch (event) 
   {
     case ARDUINO_EVENT_WIFI_READY:               Serial.println("WiFi interface ready"); break;
     case ARDUINO_EVENT_WIFI_SCAN_DONE:           
       Serial.println("Completed scan for access points"); 
-      b_ScanComplete = true;
+      mp_thisInstance->m_actionListener.onWifiNetworksUpdated();
       break;
     case ARDUINO_EVENT_WIFI_STA_START:           Serial.println("WiFi client started"); break;
     case ARDUINO_EVENT_WIFI_STA_STOP:            Serial.println("WiFi clients stopped"); break;
-    case ARDUINO_EVENT_WIFI_STA_CONNECTED:       Serial.println("Connected to access point"); break;
-    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:    Serial.println("Disconnected from WiFi access point"); break;
+    case ARDUINO_EVENT_WIFI_STA_CONNECTED:       
+      Serial.println("Connected to access point"); 
+      mp_thisInstance->m_actionListener.onWifiConnected();
+      break;
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:    
+      Serial.println("Disconnected from WiFi access point"); 
+      mp_thisInstance->m_actionListener.onWifiDisconnected();
+      break;
     case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE: Serial.println("Authentication mode of access point has changed"); break;
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
       Serial.print("Obtained IP address: ");
       Serial.println(WiFi.localIP());
+      mp_thisInstance->m_actionListener.onWifiGotIP();
       break;
     case ARDUINO_EVENT_WIFI_STA_LOST_IP:        Serial.println("Lost IP address and IP address is reset to 0"); break;
     case ARDUINO_EVENT_WPS_ER_SUCCESS:          Serial.println("WiFi Protected Setup (WPS): succeeded in enrollee mode"); break;

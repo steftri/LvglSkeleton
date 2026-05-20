@@ -12,12 +12,17 @@
 
 #include "lv_main.h"
 
+#include "model/data_container.h"
+#include "data_observer.h"
+
 
 static const size_t UI_TASK_STACK_SIZE = 8192; // Stack size for the task
 
+static constexpr uint32_t UITASK_NOTIFY_NETWORKS_UPDATED = (1UL << 0); // Notification bit for available networks update
 
 
-class UiTask
+
+class UiTask : public DataObserverInterface
 {
 private:
   TaskHandle_t mp_TaskHandle;
@@ -45,6 +50,11 @@ public:
 private:
   void setup();
   void loop();
+
+  // DataObserver implementation
+  void onDataChanged(Data &r_Data, EDataField e_Field) override;
+
+  void updateNetworkList();
 };
 
 

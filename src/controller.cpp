@@ -4,6 +4,7 @@
 Controller::Controller(Model &model, View &view)
   : m_model(model)
   , m_view(view)
+  , m_wifiTask(model.getData().getWifiData()) // Pass the Wi-Fi data reference to the WifiTask
 {
   // Constructor implementation (if needed)
 }
@@ -53,3 +54,9 @@ View &Controller::getView(void) const
   return m_view;
 }
 
+
+
+WifiTask &Controller::getWifi(void)
+{
+  return m_wifiTask;
+}

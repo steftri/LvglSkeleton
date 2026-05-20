@@ -9,13 +9,17 @@
 class ConcreteData : public Data
 {
 public:
+  enum class EField : uint8_t { Value = 0 };
+
   int getValue(void) const { return m_Value; }
 
   void setValue(int i_Value)
   {
     m_Value = i_Value;
-    notifyObservers();
+    notifyObservers(static_cast<EDataField>(EField::Value));
   }
+
+  void notifyObserversPublic(void) { notifyObservers(); }
 
 private:
   int m_Value{0};
@@ -28,13 +32,15 @@ private:
 class TestObserver : public DataObserverInterface
 {
 public:
-  int  notifyCount{0};
-  Data *lastSender{nullptr};
+  int        notifyCount{0};
+  Data      *p_lastSender{nullptr};
+  EDataField e_lastField{EDataField::AllData};
 
-  void onDataChanged(Data &r_Data) override
+  void onDataChanged(Data &r_Data, EDataField e_Field) override
   {
     ++notifyCount;
-    lastSender = &r_Data;
+    p_lastSender = &r_Data;
+    e_lastField  = e_Field;
   }
 };
 
@@ -75,7 +81,7 @@ TEST_F(DataUnitTest, ObserverReceivesCorrectSender)
 {
   data.registerObserver(&obs1);
   data.setValue(3);
-  EXPECT_EQ(obs1.lastSender, &data);
+  EXPECT_EQ(obs1.p_lastSender, &data);
 }
 
 TEST_F(DataUnitTest, MultipleObserversAreAllNotified)
@@ -119,6 +125,20 @@ TEST_F(DataUnitTest, DataValueIsCorrectAfterSet)
 {
   data.setValue(123);
   EXPECT_EQ(data.getValue(), 123);
+}
+
+TEST_F(DataUnitTest, ObserverReceivesCorrectField)
+{
+  data.registerObserver(&obs1);
+  data.setValue(5);
+  EXPECT_EQ(obs1.e_lastField, static_cast<EDataField>(ConcreteData::EField::Value));
+}
+
+TEST_F(DataUnitTest, ObserverReceivesAllFieldsWhenNoFieldGiven)
+{
+  data.registerObserver(&obs1);
+  data.notifyObserversPublic();
+  EXPECT_EQ(obs1.e_lastField, EDataField::AllData);
 }
 
 

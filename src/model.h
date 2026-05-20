@@ -2,13 +2,13 @@
 #define MODEL_H
 
 #include "model/settings.h"
-#include "model/data.h"
+#include "model/data_container.h"
 
 
 class Model
 {
   Settings m_Settings; // Holds the persistant settings
-  Data m_Data; // Holds the runtime data, e.g., Wi-Fi data
+  DataContainer m_Data; // Holds the runtime data, e.g., Wi-Fi data
 
 public:
   // Constructor
@@ -26,8 +26,8 @@ public:
   // Update the model state
   void loop(void);
 
-  Settings *getSettings(void);
-  Data *getData(void);
+  Settings &getSettings(void);
+  DataContainer &getData(void);
 };
 
 #endif // MODEL_H

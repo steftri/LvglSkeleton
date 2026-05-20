@@ -41,12 +41,12 @@ void Model::loop(void)
 }
 
 
-Settings *Model::getSettings(void)
+Settings &Model::getSettings(void)
 {
-  return &m_Settings;
+  return m_Settings;
 }
 
-Data *Model::getData(void)
+DataContainer &Model::getData(void)
 {
-  return &m_Data;
+  return m_Data;
 }

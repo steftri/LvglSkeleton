@@ -21,8 +21,6 @@ public:
   Data(void);
   virtual ~Data() = default;
 
-  void init(void);
-
   /**
    * @brief Register an observer to be notified on data changes.
    * @param p_Observer Non-owning pointer to the observer. Must not be nullptr.
@@ -42,15 +40,19 @@ protected:
    * Thread-safe: the observer list is copied under the lock, then each
    * observer is called outside the lock so that observer code may itself
    * call registerObserver() / unregisterObserver() without deadlocking.
+   * @param e_Field Identifier of the changed field, or EDataField::AllData.
    */
-  void notifyObservers(void);
+  void notifyObservers(EDataField e_Field = EDataField::AllData);
 
   static constexpr uint8_t              MAX_OBSERVERS = 8;
 
 private:
-  DataObserverInterface                *m_Observers[MAX_OBSERVERS];
+  DataObserverInterface                *map_Observers[MAX_OBSERVERS];
   uint8_t                               mu8_ObserverCount;
   std::mutex                            m_ObserverMutex;
+
+protected:  
+  std::mutex                            m_DataMutex;
 };
 
 

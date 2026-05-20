@@ -134,7 +134,7 @@ void LvMain::showWlanPasswdDialog(void)
 {
   char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
   char ac_Password[WifiData::MAX_WPA2_PASSWORD_LENGTH + 1];
-  g_controller.getModel().getData()->getWifiData()->getSelectedNetwork(ac_Ssid, ac_Password);
+  g_controller.getModel().getData().getWifiData().getSelectedNetwork(ac_Ssid, ac_Password);
   
   m_WlanPasswdDialog.show(ac_Ssid, ac_Password);
 }
@@ -145,7 +145,7 @@ void LvMain::updateWlanSymbol(void)
   if(mp_WifiSymbol == nullptr)
     return;
 
-  WifiData::EState e_State = g_controller.getModel().getData()->getWifiData()->getState();
+  WifiData::EState e_State = g_controller.getModel().getData().getWifiData().getState();
   if(e_State == WifiData::EState::Connected)
   {
     lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
