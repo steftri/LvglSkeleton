@@ -1,10 +1,9 @@
 
 #include "data.h"
 
-#include <algorithm>
-
 
 Data::Data(void)
+  : mu8_ObserverCount(0)
 {
 }
 
@@ -17,31 +16,44 @@ void Data::init(void)
 void Data::registerObserver(DataObserverInterface *p_Observer)
 {
   std::lock_guard<std::mutex> lock(m_ObserverMutex);
-  m_Observers.push_back(p_Observer);
+  if (mu8_ObserverCount < MAX_OBSERVERS)
+  {
+    m_Observers[mu8_ObserverCount++] = p_Observer;
+  }
 }
 
 
 void Data::unregisterObserver(DataObserverInterface *p_Observer)
 {
   std::lock_guard<std::mutex> lock(m_ObserverMutex);
-  m_Observers.erase(
-    std::remove(m_Observers.begin(), m_Observers.end(), p_Observer),
-    m_Observers.end()
-  );
+  for (uint8_t i = 0; i < mu8_ObserverCount; ++i)
+  {
+    if (m_Observers[i] == p_Observer)
+    {
+      m_Observers[i] = m_Observers[--mu8_ObserverCount];
+      break;
+    }
+  }
 }
 
 
 void Data::notifyObservers(void)
 {
-  std::vector<DataObserverInterface *> snapshot;
-  {
+  DataObserverInterface *snapshot[MAX_OBSERVERS];
+  uint8_t u8_Count = 0;
+
+  { 
     std::lock_guard<std::mutex> lock(m_ObserverMutex);
-    snapshot = m_Observers;
+    u8_Count = mu8_ObserverCount;
+    for (uint8_t i = 0; i < u8_Count; ++i)
+    {
+      snapshot[i] = m_Observers[i];
+    }
   }
 
-  for (auto *p_Observer : snapshot)
+  for (uint8_t i = 0; i < u8_Count; ++i)
   {
-    p_Observer->onDataChanged(*this);
+    snapshot[i]->onDataChanged(*this);
   }
 }
 

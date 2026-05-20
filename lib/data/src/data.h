@@ -2,7 +2,6 @@
 #define DATA_H
 
 #include <inttypes.h>
-#include <vector>
 #include <mutex>
 
 #include "data_observer.h"
@@ -46,9 +45,12 @@ protected:
    */
   void notifyObservers(void);
 
+  static constexpr uint8_t              MAX_OBSERVERS = 8;
+
 private:
-  std::vector<DataObserverInterface *> m_Observers;
-  std::mutex                           m_ObserverMutex;
+  DataObserverInterface                *m_Observers[MAX_OBSERVERS];
+  uint8_t                               mu8_ObserverCount;
+  std::mutex                            m_ObserverMutex;
 };
 
 
