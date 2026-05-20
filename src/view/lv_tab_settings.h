@@ -17,6 +17,7 @@ class LvTabSettings
 
 private:
   static void onWlanEnableCallback(lv_event_t *p_Event);
+  static void onWlanDisconnectButtonCallback(lv_event_t *p_Event);
   static void onWlanSsidButtonCallback(lv_event_t *p_Event);
 
 public:

@@ -33,10 +33,19 @@ public:
 
   void enable();
   void disable();
+  void connect();
+  void disconnect();
 
 private:  
   void setup(void);
   void loop(void);
+
+  // Thread-safe wifi actions
+  void actionEnable();
+  void actionDisable();
+  void actionConnect();
+  void actionDisconnect();
+  void actionScanNetworks();
 
   // WifiActionInterface implementation
   void onWifiNetworksUpdated() override;

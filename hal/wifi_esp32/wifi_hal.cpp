@@ -31,7 +31,7 @@ void WifiHal::setup()
 
 void WifiHal::enable()
 {
-  Serial.println("Enabling Wi-Fi");
+  Serial.println("HAL: Enabling Wi-Fi");
   WiFi.begin(); // Start Wi-Fi connection
 
   WiFi.scanNetworks(true); // Start scanning for Wi-Fi networks in the background
@@ -40,7 +40,7 @@ void WifiHal::enable()
 
 void WifiHal::disable()
 {
-  Serial.println("Disabling Wi-Fi");
+  Serial.println("HAL: Disabling Wi-Fi");
   WiFi.disconnect(true); // Disconnect and erase credentials
 }
 
@@ -48,6 +48,7 @@ void WifiHal::disable()
 
 void WifiHal::scanNetworks()
 {
+  Serial.println("HAL: Scanning for Wi-Fi networks");
   WiFi.scanNetworks(true); // Start an asynchronous Wi-Fi scan
 }
 
@@ -77,31 +78,36 @@ void WifiHal::getAvailableNetworkSignalStrength(int32_t *ps32_signalStrength, ui
   *ps32_signalStrength = WiFi.RSSI(u8_index); // Get the signal strength (RSSI) of the network at the specified index
 }
 
-void WifiHal::connect(const char* pc_ssid, const char* pc_password)
+void WifiHal::connect(const char* pc_Ssid, const char* pc_Password)
 {
   // Implement Wi-Fi connection logic here
+  WiFi.begin(pc_Ssid, pc_Password); // Start Wi-Fi connection with the provided SSID and password
 } 
 
 void WifiHal::disconnect()
 {
   // Implement Wi-Fi disconnection logic here
+  WiFi.disconnect(true); // Disconnect and erase credentials
 }
 
 bool WifiHal::isConnected() const
 {
   // Implement logic to check if Wi-Fi is connected
-  return false; // Placeholder
+  return WiFi.status() == WL_CONNECTED;
 }
 
 void WifiHal::getIPAddress(char* pc_buffer, size_t bufferSize) const
 {
-  // Implement logic to get the IP address of the device
+  if(pc_buffer == nullptr || bufferSize < 1) 
+    return;
+  strncpy(pc_buffer, WiFi.localIP().toString().c_str(), bufferSize - 1); // Copy IP address to buffer, ensuring null-termination
+  pc_buffer[bufferSize - 1] = '\0'; // Ensure null-termination
 }
 
 int WifiHal::getSignalStrength() const
 {
   // Implement logic to get the signal strength of the current Wi-Fi connection
-  return 0; // Placeholder
+  return WiFi.RSSI(); // Return the signal strength (RSSI) of the current Wi-Fi connection
 }
 
 
@@ -133,8 +139,7 @@ void WifiHal::onEvent(WiFiEvent_t event)
       break;
     case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE: Serial.println("Authentication mode of access point has changed"); break;
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-      Serial.print("Obtained IP address: ");
-      Serial.println(WiFi.localIP());
+      Serial.print("Got IP address");
       mp_thisInstance->m_actionListener.onWifiGotIP();
       break;
     case ARDUINO_EVENT_WIFI_STA_LOST_IP:        Serial.println("Lost IP address and IP address is reset to 0"); break;

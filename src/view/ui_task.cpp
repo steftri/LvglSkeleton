@@ -11,6 +11,17 @@ extern Controller g_controller; // Declare the global controller instance define
 UiTask *UiTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
+enum class ENotificationBits : uint32_t
+{
+  AvailableNetworks = (1UL << 0),
+  ConnectionState = (1UL << 1),
+  IPAddress = (1UL << 2)
+};
+
+
+
+
+
 UiTask::UiTask()
   : mp_TaskHandle(nullptr)
 {
@@ -92,11 +103,20 @@ void UiTask::loop()
                   ((UI_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / UI_TASK_STACK_SIZE); // NULL = aktueller Task
   }
 
-  uint32_t ulNotifiedValue = 0;
-  xTaskNotifyWait(0, UITASK_NOTIFY_NETWORKS_UPDATED, &ulNotifiedValue, pdMS_TO_TICKS(5));
-  if (ulNotifiedValue & UITASK_NOTIFY_NETWORKS_UPDATED)
+  uint32_t u32_NotifiedValue = 0;
+  xTaskNotifyWait(0, 0xffff, &u32_NotifiedValue, pdMS_TO_TICKS(5));
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::AvailableNetworks))
   {
     updateNetworkList();
+  }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ConnectionState))
+  {
+    m_LvMain.updateWlanSymbol();
+    m_LvMain.getTabSettings()->updateWlanStatePanel();
+  }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::IPAddress))
+  {
+    m_LvMain.getTabSettings()->updateWlanStatePanel();
   }
 }
 
@@ -109,16 +129,15 @@ void UiTask::onDataChanged(Data &r_Data, EDataField e_Field)
   {
     case WifiData::EField::AvailableNetworks:
       Serial.println("UI task: Available Wi-Fi networks updated");
-      xTaskNotify(mp_TaskHandle, UITASK_NOTIFY_NETWORKS_UPDATED, eSetBits);
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::AvailableNetworks), eSetBits);
       break;
     case WifiData::EField::ConnectionState:
       Serial.println("UI task: Wi-Fi connection state changed");
-      break;
-    case WifiData::EField::SelectedNetwork:
-      Serial.println("UI task: Selected Wi-Fi network changed");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ConnectionState), eSetBits);
       break;
     case WifiData::EField::IPAddress:
       Serial.println("UI task: IP address updated");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::IPAddress), eSetBits);
       break;
     default:
       Serial.println("UI task: Unknown data field changed");

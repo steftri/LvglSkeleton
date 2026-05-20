@@ -83,15 +83,16 @@ void LvTabSettings::updateWlanStatePanel(void)
   }
   else
   {
-    if(e_WifiState == WifiData::EState::Connected || e_WifiState == WifiData::EState::Connecting)
+    if(e_WifiState == WifiData::EState::Connected)
     {
       lv_obj_clear_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
     }
     else
     {
       lv_obj_add_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_clear_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
     }
-    lv_obj_clear_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
   }
 
   WifiData.getSelectedNetwork(ac_Ssid, nullptr);
@@ -142,7 +143,13 @@ void LvTabSettings::onWlanEnableCallback(lv_event_t *p_Event)
   {
     g_controller.getWifi().disable(); // Disable Wi-Fi when the switch is turned off
   }
+}
 
+
+void LvTabSettings::onWlanDisconnectButtonCallback(lv_event_t *p_Event)
+{
+  LV_LOG_USER("WLAN Disconnect button clicked");
+  g_controller.getWifi().disconnect(); // Disconnect from Wi-Fi
 }
 
 
