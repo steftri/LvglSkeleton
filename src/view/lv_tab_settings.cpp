@@ -76,7 +76,7 @@ void LvTabSettings::updateWlanStatePanel(void)
   char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
   WifiData::EState e_WifiState = WifiData.getState();
 
-  if(e_WifiState == WifiData::EState::Disabled)
+  if(!WifiData.isEnabled())
   {
     lv_obj_add_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
@@ -85,6 +85,10 @@ void LvTabSettings::updateWlanStatePanel(void)
   {
     if(e_WifiState == WifiData::EState::Connected)
     {
+      char ac_IPAddress[WifiData::MAX_IP_ADDRESS_LENGTH + 1];
+      WifiData.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress));
+      lv_label_set_text(mp_CurrentIp, ac_IPAddress);
+
       lv_obj_clear_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
       lv_obj_add_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
     }
@@ -97,19 +101,20 @@ void LvTabSettings::updateWlanStatePanel(void)
 
   WifiData.getSelectedNetwork(ac_Ssid, nullptr);
   lv_label_set_text(mp_CurrentWlan, ac_Ssid);
-
-  char ac_IPAddress[WifiData::MAX_IP_ADDRESS_LENGTH + 1];
-  WifiData.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress));
-  lv_label_set_text(mp_CurrentIp, ac_IPAddress);
 }
 
 
 
 void LvTabSettings::updateWlanSelectList(void)
 {
-  uint8_t u8_NumberOfNetworks = g_controller.getModel().getData().getWifiData().getAvailableNetworkCount();
+  WifiData &WifiData = g_controller.getModel().getData().getWifiData();
+  uint8_t u8_NumberOfNetworks = WifiData.getAvailableNetworkCount();
 
-  Serial.printf("Updating WLAN select list with %d networks\n", u8_NumberOfNetworks);
+  if (!WifiData.isEnabled())
+  {
+    u8_NumberOfNetworks = 0; // No networks available when Wi-Fi is disabled
+    Serial.println("Wi-Fi is disabled, hiding available networks");
+  }
     
   for(uint8_t i = 0; i < WifiData::MAX_WIFI_NETWORKS; i++) 
   {

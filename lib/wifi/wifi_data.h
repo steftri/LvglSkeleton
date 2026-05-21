@@ -25,14 +25,14 @@ public:
 
   enum class EState
   {
-    Disabled = 0,
-    Enabled,
+    Disconnected = 0,
     Connecting,
     Connected,
     Error
   };
 
 private:
+  bool mb_Enabled; ///< Indicates whether Wi-Fi is enabled or disabled
   EState me_State; ///< Current state of the Wi-Fi connection
 
   char mac_AvailableNetworks[MAX_WIFI_NETWORKS][MAX_SSID_LENGTH + 1]; ///< SSID of the Wi-Fi network
@@ -49,6 +49,9 @@ private:
 public:
   WifiData();
   ~WifiData() = default;
+
+  void setEnable(bool b_Enable);
+  bool isEnabled() const;
 
   void setState(EState e_State);
   EState getState(void) const;

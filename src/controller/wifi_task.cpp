@@ -136,7 +136,7 @@ void WifiTask::loop(void)
                   uxTaskGetStackHighWaterMark(NULL), WIFI_TASK_STACK_SIZE,
                   ((WIFI_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / WIFI_TASK_STACK_SIZE); // NULL = aktueller Task
 
-    if(m_WifiData.getState() == WifiData::EState::Enabled) // enabled, but not connected -> scan for networks to update the list in the view
+    if(m_WifiData.isEnabled()) // enabled, but not connected -> scan for networks to update the list in the view
     {
       m_WifiHal.scanNetworks(); // Periodically scan for Wi-Fi networks to update the list in the view
     }
@@ -147,6 +147,7 @@ void WifiTask::loop(void)
 void WifiTask::actionEnable()
 {
   Serial.println("Enabling Wi-Fi");
+  m_WifiData.setEnable(true); 
   m_WifiHal.enable(); // Enable the Wi-Fi hardware
 }
 
@@ -154,6 +155,7 @@ void WifiTask::actionDisable()
 {
   Serial.println("Disabling Wi-Fi");
   m_WifiHal.disable(); // Disable the Wi-Fi hardware
+  m_WifiData.setEnable(false); // Update the Wi-Fi connection state in the data
 }
 
 
@@ -173,6 +175,7 @@ void WifiTask::actionDisconnect()
 {
   Serial.println("Disconnecting from Wi-Fi");
   m_WifiHal.disconnect(); // Disconnect from the Wi-Fi network using the HAL
+  m_WifiData.setState(WifiData::EState::Disconnected);
 }
 
 
@@ -243,7 +246,7 @@ void WifiTask::onWifiDisconnected()
 {
   Serial.println("Wi-Fi disconnected");
   
-  m_WifiData.setState(WifiData::EState::Enabled); // wifi state goes back to enabled but not connected
+  m_WifiData.setState(WifiData::EState::Disconnected); // wifi state goes back to not connected
 }
 
 

@@ -4,9 +4,9 @@
 
 WifiData::WifiData()
   : mu8_NumberOfAvaliableNetworks(0)
+  , mb_Enabled(false) // Wi-Fi is initially disabled
+  , me_State(EState::Disconnected)
 {
-  me_State = EState::Disabled;
-
   // Initialize the available networks to empty strings
   for (uint8_t i = 0; i < MAX_WIFI_NETWORKS; ++i)
   {
@@ -19,6 +19,20 @@ WifiData::WifiData()
 
   // Initialize IP address to zero
   memset(mac_IPAddress, 0, sizeof(mac_IPAddress));
+}
+
+
+void WifiData::setEnable(bool b_Enable)
+{
+  mb_Enabled = b_Enable;
+
+  setState(EState::Disconnected);
+}
+
+
+bool WifiData::isEnabled() const
+{
+  return mb_Enabled;
 }
 
 
