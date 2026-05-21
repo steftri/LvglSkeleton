@@ -46,6 +46,21 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
       lv_label_set_text(mp_CurrentWlan, "");
       mp_CurrentIp = lv_label_create(mp_WlanStatePanel); 
       lv_label_set_text(mp_CurrentIp, "");
+
+      lv_obj_t *p_ButtonPanel = lv_obj_create(mp_WlanStatePanel);
+      {
+        lv_obj_remove_style_all(p_ButtonPanel);
+        lv_obj_set_size(p_ButtonPanel, lv_pct(100), LV_SIZE_CONTENT);
+
+        // Create the disconnect button
+        mp_DisconnectButton = lv_btn_create(p_ButtonPanel);
+        {
+          lv_obj_align(mp_DisconnectButton, LV_ALIGN_RIGHT_MID, 0, 0);
+          lv_obj_t *p_Label = lv_label_create(mp_DisconnectButton);
+          lv_label_set_text(p_Label, "Disconnect");
+          lv_obj_add_event_cb(mp_DisconnectButton, onWlanDisconnectButtonCallback, LV_EVENT_CLICKED, NULL);
+        }
+      }
     }
 
     mp_WlanSelectList = lv_list_create(p_WlanPanel);
