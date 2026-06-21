@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "controller.h"
 
 
@@ -6,7 +8,6 @@ Controller::Controller(Model &model, View &view)
   , m_view(view)
   , m_wifiTask(model.getData().getWifiData()) // Pass the Wi-Fi data reference to the WifiTask
 {
-  // Constructor implementation (if needed)
 }
 
 
@@ -33,13 +34,7 @@ void Controller::begin(void)
 
 void Controller::loop(void)
 {
-  m_os.loop(); // Call the OS loop function
-
-  // Update the model and view
-  m_model.loop();
-  m_view.loop();
-
-  sleep(10); // Sleep to prevent busy looping
+  delay(10); // Yield CPU time; keep Arduino loop responsive without busy spinning
 }
 
 

@@ -36,14 +36,15 @@ void WifiTask::begin(void)
 {
   Serial.println("Creating WifiTask");
 
-  mp_TaskHandle = xTaskCreateStatic(
+  mp_TaskHandle = xTaskCreateStaticPinnedToCore(
      task,                     // Task function
      "Wifi",                   // Task name
      WIFI_TASK_STACK_SIZE,     // Stack size
      nullptr,                  // Parameters
      1,                        // Priority
      m_TaskStack,              // Task handle
-     &m_TaskBuffer             // Static task buffer
+     &m_TaskBuffer,            // Static task buffer
+     0                         // Core 0 
   );
 }
 
@@ -166,7 +167,7 @@ void WifiTask::actionConnect()
   char ac_Password[MAX_WPA2_PASSWORD_LENGTH + 1];
   m_WifiData.getSelectedNetwork(ac_SSID, ac_Password); // Get the selected network's SSID and password from the data
 
-  Serial.printf("Connecting to Wi-Fi network: %s\n", ac_SSID);
+  Serial.printf("Connecting to Wi-Fi network \"%s\" with password \"%s\"\n", ac_SSID, ac_Password);
   m_WifiHal.connect(ac_SSID, ac_Password); // Connect to the Wi-Fi network using the HAL
 }
 

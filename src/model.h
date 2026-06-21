@@ -1,18 +1,22 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "model/settings.h"
+#include "model/settings_container.h"
 #include "model/data_container.h"
+
+#include "model/model_task.h"
 
 
 class Model
 {
-  Settings m_Settings; // Holds the persistant settings
+  SettingsContainer m_Settings; // Holds the persistant settings
   DataContainer m_Data; // Holds the runtime data, e.g., Wi-Fi data
+
+  ModelTask m_Task; // Task for handling model operations
 
 public:
   // Constructor
-  Model(void) = default;
+  Model(void);
 
   // Destructor
   ~Model() = default;
@@ -26,8 +30,10 @@ public:
   // Update the model state
   void loop(void);
 
-  Settings &getSettings(void);
+  SettingsContainer &getSettings(void);
   DataContainer &getData(void);
+
+  ModelTask &getTask(void);
 };
 
 #endif // MODEL_H

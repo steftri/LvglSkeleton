@@ -123,6 +123,9 @@ void LvWlanPasswdDialog::onOkButtonEvent(lv_event_t *p_Event)
     LV_LOG_USER("Password \"%s\" entered", pc_Passwd);
     g_controller.getModel().getData().getWifiData().setNetworkPassword(pc_Passwd);
     p_Instance->hide();
+
+    // Trigger the Wi-Fi connection attempt with the entered password
+    g_controller.getWifi().connect(); // Trigger the Wi-Fi connection attempt with the entered password
 }
 
 

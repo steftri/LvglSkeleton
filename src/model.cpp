@@ -2,25 +2,30 @@
 #include "os.h"
 
 
-void Model::setup(void)
+Model::Model()
+  : m_Settings()
+  , m_Data()
+  , m_Task()
 {
-  // Initialize the model settings
-  m_Settings.setup();
-  
+}
+
+
+void Model::setup(void)
+{  
   // Load settings from persistent storage
-  Settings::ERc result = m_Settings.load();
-  if (result != Settings::ERc::Ok) 
+  SettingsContainer::ERc result = m_Settings.load();
+  if (result != SettingsContainer::ERc::Ok) 
   {
     // Handle error if needed, e.g., log or set default values
-    if (result == Settings::ERc::NotFoundError) 
+    if (result == SettingsContainer::ERc::NotFoundError) 
     {
       Os::log("Settings not found, using defaults.");
     } 
-    else if (result == Settings::ERc::VersionMismatchError) 
+    else if (result == SettingsContainer::ERc::VersionMismatchError) 
     {
       Os::log("Settings version mismatch, using defaults.");
     } 
-    else if (result == Settings::ERc::VerificationError) 
+    else if (result == SettingsContainer::ERc::VerificationError) 
     {
       Os::log("Settings verification failed, using defaults.");
     }
@@ -30,7 +35,7 @@ void Model::setup(void)
 
 void Model::begin(void)
 {
-  // Start any threads or background tasks related to the model if needed
+  m_Task.begin(); // Start the model task
 }
 
 
@@ -41,7 +46,7 @@ void Model::loop(void)
 }
 
 
-Settings &Model::getSettings(void)
+SettingsContainer &Model::getSettings(void)
 {
   return m_Settings;
 }
@@ -49,4 +54,11 @@ Settings &Model::getSettings(void)
 DataContainer &Model::getData(void)
 {
   return m_Data;
+}
+
+
+
+ModelTask &Model::getTask(void)
+{
+  return m_Task;
 }

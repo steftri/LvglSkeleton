@@ -1,6 +1,6 @@
 #include "crc32.h"
 
-#include "settings.h"
+#include "settings_container.h"
 
 
 
@@ -8,21 +8,16 @@ const uint32_t EEPROM_SETTINGS_MAGIC   = 0x1acffc1d;
 const uint16_t EEPROM_SETTINGS_VERSION = 1;
 
 
-Settings::Settings(void)  
+SettingsContainer::SettingsContainer(void)  
   : mb_Valid(false)
 {
 }
 
 
 
-void Settings::setup(void)
-{
-}
 
 
-
-
-Settings::ERc Settings::save(void)
+SettingsContainer::ERc SettingsContainer::save(void)
 {
   uint8_t au8_VersionBuffer[2];
 
@@ -70,7 +65,7 @@ Settings::ERc Settings::save(void)
 
 
 
-Settings::ERc Settings::load(void)
+SettingsContainer::ERc SettingsContainer::load(void)
 {
   uint32_t u32_Magic;
   uint8_t au8_VersionBuffer[2];
@@ -141,7 +136,7 @@ Settings::ERc Settings::load(void)
 
 
 
-void Settings::clear(void)
+void SettingsContainer::clear(void)
 {
   m_WifiSettings.init();
   m_MqttSettings.init();
@@ -149,20 +144,20 @@ void Settings::clear(void)
 }
 
 
-bool Settings::isValid(void)
+bool SettingsContainer::isValid(void)
 {
   return mb_Valid;
 }
 
 
-WifiSettings *Settings::getWifiSettings(void)
+WifiSettings *SettingsContainer::getWifiSettings(void)
 {
   return &m_WifiSettings;
 }
 
 
 
-MqttSettings *Settings::getMqttSettings(void)
+MqttSettings *SettingsContainer::getMqttSettings(void)
 {
   return &m_MqttSettings;
 }

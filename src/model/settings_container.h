@@ -1,5 +1,5 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef SETTINGS_CONTAINER_H
+#define SETTINGS_CONTAINER_H
 
 
 #include <inttypes.h>
@@ -10,7 +10,7 @@
 #include "mqtt_settings.h"
 
 
-class Settings
+class SettingsContainer
 {
 public: 
   enum class ERc 
@@ -28,9 +28,7 @@ private:
   bool mb_Valid;
 
 public:
-  Settings(void);
-
-  void setup(void);
+  SettingsContainer(void);
 
   ERc save(void);
   ERc load(void);

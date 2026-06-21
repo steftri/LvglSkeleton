@@ -1,14 +1,14 @@
 #ifndef VIEW_H
 #define VIEW_H
 
-#include "view/ui_task.h"
+#include "view/view_task.h"
 
 
 
 
 class View
 {
-  UiTask m_UiTask;
+  ViewTask m_Task;
 
 public:
   // Constructor

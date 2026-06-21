@@ -2,13 +2,13 @@
 
 #include "controller.h"
 
-#include "ui_task.h"
+#include "view_task.h"
 
 
 extern Controller g_controller; // Declare the global controller instance defined in main.cpp
 
 
-UiTask *UiTask::mp_thisInstance = nullptr; // Initialize static instance pointer
+ViewTask *ViewTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
 enum class ENotificationBits : uint32_t
@@ -22,21 +22,21 @@ enum class ENotificationBits : uint32_t
 
 
 
-UiTask::UiTask()
+ViewTask::ViewTask()
   : mp_TaskHandle(nullptr)
 {
   mp_thisInstance = this;
 }
 
 
-void UiTask::begin(void)
+void ViewTask::begin(void)
 {
-  Serial.println("Creating UiTask");
+  Serial.println("Creating ViewTask");
 
   mp_TaskHandle = xTaskCreateStaticPinnedToCore(
      task,                     // Task function
-     "UI",                     // Task name
-     UI_TASK_STACK_SIZE,       // Stack size
+     "View",                   // Task name
+     VIEW_TASK_STACK_SIZE,       // Stack size
      nullptr,                  // Parameters
      1,                        // Priority
      m_TaskStack,              // Task stack
@@ -48,16 +48,16 @@ void UiTask::begin(void)
 
 
 
-void UiTask::task(void *pvParameters)
+void ViewTask::task(void *pvParameters)
 {
   if(mp_thisInstance == nullptr)
   {
-    Serial.println("Error: UiTask instance not set");
+    Serial.println("Error: ViewTask instance not set");
     vTaskDelete(nullptr); // Delete the task if instance is not set
     return;
   }
 
-  Serial.println("Ui Task started");
+  Serial.println("ViewTask started");
   mp_thisInstance->setup(); // Initialize the UI components before looping
 
   while (true)
@@ -68,9 +68,9 @@ void UiTask::task(void *pvParameters)
 
 
 
-void UiTask::setup()
+void ViewTask::setup()
 {
-  Serial.println("UiTask running.");
+  Serial.println("ViewTask running.");
 
   g_controller.getModel().getData().getWifiData().registerObserver(this); // Register as observer for data changes
   Serial.println("Observer registered for Wi-Fi data changes");
@@ -82,13 +82,13 @@ void UiTask::setup()
 }
 
 
-LvMain *UiTask::getLvMain(void)
+LvMain *ViewTask::getLvMain(void)
 {
   return &m_LvMain;
 }
 
 
-void UiTask::loop()
+void ViewTask::loop()
 {
   static uint32_t lastUpdateTime = 0;
   uint32_t currentTime = millis();
@@ -98,9 +98,9 @@ void UiTask::loop()
   if (currentTime - lastUpdateTime >= 10000) // Update every 10 seconds
   {
     lastUpdateTime = currentTime;
-    Serial.printf("Free UI stack: %u/%u (Usage: %u%%)\n",
-                  uxTaskGetStackHighWaterMark(NULL), UI_TASK_STACK_SIZE,
-                  ((UI_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / UI_TASK_STACK_SIZE); // NULL = aktueller Task
+    Serial.printf("Free ViewTask stack: %u/%u (Usage: %u%%)\n",
+                  uxTaskGetStackHighWaterMark(NULL), VIEW_TASK_STACK_SIZE,
+                  ((VIEW_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / VIEW_TASK_STACK_SIZE); // NULL = aktueller Task
   }
 
   uint32_t u32_NotifiedValue = 0;
@@ -111,6 +111,7 @@ void UiTask::loop()
   }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ConnectionState))
   {
+    Serial.println("ViewTask: Connection state changed, updating UI");
     m_LvMain.updateWlanSymbol();
     m_LvMain.getTabSettings()->updateWlanStatePanel();
   }
@@ -122,31 +123,31 @@ void UiTask::loop()
 
 
 
-void UiTask::onDataChanged(Data &r_Data, EDataField e_Field)
+void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
 {
   // Handle data changes and update the UI accordingly
   switch (static_cast<WifiData::EField>(e_Field))
   {
     case WifiData::EField::AvailableNetworks:
-      Serial.println("UI task: Available Wi-Fi networks updated");
+      Serial.println("ViewTask: Available Wi-Fi networks updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::AvailableNetworks), eSetBits);
       break;
     case WifiData::EField::ConnectionState:
-      Serial.println("UI task: Wi-Fi connection state changed");
+      Serial.println("ViewTask: Wi-Fi connection state changed");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ConnectionState), eSetBits);
       break;
     case WifiData::EField::IPAddress:
-      Serial.println("UI task: IP address updated");
+      Serial.println("ViewTask: IP address updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::IPAddress), eSetBits);
       break;
     default:
-      Serial.println("UI task: Unknown data field changed");
+      Serial.println("ViewTask: Unknown data field changed");
       break;
   }
 }
 
 
-void UiTask::updateNetworkList()
+void ViewTask::updateNetworkList()
 {
   m_LvMain.getTabSettings()->updateWlanSelectList(); // Update the Wi-Fi network list in the UI
 }

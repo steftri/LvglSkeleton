@@ -45,7 +45,6 @@ private:
   void actionDisable();
   void actionConnect();
   void actionDisconnect();
-  void actionScanNetworks();
 
   // WifiActionInterface implementation
   void onWifiNetworksUpdated() override;

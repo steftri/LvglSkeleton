@@ -11,7 +11,7 @@ void View::setup(void)
 void View::begin(void)
 {
   Serial.println("Starting UiTask");
-  m_UiTask.begin();
+  m_Task.begin();
 }
 
 
@@ -24,31 +24,31 @@ void View::loop(void)
 
 LvMain *View::getLvMain(void)
 {
-  return m_UiTask.getLvMain();
+  return m_Task.getLvMain();
 }
 
 
 void View::updateSystemInfo(void)
 {
-  m_UiTask.getLvMain()->getTabInfo()->updateFreeRTOSInfo();
-  m_UiTask.getLvMain()->getTabInfo()->updateLVGLInfo();
+  m_Task.getLvMain()->getTabInfo()->updateFreeRTOSInfo();
+  m_Task.getLvMain()->getTabInfo()->updateLVGLInfo();
 }
 
 
 void View::updateWlanState(void)
 {
-  m_UiTask.getLvMain()->updateWlanSymbol();
-  m_UiTask.getLvMain()->getTabSettings()->updateWlanStatePanel();
+  m_Task.getLvMain()->updateWlanSymbol();
+  m_Task.getLvMain()->getTabSettings()->updateWlanStatePanel();
 }
 
 
 void View::updateWlanList(void)
 {
-  m_UiTask.getLvMain()->getTabSettings()->updateWlanSelectList();
+  m_Task.getLvMain()->getTabSettings()->updateWlanSelectList();
 }
 
 
 void View::showWlanPasswdDialog(void)
 {
-  m_UiTask.getLvMain()->showWlanPasswdDialog();
+  m_Task.getLvMain()->showWlanPasswdDialog();
 }
