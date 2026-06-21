@@ -8,6 +8,7 @@
 #include "interfaces/wifi_action_interface.h"
 
 #include "wifi_data.h"
+#include "wifi_settings.h"
 
 
 static const size_t WIFI_TASK_STACK_SIZE = 4096; // Stack size for the task
@@ -24,10 +25,11 @@ private:
   static WifiTask *mp_thisInstance; // Static instance pointer for task access
 
   WifiHal m_WifiHal;
+  WifiSettings &m_WifiSettings; // Reference to the Wi-Fi settings in the model
   WifiData &m_WifiData; // Reference to the Wi-Fi data in the model
 
 public:
-  WifiTask(WifiData &wifiData);
+  WifiTask(WifiSettings &wifiSettings, WifiData &wifiData);
 
   void begin(void);
 

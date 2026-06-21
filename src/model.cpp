@@ -5,14 +5,15 @@
 Model::Model()
   : m_Settings()
   , m_Data()
-  , m_Task()
+  , m_Task(m_Settings, m_Data)
 {
 }
 
 
 void Model::setup(void)
 {  
-  // Load settings from persistent storage
+  // Load settings immediately on setup to ensure they are available before any tasks start
+  
   SettingsContainer::ERc result = m_Settings.load();
   if (result != SettingsContainer::ERc::Ok) 
   {

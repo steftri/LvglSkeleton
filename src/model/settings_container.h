@@ -36,8 +36,8 @@ public:
 
   bool isValid(void);
 
-  WifiSettings *getWifiSettings(void);
-  MqttSettings *getMqttSettings(void);
+  WifiSettings &getWifiSettings(void);
+  MqttSettings &getMqttSettings(void);
 };
 
 

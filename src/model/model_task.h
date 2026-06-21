@@ -4,12 +4,16 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "data_container.h"
+#include "settings_container.h"
+
+#include "data_observer.h"
 
 
-static const size_t MODEL_TASK_STACK_SIZE = 4096; // Stack size for the task
+static const size_t MODEL_TASK_STACK_SIZE = (4*1024); // Stack size for the task
 
 
-class ModelTask
+class ModelTask : public DataObserverInterface
 {
 private:
   TaskHandle_t mp_TaskHandle;
@@ -19,8 +23,11 @@ private:
   static void task(void *pvParameters);  
   static ModelTask *mp_thisInstance; // Static instance pointer for task access
 
+  SettingsContainer &m_Settings; // Holds the persistant settings
+  DataContainer &m_Data; // Holds the runtime data, e.g., Wi-Fi data
+
 public:
-  ModelTask();
+  ModelTask(SettingsContainer &settings, DataContainer &data);
 
   void begin(void);
 
@@ -34,6 +41,9 @@ private:
   // Thread-safe data storage actions
   void actionSave();
   void actionClear();
+
+  // DataObserver implementation
+  void onDataChanged(Data &r_Data, EDataField e_Field) override;
 };
 
 

@@ -18,18 +18,18 @@ SettingsContainer::SettingsContainer(void)
 
 
 SettingsContainer::ERc SettingsContainer::save(void)
-{
+{ 
   uint8_t au8_VersionBuffer[2];
 
   uint8_t au8_WifiSettingBuffer[WifiSettings::WIFI_SETTINGS_SIZE];
-  uint16_t u16_WifiSettingSize; 
+  uint16_t u16_WifiSettingSize = 0; 
 
   uint8_t au8_MqttSettingBuffer[MqttSettings::MQTT_SETTINGS_SIZE];
-  uint16_t u16_MqttSettingSize; 
-
+  uint16_t u16_MqttSettingSize = 0; 
+  
   CRC32 crc;
   uint32_t u32_crc;
-
+  
   m_DataStorage.open(DataStorage::EMode::Write);
   m_DataStorage.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>24));
   m_DataStorage.write(static_cast<uint8_t>(EEPROM_SETTINGS_MAGIC>>16));
@@ -56,7 +56,7 @@ SettingsContainer::ERc SettingsContainer::save(void)
   m_DataStorage.write(static_cast<uint8_t>(u32_crc>>16));
   m_DataStorage.write(static_cast<uint8_t>(u32_crc>>8));
   m_DataStorage.write(static_cast<uint8_t>(u32_crc));  
-
+  
   m_DataStorage.close();
 
   mb_Valid = true;
@@ -150,14 +150,14 @@ bool SettingsContainer::isValid(void)
 }
 
 
-WifiSettings *SettingsContainer::getWifiSettings(void)
+WifiSettings &SettingsContainer::getWifiSettings(void)
 {
-  return &m_WifiSettings;
+  return m_WifiSettings;
 }
 
 
 
-MqttSettings *SettingsContainer::getMqttSettings(void)
+MqttSettings &SettingsContainer::getMqttSettings(void)
 {
-  return &m_MqttSettings;
+  return m_MqttSettings;
 }

@@ -22,9 +22,10 @@ enum class ENotificationBits : uint32_t
 
 
 
-WifiTask::WifiTask(WifiData &wifiData)
+WifiTask::WifiTask(WifiSettings &wifiSettings, WifiData &wifiData)
   : mp_TaskHandle(nullptr)
   , m_WifiHal(*this) // Pass the WifiActionInterface reference to the WifiHal
+  , m_WifiSettings(wifiSettings) // Initialize the reference to the Wi-Fi settings
   , m_WifiData(wifiData) // Initialize the reference to the Wi-Fi data
 {
   mp_thisInstance = this;
@@ -101,7 +102,22 @@ void WifiTask::setup(void)
   Serial.println("WifiTask running.");
 
   m_WifiHal.setup(); // Initialize the Wi-Fi hardware and start scanning for networks
-  m_WifiHal.scanNetworks(); // Start scanning for Wi-Fi networks    
+
+  if(m_WifiSettings.getEnableState())
+  {
+    Serial.println("Wi-Fi is enabled in settings, enabling Wi-Fi hardware...");
+    m_WifiData.setEnable(true); 
+    m_WifiHal.enable(); // Enable the Wi-Fi hardware if it is enabled in the settings
+    
+    if(m_WifiSettings.getNetworkCount() > 0) // Check if there are any stored networks in the settings
+    {
+      // try to connect to the previously selected network if Wi-Fi was enabled
+      const char *pc_SSID = m_WifiSettings.getNetworkSSID(0);
+      const char *pc_Password = m_WifiSettings.getNetworkPassword(0);
+      Serial.printf("Attempting to connect to previously selected Wi-Fi network \"%s\"...\n", pc_SSID);
+      m_WifiHal.connect(pc_SSID, pc_Password); // Connect to the Wi-Fi network using the HAL
+    }
+  }
 }
 
 
@@ -149,6 +165,7 @@ void WifiTask::actionEnable()
 {
   Serial.println("Enabling Wi-Fi");
   m_WifiData.setEnable(true); 
+  m_WifiSettings.setEnableState(true); // Store the enabled state in the settings for persistence
   m_WifiHal.enable(); // Enable the Wi-Fi hardware
 }
 
@@ -157,6 +174,7 @@ void WifiTask::actionDisable()
   Serial.println("Disabling Wi-Fi");
   m_WifiHal.disable(); // Disable the Wi-Fi hardware
   m_WifiData.setEnable(false); // Update the Wi-Fi connection state in the data
+  m_WifiSettings.setEnableState(false); // Store the disabled state in the settings for persistence
 }
 
 
@@ -237,9 +255,14 @@ void WifiTask::onWifiNetworksUpdated()
 
 void WifiTask::onWifiConnected()
 {
+  char ac_SSID[MAX_SSID_LENGTH + 1];
+  char ac_Password[MAX_WPA2_PASSWORD_LENGTH + 1];
+
   Serial.println("Wi-Fi connected");
-  
+
   m_WifiData.setState(WifiData::EState::Connected); // Update the Wi-Fi connection state in the data
+  m_WifiData.getSelectedNetwork(ac_SSID, ac_Password); // Get the selected network's SSID and password from the data
+  m_WifiSettings.setNetwork(ac_SSID, ac_Password); // Store the last connected SSID in the settings for future reference
 }
 
 

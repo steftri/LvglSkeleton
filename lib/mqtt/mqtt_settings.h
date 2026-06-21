@@ -10,11 +10,13 @@
 
 #include <inttypes.h>
 
+#include "data.h"
+
 /**
  * @class MqttSettings
  * @brief A class to manage MQTT broker settings.
  */
-class MqttSettings
+class MqttSettings : public Data
 {
   static const uint8_t MAX_BROKER_ADDR_LENGTH = 64; ///< Maximum length of the broker address.
   static const uint16_t DEFAULT_BROKER_PORT = 1883; ///< Default port number for the MQTT broker.

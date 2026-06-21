@@ -18,8 +18,10 @@ enum class ENotificationBits : uint32_t
 };
 
 
-ModelTask::ModelTask()
+ModelTask::ModelTask(SettingsContainer &settings, DataContainer &data)
   : mp_TaskHandle(nullptr)
+  , m_Settings(settings)
+  , m_Data(data)
 {
   mp_thisInstance = this;
 }
@@ -83,6 +85,11 @@ void ModelTask::task(void *pvParameters)
 void ModelTask::setup(void)
 {
   Serial.println("ModelTask running.");
+
+  // The settings are already loaded in the Model's setup, so we can just register as an observer here
+
+  m_Settings.getWifiSettings().registerObserver(this); 
+  m_Settings.getMqttSettings().registerObserver(this); 
 }
 
 
@@ -116,11 +123,18 @@ void ModelTask::loop(void)
 void ModelTask::actionSave()
 {
   Serial.println("Saving settings to storage...");
-  g_controller.getModel().getSettings().save(); // Call the save method of the settings to persist them
+  m_Settings.save(); // Call the save method of the settings to persist them
 }
 
 void ModelTask::actionClear()
 {
   Serial.println("Clearing settings from storage...");
-  g_controller.getModel().getSettings().clear(); // Call the clear method of the settings to remove them from storage
+  m_Settings.clear(); // Call the clear method of the settings to remove them from storage
+}
+
+
+void ModelTask::onDataChanged(Data &r_Data, EDataField e_Field)
+{
+  Serial.println("ModelTask: Settings changed.");
+  xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::Save), eSetBits);
 }

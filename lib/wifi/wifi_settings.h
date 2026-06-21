@@ -24,7 +24,7 @@
  */
 class WifiSettings : public Data
 {
-  static const uint8_t MAX_WIFI_NETWORKS = 8; ///< Maximum number of Wi-Fi networks
+  static const uint8_t MAX_WIFI_NETWORKS = 4; ///< Maximum number of Wi-Fi networks
   static const uint8_t MAX_SSID_LENGTH = 32; ///< Maximum length of SSID
   static const uint8_t MAX_WPA2_PASSWORD_LENGTH = 63; ///< Maximum length of WPA2 password
 
@@ -45,7 +45,7 @@ public:
     Networks, 
   };
 
-  static const uint16_t WIFI_SETTINGS_SIZE = 1UL + MAX_WIFI_NETWORKS * (MAX_SSID_LENGTH + MAX_WPA2_PASSWORD_LENGTH); ///< Size of the Wi-Fi settings in bytes
+  static const uint16_t WIFI_SETTINGS_SIZE = 1UL + 1UL + MAX_WIFI_NETWORKS * (MAX_SSID_LENGTH + MAX_WPA2_PASSWORD_LENGTH); ///< Size of the Wi-Fi settings in bytes
 
   WifiSettings(void);
 
