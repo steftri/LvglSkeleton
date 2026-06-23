@@ -10,15 +10,16 @@
 #include "ui.h"
 #endif
 
-#include "lv_main.h"
-
 #include "model/data_container.h"
+#include "model/settings_container.h"
+
 #include "data_observer.h"
 
 
 static const size_t VIEW_TASK_STACK_SIZE = 8192; // Stack size for the task
 
 static constexpr uint32_t UITASK_NOTIFY_NETWORKS_UPDATED = (1UL << 0); // Notification bit for available networks update
+
 
 
 
@@ -38,14 +39,10 @@ private:
   Ui m_ui;
 #endif
 
-  LvMain m_LvMain;
-
 public:
   ViewTask();
 
   void begin();
-
-  LvMain *getLvMain(void);
 
 private:
   void setup();
@@ -54,7 +51,17 @@ private:
   // DataObserver implementation
   void onDataChanged(Data &r_Data, EDataField e_Field) override;
 
-  void updateNetworkList();
+  void onWifiSettingsChanged(EDataField e_Field);
+  void onWifiDataChanged(EDataField e_Field);
+
+
+  // Thread-internal methods to update the UI based on notifications
+  void onUpdateConnectionState();
+  void onUpdateSettingsNetworkList();
+  void onUpdateSettingsIPAddress();
+  void onUpdateInfoFreeRTOSStats();
+  void onUpdateInfoLVGLStats();
+  void onUpdateInfoMQTTStats();
 };
 
 

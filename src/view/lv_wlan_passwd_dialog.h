@@ -5,14 +5,21 @@
 
 #include "wifi_data.h"
 
+
+class LvMain; // Forward declaration to avoid circular dependency
+
+
+
 class LvWlanPasswdDialog
 {
+  class LvMain &mr_LvMain; // Reference to the main view for showing/hiding the keyboard
+
   lv_obj_t *mp_PasswordPanel;
   lv_obj_t *mp_PasswordInput;
   lv_obj_t *mp_SsidLabel;
 
 public:
-  LvWlanPasswdDialog();
+  LvWlanPasswdDialog(LvMain &r_LvMain);
     
   void setup(lv_obj_t *p_ParentTab);
     

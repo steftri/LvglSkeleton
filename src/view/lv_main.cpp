@@ -1,4 +1,5 @@
 #include "lv_main.h"
+
 #include "controller.h"
 
 
@@ -9,6 +10,7 @@ extern Controller g_controller;
 
 
 LvMain::LvMain(void)
+ : m_WlanPasswdDialog(*this) 
 {
 }
 
@@ -86,11 +88,14 @@ void LvMain::setup(void)
     }
   }
 
-  mp_Keyboard = lv_keyboard_create(lv_screen_active());
-  lv_obj_set_size(mp_Keyboard, LV_HOR_RES, LV_HOR_RES/2);
-  lv_obj_add_flag(mp_Keyboard, LV_OBJ_FLAG_HIDDEN); // Initially hide the keyboard
+  m_Keyboard.setup();
 
   Serial.println("LvMain setup completed");
+}
+
+LvKeyboard *LvMain::getKeyboard(void)
+{
+  return &m_Keyboard;
 }
 
 
@@ -111,42 +116,18 @@ LvTabSettings *LvMain::getTabSettings(void)
 }
 
 
-void LvMain::showKeyboard(lv_obj_t *p_TargetObj)
+LvWlanPasswdDialog *LvMain::getWlanPasswdDialog(void)
 {
-  if(mp_Keyboard == nullptr)
-    return;
-
-  lv_keyboard_set_textarea(mp_Keyboard, p_TargetObj);
-  lv_obj_clear_flag(mp_Keyboard, LV_OBJ_FLAG_HIDDEN); 
+  return &m_WlanPasswdDialog;
 }
 
 
-void LvMain::hideKeyboard(void)
-{
-  if(mp_Keyboard == nullptr)
-    return;
-  lv_obj_add_flag(mp_Keyboard, LV_OBJ_FLAG_HIDDEN); 
-} 
-
-
-
-void LvMain::showWlanPasswdDialog(void)
-{
-  char ac_Ssid[WifiData::MAX_SSID_LENGTH + 1];
-  char ac_Password[WifiData::MAX_WPA2_PASSWORD_LENGTH + 1];
-  g_controller.getModel().getData().getWifiData().getSelectedNetwork(ac_Ssid, ac_Password);
-  
-  m_WlanPasswdDialog.show(ac_Ssid, ac_Password);
-}
-
-
-void LvMain::updateWlanSymbol(void)
+void LvMain::setWlanSymbol(bool b_Visible)
 {
   if(mp_WifiSymbol == nullptr)
     return;
 
-  WifiData::EState e_State = g_controller.getModel().getData().getWifiData().getState();
-  if(e_State == WifiData::EState::Connected)
+  if(b_Visible)
   {
     lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
     LV_LOG_USER("Wifi visible");

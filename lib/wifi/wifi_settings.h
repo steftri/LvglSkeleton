@@ -24,7 +24,7 @@
  */
 class WifiSettings : public Data
 {
-  static const uint8_t MAX_WIFI_NETWORKS = 4; ///< Maximum number of Wi-Fi networks
+  static const uint8_t MAX_WIFI_NETWORKS = 8; ///< Maximum number of Wi-Fi networks
   static const uint8_t MAX_SSID_LENGTH = 32; ///< Maximum length of SSID
   static const uint8_t MAX_WPA2_PASSWORD_LENGTH = 63; ///< Maximum length of WPA2 password
 
@@ -54,8 +54,8 @@ public:
   bool getEnableState(void) const;
   void setNetwork(const char *pc_SSID, const char *pc_Password);
   uint8_t getNetworkCount(void);
-  const char *getNetworkSSID(const uint8_t u8_Index);
-  const char *getNetworkPassword(const uint8_t u8_Index);
+  void getNetwork(const char **ppc_SSID, const char **ppc_Password, const uint8_t u8_Index);
+  const char *getNetworkPassword(const char *pc_SSID);
 
   uint16_t serialize(uint8_t *pu8_Buffer, const uint16_t u16_BufferSize);
   void unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_Size);

@@ -1,12 +1,13 @@
 #include <Arduino.h>
 
 #include "controller.h"
+#include "lv_main.h"
 
 #include "view_task.h"
 
+extern Controller g_controller;
 
-extern Controller g_controller; // Declare the global controller instance defined in main.cpp
-
+LvMain g_ViewLvMain; // Global instance of the LVGL main view class to be used in the ViewTask
 
 ViewTask *ViewTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
@@ -15,10 +16,11 @@ enum class ENotificationBits : uint32_t
 {
   AvailableNetworks = (1UL << 0),
   ConnectionState = (1UL << 1),
-  IPAddress = (1UL << 2)
+  IPAddress = (1UL << 2),
+  FreeRTOSStats = (1UL << 3),
+  LVGLStats = (1UL << 4),
+  MQTTStats = (1UL << 5)
 };
-
-
 
 
 
@@ -72,20 +74,16 @@ void ViewTask::setup()
 {
   Serial.println("ViewTask running.");
 
-  g_controller.getModel().getData().getWifiData().registerObserver(this); // Register as observer for data changes
-  Serial.println("Observer registered for Wi-Fi data changes");
-
-
-  lv_init();
+  lv_init();  
   m_ui.setup(); // Initialize the UI components (display hardware + LVGL display)
-  m_LvMain.setup(); // Build LVGL widget tree (display must exist first)
+  g_ViewLvMain.setup(); // Build LVGL widget tree (display must exist first)
+  Serial.println("LVGL UI setup complete");
+
+  g_controller.getModel().getData().getWifiData().registerObserver(this); // Register as observer for Wi-Fi data changes
+  Serial.println("Observer registered for Wi-Fi data changes");
 }
 
 
-LvMain *ViewTask::getLvMain(void)
-{
-  return &m_LvMain;
-}
 
 
 void ViewTask::loop()
@@ -95,29 +93,39 @@ void ViewTask::loop()
 
   m_ui.loop(); // Update the UI components
 
-  if (currentTime - lastUpdateTime >= 10000) // Update every 10 seconds
+  if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
     lastUpdateTime = currentTime;
-    Serial.printf("Free ViewTask stack: %u/%u (Usage: %u%%)\n",
-                  uxTaskGetStackHighWaterMark(NULL), VIEW_TASK_STACK_SIZE,
-                  ((VIEW_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / VIEW_TASK_STACK_SIZE); // NULL = aktueller Task
+    Serial.printf("  Free ViewTask stack: %u/%u (Usage: %u%%)\n",
+                  uxTaskGetStackHighWaterMark(nullptr), VIEW_TASK_STACK_SIZE,
+                  ((VIEW_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / VIEW_TASK_STACK_SIZE); // nullptr = aktueller Task
   }
 
   uint32_t u32_NotifiedValue = 0;
   xTaskNotifyWait(0, 0xffff, &u32_NotifiedValue, pdMS_TO_TICKS(5));
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::AvailableNetworks))
   {
-    updateNetworkList();
+    onUpdateSettingsNetworkList();
   }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ConnectionState))
   {
-    Serial.println("ViewTask: Connection state changed, updating UI");
-    m_LvMain.updateWlanSymbol();
-    m_LvMain.getTabSettings()->updateWlanStatePanel();
+    onUpdateConnectionState();
   }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::IPAddress))
   {
-    m_LvMain.getTabSettings()->updateWlanStatePanel();
+    onUpdateSettingsIPAddress();
+  }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::FreeRTOSStats))
+  {
+    onUpdateInfoFreeRTOSStats();
+  }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::LVGLStats))
+  {
+    onUpdateInfoLVGLStats();
+  }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::MQTTStats))
+  {
+    onUpdateInfoMQTTStats();
   }
 }
 
@@ -125,7 +133,6 @@ void ViewTask::loop()
 
 void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
 {
-  // Handle data changes and update the UI accordingly
   switch (static_cast<WifiData::EField>(e_Field))
   {
     case WifiData::EField::AvailableNetworks:
@@ -147,7 +154,45 @@ void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
 }
 
 
-void ViewTask::updateNetworkList()
+
+
+
+
+void ViewTask::onUpdateSettingsNetworkList()
 {
-  m_LvMain.getTabSettings()->updateWlanSelectList(); // Update the Wi-Fi network list in the UI
+  g_ViewLvMain.getTabSettings()->updateWlanSelectList(); // Update the Wi-Fi network list in the UI
 }
+
+
+void ViewTask::onUpdateConnectionState()
+{
+  auto &WifiData = g_controller.getModel().getData().getWifiData();
+  bool b_IsConnected = (WifiData.getState() == WifiData::EState::Connected);
+  g_ViewLvMain.setWlanSymbol(b_IsConnected); // Update the Wi-Fi symbol in the UI
+  g_ViewLvMain.getTabSettings()->updateWlanStatePanel(); // Update the Wi-Fi state panel in the settings tab
+}
+
+
+void ViewTask::onUpdateSettingsIPAddress()
+{
+  g_ViewLvMain.getTabSettings()->updateWlanStatePanel(); // Update the IP address display in the Wi-Fi state panel
+}
+
+
+void ViewTask::onUpdateInfoFreeRTOSStats()
+{
+  //g_ViewLvMain.getTabInfo()->updateFreeRTOSInfo(); // Update the FreeRTOS stats in the info tab
+}
+
+
+void ViewTask::onUpdateInfoLVGLStats()
+{
+  //g_ViewLvMain.getTabInfo()->updateLVGLInfo(); // Update the LVGL stats in the info tab
+}
+
+
+void ViewTask::onUpdateInfoMQTTStats()
+{
+  //g_ViewLvMain.getTabInfo()->updateMQTTInfo(); // Update the MQTT stats in the info tab
+}
+

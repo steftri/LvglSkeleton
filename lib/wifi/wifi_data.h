@@ -61,9 +61,10 @@ public:
   uint8_t getAvailableNetworkCount(void) const;
   void getAvailableNetwork(char *pc_SsidBuffer, const size_t bufferSize, const uint8_t u8_Index);
 
-  void setSelectedNetwork(uint8_t u8_Index);
-  void setNetworkPassword(const char *pc_Password);
-  void getSelectedNetwork(char *pc_SSID, char *pc_Password);
+  void setSelectedNetwork(const char *pc_SSID, const char *pc_Password);
+  void setSelectedNetworkSSID(const char *pc_SSID); 
+  void setSelectedNetworkPassword(const char *pc_Password);
+  void getSelectedNetwork(char *pc_SSID, const size_t ssidBufferSize, char *pc_Password, const size_t passwordBufferSize);
 
   void setIPAddress(const char *pc_IPAddress);
   void getIPAddress(char *pc_IPAddress, const size_t bufferSize);

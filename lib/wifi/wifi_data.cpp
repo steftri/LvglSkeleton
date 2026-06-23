@@ -100,50 +100,78 @@ void WifiData::getAvailableNetwork(char *pc_SsidBuffer, const size_t bufferSize,
 
 
 
-void WifiData::setSelectedNetwork(uint8_t u8_Index)
-{
-  {
-    std::lock_guard<std::mutex> lock(m_DataMutex);
-  
-    if (u8_Index < mu8_NumberOfAvaliableNetworks)
-    {
-      strncpy(m_SelectedNetwork.ac_SSID, mac_AvailableNetworks[u8_Index], MAX_SSID_LENGTH);
-      m_SelectedNetwork.ac_SSID[MAX_SSID_LENGTH] = '\0'; // Ensure null-termination
-    }
-  }
-
-  notifyObservers(static_cast<EDataField>(EField::SelectedNetwork));
-}
-
-
-
-void WifiData::setNetworkPassword(const char *pc_Password)
-{
-  {
-    std::lock_guard<std::mutex> lock(m_DataMutex);
-
-    strncpy(m_SelectedNetwork.ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
-    m_SelectedNetwork.ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0'; // Ensure null-termination
-  }
-
-  notifyObservers(static_cast<EDataField>(EField::SelectedNetwork));
-}
-
-
-
-void WifiData::getSelectedNetwork(char *pc_SSID, char *pc_Password)
+void WifiData::setSelectedNetwork(const char *pc_SSID, const char *pc_Password)
 {
   std::lock_guard<std::mutex> lock(m_DataMutex);
 
-  if(pc_SSID != nullptr)
+  if((pc_SSID == nullptr) || (pc_SSID[0] == '\0'))
   {
-    strncpy(pc_SSID, m_SelectedNetwork.ac_SSID, MAX_SSID_LENGTH);
-    pc_SSID[MAX_SSID_LENGTH] = '\0'; // Ensure null-termination
+    return; // Invalid SSID
   }
-  if(pc_Password != nullptr)
+
+  strncpy(m_SelectedNetwork.ac_SSID, pc_SSID, MAX_SSID_LENGTH);
+  m_SelectedNetwork.ac_SSID[MAX_SSID_LENGTH] = '\0'; // Ensure null-termination
+
+  if((pc_Password != nullptr) && (pc_Password[0] != '\0'))
   {
-    strncpy(pc_Password, m_SelectedNetwork.ac_Password, MAX_WPA2_PASSWORD_LENGTH);
-    pc_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0'; // Ensure null-termination
+    strncpy(m_SelectedNetwork.ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
+    m_SelectedNetwork.ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0'; // Ensure null-termination
+  }
+  else
+  {
+    m_SelectedNetwork.ac_Password[0] = '\0'; 
+  }
+
+  notifyObservers(static_cast<EDataField>(EField::SelectedNetwork));
+}
+
+
+void WifiData::setSelectedNetworkSSID(const char *pc_SSID)
+{
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
+  if((pc_SSID == nullptr) || (pc_SSID[0] == '\0'))
+  {
+    return; // Invalid SSID
+  }
+  
+  if(strncmp(pc_SSID, m_SelectedNetwork.ac_SSID, MAX_SSID_LENGTH) != 0)
+  {
+    strncpy(m_SelectedNetwork.ac_SSID, pc_SSID, MAX_SSID_LENGTH);
+    m_SelectedNetwork.ac_SSID[MAX_SSID_LENGTH] = '\0'; // Ensure null-termination
+
+    m_SelectedNetwork.ac_Password[0] = '\0'; // Clear the password when changing the SSID
+
+    notifyObservers(static_cast<EDataField>(EField::SelectedNetwork));
+  }
+}
+
+
+void WifiData::setSelectedNetworkPassword(const char *pc_Password)
+{
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
+  strncpy(m_SelectedNetwork.ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
+  m_SelectedNetwork.ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0'; // Ensure null-termination
+ 
+  notifyObservers(static_cast<EDataField>(EField::SelectedNetwork));
+}
+
+
+
+void WifiData::getSelectedNetwork(char *pc_SSID, const size_t ssidBufferSize, char *pc_Password, const size_t passwordBufferSize)
+{
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
+  if((pc_SSID != nullptr) && (ssidBufferSize > 0))
+  {
+    strncpy(pc_SSID, m_SelectedNetwork.ac_SSID, ssidBufferSize - 1);
+    pc_SSID[ssidBufferSize - 1] = '\0'; // Ensure null-termination
+  }
+  if((pc_Password != nullptr) && (passwordBufferSize > 0))
+  {
+    strncpy(pc_Password, m_SelectedNetwork.ac_Password, passwordBufferSize - 1);
+    pc_Password[passwordBufferSize - 1] = '\0'; // Ensure null-termination
   }
 }
 

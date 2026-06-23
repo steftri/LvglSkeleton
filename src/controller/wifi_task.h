@@ -42,7 +42,7 @@ private:
   void setup(void);
   void loop(void);
 
-  // Thread-safe wifi actions
+  // Thread-internal methods to perform actions based on notifications
   void actionEnable();
   void actionDisable();
   void actionConnect();

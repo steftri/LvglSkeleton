@@ -1,6 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include <stddef.h>
+
 #include "model/settings_container.h"
 #include "model/data_container.h"
 
@@ -34,6 +36,8 @@ public:
   DataContainer &getData(void);
 
   ModelTask &getTask(void);
+
+  void getWifiPassword(char *pc_Password, size_t passwordBufferSize, const char *pc_SSID);
 };
 
 #endif // MODEL_H

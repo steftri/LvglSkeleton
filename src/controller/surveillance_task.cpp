@@ -60,13 +60,12 @@ void SurveillanceTask::loop()
 {
   // Anzahl der Tasks abrufen
   UBaseType_t taskCount = uxTaskGetNumberOfTasks();
-  Serial.printf("Number of tasks: %u\n", taskCount);
-  Serial.printf("Free heap size: %u bytes\n", xPortGetFreeHeapSize());
-  Serial.printf("Minimum ever free heap size: %u bytes\n", xPortGetMinimumEverFreeHeapSize());  
+  Serial.printf("  Number of tasks: %u\n", taskCount);
+  Serial.printf("  Free heap size: %u bytes (minimum ever: %u bytes)\n", xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize());
 
-  Serial.printf("Free Surveillance stack: %u/%u (Usage: %u%%)\n",
-                uxTaskGetStackHighWaterMark(NULL), SURVEILLANCE_TASK_STACK_SIZE,
-                ((SURVEILLANCE_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / SURVEILLANCE_TASK_STACK_SIZE); // NULL = aktueller Task
+  Serial.printf("  Free SurveillanceTask stack: %u/%u (Usage: %u%%)\n",
+                uxTaskGetStackHighWaterMark(nullptr), SURVEILLANCE_TASK_STACK_SIZE,
+                ((SURVEILLANCE_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / SURVEILLANCE_TASK_STACK_SIZE); // nullptr = aktueller Task
 
-   vTaskDelay(pdMS_TO_TICKS(10000)); // Alle 10 Sekunden aktualisieren
+   vTaskDelay(pdMS_TO_TICKS(60*1000UL)); // Alle 60 Sekunden aktualisieren
 }

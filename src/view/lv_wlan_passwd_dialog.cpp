@@ -1,12 +1,17 @@
 #include "lv_wlan_passwd_dialog.h"
+#include "lv_main.h"
 #include "controller.h"
 
 extern Controller g_controller;
 
+extern LvMain g_ViewLvMain;
 
 
-LvWlanPasswdDialog::LvWlanPasswdDialog()
-    : mp_PasswordPanel(nullptr), mp_PasswordInput(nullptr), mp_SsidLabel(nullptr)
+LvWlanPasswdDialog::LvWlanPasswdDialog(LvMain &r_LvMain)
+    : mr_LvMain(r_LvMain)
+    , mp_PasswordPanel(nullptr)
+    , mp_PasswordInput(nullptr)
+    , mp_SsidLabel(nullptr)
 {
 }
 
@@ -40,7 +45,7 @@ void LvWlanPasswdDialog::setup(lv_obj_t *p_ParentTab)
       // Create the OK button
       lv_obj_t *p_OkButton = lv_btn_create(p_ButtonPanel);
       {
-        lv_obj_align(p_OkButton, LV_ALIGN_LEFT_MID, 0, 0);
+        lv_obj_align(p_OkButton, LV_ALIGN_RIGHT_MID, 0, 0);
         lv_obj_t *p_OkLabel = lv_label_create(p_OkButton);
         lv_label_set_text(p_OkLabel, "Connect");
         lv_obj_add_event_cb(p_OkButton, onOkButtonEvent, LV_EVENT_CLICKED, this);
@@ -49,9 +54,9 @@ void LvWlanPasswdDialog::setup(lv_obj_t *p_ParentTab)
       // Create the Cancel button
       lv_obj_t *p_CancelButton = lv_btn_create(p_ButtonPanel);
       {
-        lv_obj_align(p_CancelButton, LV_ALIGN_RIGHT_MID, 0, 0);
-        lv_obj_t *p_OkLabel = lv_label_create(p_CancelButton);
-        lv_label_set_text(p_OkLabel, "Cancel");
+        lv_obj_align(p_CancelButton, LV_ALIGN_LEFT_MID, 0, 0);
+        lv_obj_t *p_CancelLabel = lv_label_create(p_CancelButton);
+        lv_label_set_text(p_CancelLabel, "Cancel");
         lv_obj_add_event_cb(p_CancelButton, onCancelButtonEvent, LV_EVENT_CLICKED, this);
       }      
     }
@@ -81,7 +86,7 @@ void LvWlanPasswdDialog::hide(void)
     if (mp_PasswordPanel)
     {
         lv_obj_add_flag(mp_PasswordPanel, LV_OBJ_FLAG_HIDDEN);
-        g_controller.getView().getLvMain()->hideKeyboard();
+        mr_LvMain.getKeyboard()->hide(); // Hide the keyboard when the dialog is hidden
     }
 }
 
@@ -93,20 +98,20 @@ void LvWlanPasswdDialog::onInputEvent(lv_event_t *p_Event)
 
     if(code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) 
     {
-        g_controller.getView().getLvMain()->showKeyboard(p_TargetObj);
+        g_ViewLvMain.getKeyboard()->show(p_TargetObj);
     }
     else if(code == LV_EVENT_DEFOCUSED) 
     {
-        g_controller.getView().getLvMain()->hideKeyboard();
+        g_ViewLvMain.getKeyboard()->hide();
     }
-    else if(code == LV_EVENT_READY) 
+/*    else if(code == LV_EVENT_READY) 
     {
         LvWlanPasswdDialog *p_Instance = static_cast<LvWlanPasswdDialog *>(lv_event_get_user_data(p_Event));
         const char *pc_Passwd = lv_textarea_get_text(p_TargetObj);
         p_Instance->hide();
         LV_LOG_USER("Password \"%s\" entered", pc_Passwd);
-        g_controller.getModel().getData().getWifiData().setNetworkPassword(pc_Passwd);
-    }
+        g_controller.getModel().getData().getWifiData().setSelectedNetworkPassword(pc_Passwd);
+    }*/
     else if(code == LV_EVENT_CANCEL)
     {
         LvWlanPasswdDialog *p_Instance = static_cast<LvWlanPasswdDialog *>(lv_event_get_user_data(p_Event));
@@ -121,7 +126,7 @@ void LvWlanPasswdDialog::onOkButtonEvent(lv_event_t *p_Event)
     LvWlanPasswdDialog *p_Instance = static_cast<LvWlanPasswdDialog *>(lv_event_get_user_data(p_Event));
     const char *pc_Passwd = lv_textarea_get_text(p_Instance->mp_PasswordInput);
     LV_LOG_USER("Password \"%s\" entered", pc_Passwd);
-    g_controller.getModel().getData().getWifiData().setNetworkPassword(pc_Passwd);
+    g_controller.getModel().getData().getWifiData().setSelectedNetworkPassword(pc_Passwd);
     p_Instance->hide();
 
     // Trigger the Wi-Fi connection attempt with the entered password

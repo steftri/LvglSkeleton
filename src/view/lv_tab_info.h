@@ -18,6 +18,7 @@ public:
 
   void updateFreeRTOSInfo();
   void updateLVGLInfo();
+  void updateMQTTInfo();
 };
 
 

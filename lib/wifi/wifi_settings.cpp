@@ -92,28 +92,27 @@ bool WifiSettings::getEnableState(void) const
  */
 void WifiSettings::setNetwork(const char *pc_SSID, const char *pc_Password)
 {
-  bool b_SSIDFound = false;
+  bool b_DataChanged = false;
 
   if((!pc_SSID) || (!pc_Password))
     return;
 
-  // if the network is already at index 0, just update the password
-  if(strncmp(pc_SSID, ma_Networks[0].ac_SSID, MAX_SSID_LENGTH) == 0
-    && strncmp(pc_Password, ma_Networks[0].ac_Password, MAX_WPA2_PASSWORD_LENGTH) == 0)
-  { 
-    return; // No change, do nothing
-  }
-
   { // protected section for data access
     std::lock_guard<std::mutex> lock(m_DataMutex);    
+
+    // if the network is already at index 0 with same password, nothing changed
+    if((mu8_NetworkCount > 0)
+      && (strncmp(pc_SSID, ma_Networks[0].ac_SSID, MAX_SSID_LENGTH) == 0)
+      && (strncmp(pc_Password, ma_Networks[0].ac_Password, MAX_WPA2_PASSWORD_LENGTH) == 0))
+    {
+      return;
+    }
 
     // if the network is already known, move it to the front of the list (index 0) and replace its passwort with the new one 
     for(uint8_t u8_Index = 0; u8_Index<mu8_NetworkCount; u8_Index++)
     {
       if(0 == strncmp(pc_SSID,  ma_Networks[u8_Index].ac_SSID, MAX_SSID_LENGTH))
       { 
-        b_SSIDFound = true;
-
         for(uint8_t i = u8_Index; i>0; i--)
         {  
           // i is the new position of the entry
@@ -126,11 +125,14 @@ void WifiSettings::setNetwork(const char *pc_SSID, const char *pc_Password)
         ma_Networks[0].ac_SSID[MAX_SSID_LENGTH] = '\0';
         strncpy(ma_Networks[0].ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
         ma_Networks[0].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
+
+        b_DataChanged = true;
+        break;
       }
     }
 
     // if there already are other known networks, move them down. The new network gets the highest priority.
-    if(!b_SSIDFound)
+    if(!b_DataChanged)
     {
       if(mu8_NetworkCount>0)
       {
@@ -141,17 +143,22 @@ void WifiSettings::setNetwork(const char *pc_SSID, const char *pc_Password)
           ma_Networks[i].ac_SSID[MAX_SSID_LENGTH] = '\0';
           strncpy(ma_Networks[i].ac_Password, ma_Networks[i-1].ac_Password, MAX_WPA2_PASSWORD_LENGTH);
           ma_Networks[i].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
-        }  
-        if(mu8_NetworkCount<MAX_WIFI_NETWORKS)
-          mu8_NetworkCount++;
+        }
       }
       strncpy(ma_Networks[0].ac_SSID, pc_SSID, MAX_SSID_LENGTH);
       ma_Networks[0].ac_SSID[MAX_SSID_LENGTH] = '\0';
       strncpy(ma_Networks[0].ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
       ma_Networks[0].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
+
+      if(mu8_NetworkCount<MAX_WIFI_NETWORKS)
+        mu8_NetworkCount++;
+
+      b_DataChanged = true;
     }
   }
-  notifyObservers(static_cast<EDataField>(EField::Networks)); // Notify observers that the network list has changed
+
+  if(b_DataChanged)
+    notifyObservers(static_cast<EDataField>(EField::Networks)); // Notify observers that the network list has changed
 }
 
   
@@ -169,36 +176,53 @@ uint8_t WifiSettings::getNetworkCount(void)
 }
 
 
-/**
- * @brief Retrieves the SSID of a WiFi network at a specified index.
+/** 
+ * @brief Retrieves the SSID and password of a WiFi network at a specified index.
  * 
+ * @param ppc_SSID Pointer to store the SSID of the WiFi network.
+ * @param ppc_Password Pointer to store the password of the WiFi network.
  * @param u8_Index The index of the WiFi network.
- * @return const char* The SSID of the WiFi network. Returns an empty string if the index is out of bounds.
  */
-const char *WifiSettings::getNetworkSSID(const uint8_t u8_Index)
+void WifiSettings::getNetwork(const char **ppc_SSID, const char **ppc_Password, const uint8_t u8_Index)
 {
   if((u8_Index>=MAX_WIFI_NETWORKS) || (u8_Index>=mu8_NetworkCount))
-    return "";
+  {
+    if(ppc_SSID)
+      *ppc_SSID = "";
+    if(ppc_Password)      
+      *ppc_Password = "";
+    return;
+  }
 
-  return ma_Networks[u8_Index].ac_SSID;
+  if(ppc_SSID)
+    *ppc_SSID = ma_Networks[u8_Index].ac_SSID;
+  if(ppc_Password)
+    *ppc_Password = ma_Networks[u8_Index].ac_Password;
 }
+
+
 
 
 
 /**
- * @brief Retrieves the password for a specified Wi-Fi network.
+ * @brief Retrieves the password for a specified Wi-Fi network by its SSID.
  * 
- * @param u8_Index The index of the Wi-Fi network whose password is to be retrieved.
+ * @param pc_SSID The SSID of the Wi-Fi network whose password is to be retrieved.
  * @return const char* The password of the specified Wi-Fi network. 
- *                     Returns an empty string if the index is out of bounds.
+ *                     Returns an empty string if the SSID is not found.
  */
-const char *WifiSettings::getNetworkPassword(const uint8_t u8_Index)
+const char *WifiSettings::getNetworkPassword(const char *pc_SSID)
 {
-  if((u8_Index>=MAX_WIFI_NETWORKS) || (u8_Index>=mu8_NetworkCount))
-    return "";
-
-  return ma_Networks[u8_Index].ac_Password;
+  for(uint8_t u8_Index = 0; u8_Index < mu8_NetworkCount; u8_Index++)
+  {
+    if(strcmp(ma_Networks[u8_Index].ac_SSID, pc_SSID) == 0)
+    {
+      return ma_Networks[u8_Index].ac_Password;
+    }
+  }
+  return "";
 }
+
 
 
 /**

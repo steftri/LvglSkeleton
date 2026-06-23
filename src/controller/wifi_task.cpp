@@ -112,10 +112,14 @@ void WifiTask::setup(void)
     if(m_WifiSettings.getNetworkCount() > 0) // Check if there are any stored networks in the settings
     {
       // try to connect to the previously selected network if Wi-Fi was enabled
-      const char *pc_SSID = m_WifiSettings.getNetworkSSID(0);
-      const char *pc_Password = m_WifiSettings.getNetworkPassword(0);
+      const char *pc_SSID;
+      const char *pc_Password;
+
+      m_WifiSettings.getNetwork(&pc_SSID, &pc_Password, 0);
+      m_WifiData.setSelectedNetwork(pc_SSID, pc_Password); 
+
       Serial.printf("Attempting to connect to previously selected Wi-Fi network \"%s\"...\n", pc_SSID);
-      m_WifiHal.connect(pc_SSID, pc_Password); // Connect to the Wi-Fi network using the HAL
+      m_WifiHal.connect(pc_SSID, pc_Password); 
     }
   }
 }
@@ -146,12 +150,12 @@ void WifiTask::loop(void)
     actionDisconnect();
   }
 
-  if (currentTime - lastUpdateTime >= 10000) // Update every 10 seconds
+  if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
     lastUpdateTime = currentTime;
-    Serial.printf("Free Wifi stack: %u/%u (Usage: %u%%)\n",
-                  uxTaskGetStackHighWaterMark(NULL), WIFI_TASK_STACK_SIZE,
-                  ((WIFI_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / WIFI_TASK_STACK_SIZE); // NULL = aktueller Task
+    Serial.printf("  Free WifiTask stack: %u/%u (Usage: %u%%)\n",
+                  uxTaskGetStackHighWaterMark(nullptr), WIFI_TASK_STACK_SIZE,
+                  ((WIFI_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / WIFI_TASK_STACK_SIZE); // nullptr = aktueller Task
 
     if(m_WifiData.isEnabled()) // enabled, but not connected -> scan for networks to update the list in the view
     {
@@ -183,7 +187,7 @@ void WifiTask::actionConnect()
   // Implement logic to connect to the selected Wi-Fi network using m_WifiHal
   char ac_SSID[MAX_SSID_LENGTH + 1];
   char ac_Password[MAX_WPA2_PASSWORD_LENGTH + 1];
-  m_WifiData.getSelectedNetwork(ac_SSID, ac_Password); // Get the selected network's SSID and password from the data
+  m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); // Get the selected network's SSID and password from the data
 
   Serial.printf("Connecting to Wi-Fi network \"%s\" with password \"%s\"\n", ac_SSID, ac_Password);
   m_WifiHal.connect(ac_SSID, ac_Password); // Connect to the Wi-Fi network using the HAL
@@ -261,7 +265,8 @@ void WifiTask::onWifiConnected()
   Serial.println("Wi-Fi connected");
 
   m_WifiData.setState(WifiData::EState::Connected); // Update the Wi-Fi connection state in the data
-  m_WifiData.getSelectedNetwork(ac_SSID, ac_Password); // Get the selected network's SSID and password from the data
+  m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); // Get the selected network's SSID and password from the data
+  Serial.printf("Connected to Wi-Fi network \"%s\" with password \"%s\"\n", ac_SSID, ac_Password);
   m_WifiSettings.setNetwork(ac_SSID, ac_Password); // Store the last connected SSID in the settings for future reference
 }
 

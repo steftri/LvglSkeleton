@@ -1,4 +1,9 @@
 #include "view.h"
+#include "controller.h"
+
+
+extern Controller g_controller; // Declare the global controller instance defined in main.cpp
+
 
 
 
@@ -14,41 +19,3 @@ void View::begin(void)
   m_Task.begin();
 }
 
-
-void View::loop(void)
-{
-  // Arduino context: The UI updates are handled in the UiTask, 
-  // so we can keep this loop empty or use it for other periodic updates if needed.
-}
-
-
-LvMain *View::getLvMain(void)
-{
-  return m_Task.getLvMain();
-}
-
-
-void View::updateSystemInfo(void)
-{
-  m_Task.getLvMain()->getTabInfo()->updateFreeRTOSInfo();
-  m_Task.getLvMain()->getTabInfo()->updateLVGLInfo();
-}
-
-
-void View::updateWlanState(void)
-{
-  m_Task.getLvMain()->updateWlanSymbol();
-  m_Task.getLvMain()->getTabSettings()->updateWlanStatePanel();
-}
-
-
-void View::updateWlanList(void)
-{
-  m_Task.getLvMain()->getTabSettings()->updateWlanSelectList();
-}
-
-
-void View::showWlanPasswdDialog(void)
-{
-  m_Task.getLvMain()->showWlanPasswdDialog();
-}

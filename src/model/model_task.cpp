@@ -88,8 +88,8 @@ void ModelTask::setup(void)
 
   // The settings are already loaded in the Model's setup, so we can just register as an observer here
 
-  m_Settings.getWifiSettings().registerObserver(this); 
-  m_Settings.getMqttSettings().registerObserver(this); 
+   m_Settings.getWifiSettings().registerObserver(this); 
+   m_Settings.getMqttSettings().registerObserver(this); 
 }
 
 
@@ -110,12 +110,12 @@ void ModelTask::loop(void)
     actionClear();
   }
 
-  if (currentTime - lastUpdateTime >= 10000) // Update every 10 seconds
+  if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
     lastUpdateTime = currentTime;
-    Serial.printf("Free ModelTask stack: %u/%u (Usage: %u%%)\n",
-                  uxTaskGetStackHighWaterMark(NULL), MODEL_TASK_STACK_SIZE,
-                  ((MODEL_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(NULL)) * 100) / MODEL_TASK_STACK_SIZE); // NULL = aktueller Task
+    Serial.printf("  Free ModelTask stack: %u/%u (Usage: %u%%)\n",
+                  uxTaskGetStackHighWaterMark(nullptr), MODEL_TASK_STACK_SIZE,
+                  ((MODEL_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / MODEL_TASK_STACK_SIZE); // nullptr = aktueller Task
   }
 }
 

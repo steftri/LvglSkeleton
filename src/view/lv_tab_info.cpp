@@ -89,3 +89,10 @@ void LvTabInfo::updateLVGLInfo()
         lv_label_set_text_fmt(mp_LVGLInfoLabel, "%s", buffer);
     }
 }
+
+
+void LvTabInfo::updateMQTTInfo()
+{
+    // This function can be implemented to retrieve and display MQTT-related information
+    // For example, you could display the connection status, broker address, etc.
+}

@@ -3,6 +3,7 @@
 
 #include <lvgl.h>
 
+#include "lv_keyboard.h"
 #include "lv_tab_info.h"
 #include "lv_tab_history.h"
 #include "lv_tab_settings.h"
@@ -11,7 +12,7 @@
 
 class LvMain
 {
-  lv_obj_t *mp_Keyboard; 
+  LvKeyboard m_Keyboard;
 
   lv_obj_t *mp_TabView;
   LvTabInfo m_TabInfo;
@@ -27,16 +28,15 @@ public:
 
   void setup(void);
 
-  void showKeyboard(lv_obj_t *p_TargetObj);
-  void hideKeyboard(void);
+  void setWlanSymbol(bool b_Visible);
 
-  void showWlanPasswdDialog(void);
-
-  void updateWlanSymbol(void);
+  LvKeyboard *getKeyboard(void);
 
   LvTabInfo *getTabInfo(void);
   LvTabHistory *getTabHistory(void);
   LvTabSettings *getTabSettings(void);
+
+  LvWlanPasswdDialog *getWlanPasswdDialog(void);
 };
 
 
