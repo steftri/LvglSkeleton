@@ -1,25 +1,21 @@
-#include <lvgl.h>
-
 #include "view.h"
+#include "controller.h"
 
-#include "view/lv_demo_widgets.h"
+
+extern Controller g_controller; // Declare the global controller instance defined in main.cpp
 
 
 
 
 void View::setup(void)
 {
-  // Initialize the view components here
-  // For example, setting up UI elements, loading resources, etc.
-
-  lv_init();  
-  m_ui.setup();
-  
-  m_LvMain.setup();
+  // Initialization is performed inside the UI task (UiTask::setup)
 }
 
 
-void View::loop(void)
+void View::begin(void)
 {
-  m_ui.loop();
+  Serial.println("Starting UiTask");
+  m_Task.begin();
 }
+

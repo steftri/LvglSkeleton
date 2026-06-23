@@ -14,4 +14,4 @@ public:
 };
 
 
-#endif  // Os_INTERFACE_H
+#endif  // OS_INTERFACE_H

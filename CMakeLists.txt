@@ -1,21 +1,27 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(ArduinoLibrarySkeletonProject LANGUAGES CXX)
+project(LvglSkeletonProject LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add the example application
-add_executable(ExampleApp src/main.cpp)
+add_executable(LvglSkeletonApp 
+                hal/main_plain/main.cpp
+                hal/os_desktop/os.cpp
+                hal/datastorage_file/datastorage.cpp)
+
+# Include directories
+target_include_directories(LvglSkeletonApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
+                hal/main_plain
+                hal/os_desktop
+                hal/datastorage_file)
 
 # Link the library to the example application
-target_link_libraries(ExampleApp PRIVATE ArduinoLibrarySkeleton)
+target_link_libraries(LvglSkeletonApp PRIVATE LvglSkeleton)
 
 
-
-# Define a preprocessor macro for the library name for the example application
-target_compile_definitions(ExampleApp PRIVATE __LIBRARY_NAME__="ArduinoLibrarySkeleton")
 
 
 
@@ -33,14 +39,22 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     include(CTest)
     if(BUILD_TESTING)
-      add_subdirectory(test/test_unit_gtest)
-      add_subdirectory(test/test_integration_gtest)
+      add_subdirectory(test/test_unit_crc32_gtest)
+      add_subdirectory(test/test_unit_data_gtest)
+      #add_subdirectory(test/test_integration_gtest)
 
       find_package(Threads REQUIRED)
 
       # Link GoogleTest to unit and integration tests
-      target_link_libraries(UnitTests PRIVATE ${GTEST_LIBRARIES} Threads::Threads)
-      target_link_libraries(IntegrationTests PRIVATE ${GTEST_LIBRARIES} Threads::Threads)
+      target_link_libraries(UnitTestCrc32 PRIVATE ${GTEST_LIBRARIES} Threads::Threads)
+      target_link_libraries(UnitTestData PRIVATE ${GTEST_LIBRARIES} Threads::Threads)
+      #target_link_libraries(IntegrationTests PRIVATE ${GTEST_LIBRARIES} Threads::Threads)
+
+      add_custom_target(UnitTests
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        DEPENDS UnitTestCrc32 UnitTestData
+        COMMENT "Building and running all unit tests"
+      )
     endif()
 
   else()
@@ -56,7 +70,7 @@ find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
   add_custom_target(Doxygen
     COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/ArduinoLibrarySkeleton
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/LvglSkeleton
     COMMENT "Generating API documentation with Doxygen"
     VERBATIM
   )

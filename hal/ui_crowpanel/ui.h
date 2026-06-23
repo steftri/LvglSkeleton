@@ -1,11 +1,10 @@
 #ifndef UI_H
 #define UI_H
 
+#include <inttypes.h>
 #include <lvgl.h>
 
-#ifdef USE_FREERTOS
-#include <freertos/FreeRTOS.h>
-#endif
+
 
 
 #include "hw_display_lgfx.h"
@@ -15,9 +14,6 @@
 
 
 
-#ifdef USE_FREERTOS
-static const size_t LVGL_TASK_STACK_SIZE = 8192; // Stack size for the task
-#endif
 
 
 
@@ -30,12 +26,6 @@ class Ui : public UiInterface
 
   lv_indev_t *mp_IndevTouchpad;
 
-#ifdef USE_FREERTOS
-  TaskHandle_t mp_lvglTaskHandle;
-  StaticTask_t m_lvglTaskBuffer;
-  StackType_t m_lvglTaskStack[ LVGL_TASK_STACK_SIZE ];
-  static void lvglTask(void *pvParameters);
-#endif
 
 public:
   Ui();
@@ -52,6 +42,9 @@ protected:
   DisplayLGFX m_DisplayLGFX;
 
   virtual void initDisplay(void);
+
+private: 
+  void initBacklight(void);
 };
 
 

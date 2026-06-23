@@ -1,11 +1,13 @@
+#include <Arduino.h>
+
 #include "controller.h"
 
 
-Controller::Controller(Model *p_model, View *p_view)
-  : mp_model(p_model)
-  , mp_view(p_view)
+Controller::Controller(Model &model, View &view)
+  : m_model(model)
+  , m_view(view)
+  , m_wifiTask(model.getSettings().getWifiSettings(), model.getData().getWifiData()) // Pass the Wi-Fi settings and data references to the WifiTask
 {
-  // Constructor implementation (if needed)
 }
 
 
@@ -14,41 +16,42 @@ void Controller::setup(void)
   m_os.setup(); // Initialize the OS interface
 
   // Initialize the model and view
-  if(mp_model != nullptr)
-  {
-    mp_model->setup();
-  }
-  if(mp_view != nullptr)
-  {
-    mp_view->setup();
-  }
+  m_model.setup();
+  m_view.setup();
 }
+
+
+void Controller::begin(void)
+{
+  m_surveillanceTask.begin(); // Start the surveillance task
+  m_wifiTask.begin(); // Start the Wi-Fi task
+
+  m_model.begin(); // Start any model-related threads
+  m_view.begin(); // Start any view-related threads
+}
+
 
 
 void Controller::loop(void)
 {
-  m_os.loop(); // Call the OS loop function
-
-  // Update the model and view
-  if(mp_model != nullptr)
-  {
-    mp_model->loop();
-  }
-  if(mp_view != nullptr)
-  {
-    mp_view->loop();
-  }
+  delay(10); // Yield CPU time; keep Arduino loop responsive without busy spinning
 }
 
 
-Model *Controller::getModel(void) const
+Model &Controller::getModel(void) const
 {
-  return mp_model;
+  return m_model;
 }
 
 
-View *Controller::getView(void) const
+View &Controller::getView(void) const
 {
-  return mp_view;
+  return m_view;
 }
 
+
+
+WifiTask &Controller::getWifi(void)
+{
+  return m_wifiTask;
+}

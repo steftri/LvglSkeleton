@@ -3,6 +3,7 @@ if you want to use the LVGL demo. you need to include <demos/lv_demos.h> and <ex
 if not, please do not include it. It will waste your Flash space.
 **************************************************************/
 #include <Arduino.h>
+#include <driver/ledc.h> // Include LEDC driver for ledc_timer_config_t and related functions
 
 #include "ui.h"
 
@@ -16,41 +17,41 @@ void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
   Serial.print("LVGL Log [");
   Serial.print(level);
   Serial.print("]: ");
-  Serial.println(buf);
+  Serial.print(buf);
 }
 
 
 Ui::Ui()
   : m_DisplayBridge(&m_DisplayLGFX)
-#ifdef USE_FREERTOS  
-  , mp_lvglTaskHandle(nullptr)
-#endif  
 {
 }
 
 
-#ifdef USE_FREERTOS
-void Ui::lvglTask(void *pvParameters)
-{
-  Ui *p_ui = static_cast<Ui *>(pvParameters);
-  if(p_ui == nullptr)
-  {
-    Serial.println("Error: UI interface is null");
-    vTaskDelete(nullptr);
-    return;
-  }
-  
-  Serial.println("LVGL Task started");
 
-  p_ui->setBrightness(255);
-  while (true)
+void Ui::initBacklight(void)
+{
+  ledc_timer_config_t LedcTimer = 
   {
-    lv_tick_inc(5);
-    lv_timer_handler();
-    vTaskDelay(pdMS_TO_TICKS(5)); // 5 ms Delay für regelmäßige Updates
-  }
+    .speed_mode = LEDC_LOW_SPEED_MODE,
+    .duty_resolution = LEDC_TIMER_13_BIT,
+    .timer_num = LEDC_TIMER_0,
+    .freq_hz = 1000,
+    .clk_cfg = LEDC_AUTO_CLK
+  };
+  ledc_channel_config_t LedcChannel = 
+  {
+    .gpio_num = GPIO_NUM_2, // Backlight pin
+    .speed_mode = LEDC_LOW_SPEED_MODE,
+    .channel = LEDC_CHANNEL_0,
+    .intr_type = LEDC_INTR_DISABLE,
+    .timer_sel = LEDC_TIMER_0,
+    .duty = 0,
+    .hpoint = 0
+  };
+
+  ledc_timer_config(&LedcTimer);
+  ledc_channel_config(&LedcChannel);
 }
-#endif
 
 
 void Ui::initDisplay(void)
@@ -72,8 +73,7 @@ void Ui::setup()
   lv_log_register_print_cb(lv_log_print_g_cb);
   #endif
 
-  lv_init();
-
+  initBacklight();
   initDisplay();
   m_DisplayLGFX.setRotation(1);
 
@@ -94,33 +94,22 @@ void Ui::setup()
 
   lv_timer_handler();
 
-#ifdef USE_FREERTOS
-  // Create a FreeRTOS task for LVGL updates
-  mp_lvglTaskHandle = xTaskCreateStatic(
-     lvglTask,         // Task function
-     "LVGL",           // Task name
-     LVGL_TASK_STACK_SIZE, // Stack size
-     this,                  // Parameters
-     tskIDLE_PRIORITY + 1,     // Priority
-     m_lvglTaskStack,  // Task handle
-     &m_lvglTaskBuffer // Static task buffer
-  );
-
-#else
-  m_DisplayLGFX.setBrightness(255);
-#endif  
+  m_DisplayLGFX.setBrightness(255); 
 }
 
 
 void Ui::loop()
 {
-  // If using FreeRTOS, the UI updates are handled in the lvglTask; 
-  // otherwise, call the lvgl update functions directly
-#ifndef USE_FREERTOS    
-  delay(5);
-  lv_tick_inc(5);
-  lv_timer_handler();
-#endif  
+  static uint32_t lastUpdateTime = 0;
+  uint32_t currentTime = millis();
+
+  if (currentTime - lastUpdateTime >= 5) // Update every 5 milliseconds
+  {
+    lv_tick_inc(currentTime - lastUpdateTime); // Increment LVGL tick count
+    lv_timer_handler();
+
+    lastUpdateTime = currentTime;
+  }
 }
 
 

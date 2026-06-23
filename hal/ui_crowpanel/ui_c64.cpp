@@ -70,24 +70,24 @@ void UiC64::initDisplay(void)
   m_DisplayLGFX.setBrightness(255);
   setColor(C64Color::LIGHT_BLUE, C64Color::BLUE); 
   clearScreen();
-  delay(400);
+  delay(200);
   setCursor(1, 4);
   print("**** COMMODORE 64 BASIC V2 ****");
   setCursor(3, 1);
   print("64K RAM SYSTEM  38911 BASIC BYTES FREE");
   setCursor(5, 0);
   print("READY.\n");
-  delay(600);
+  delay(400);
   print("LOAD\"*\",8,1\n\n");
   print("SEARCHING FOR *\n");
-  delay(200);
+  delay(100);
   print("LOADING\n");
-  delay(200);
+  delay(100);
   print("READY.\n");
   
-  delay(600);
+  delay(200);
   print("RUN");
-  delay(1000);
+  delay(400);
 }
 
 

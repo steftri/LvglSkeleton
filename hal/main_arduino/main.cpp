@@ -7,7 +7,7 @@
 
 static Model g_model;
 static View g_view;
-static Controller g_controller(&g_model, &g_view);
+Controller g_controller(g_model, g_view);
 
 
 void setup()
@@ -16,7 +16,11 @@ void setup()
   Serial.println(APPLICATION_NAME);
   Serial.println(__DATE__ " " __TIME__);
 
+  Serial.println("Setting up...");
   g_controller.setup();
+
+  Serial.println("Starting...");
+  g_controller.begin();
 }
 
 void loop()
