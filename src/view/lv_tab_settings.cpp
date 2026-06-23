@@ -163,7 +163,7 @@ void LvTabSettings::onWlanEnableCallback(lv_event_t *p_Event)
   lv_obj_t *p_Switch = lv_event_get_target_obj(p_Event);
   bool b_IsChecked = lv_obj_has_state(p_Switch, LV_STATE_CHECKED);
   
-  LV_LOG_USER("WLAN Enable Switch is %s", b_IsChecked ? "ON" : "OFF");
+  LV_LOG_USER("WLAN Enable Switch is %s", b_IsChecked ? "ON" : "OFF");;
   if(b_IsChecked)
   {
     g_controller.getWifi().enable(); // Enable Wi-Fi when the switch is turned on

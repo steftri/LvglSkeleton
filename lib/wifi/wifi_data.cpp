@@ -24,9 +24,13 @@ WifiData::WifiData()
 
 void WifiData::setEnable(bool b_Enable)
 {
-  mb_Enabled = b_Enable;
-
-  setState(EState::Disconnected);
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+    
+  if(mb_Enabled != b_Enable)
+  {
+    mb_Enabled = b_Enable;
+    notifyObservers(static_cast<EDataField>(EField::EnableState));
+  }
 }
 
 
@@ -39,9 +43,13 @@ bool WifiData::isEnabled() const
 
 void WifiData::setState(EState e_State)
 {
-  me_State = e_State;
+  std::lock_guard<std::mutex> lock(m_DataMutex);
 
-  notifyObservers(static_cast<EDataField>(EField::ConnectionState));
+  if(me_State != e_State)
+  {
+    me_State = e_State;
+    notifyObservers(static_cast<EDataField>(EField::ConnectionState));
+  }
 }
 
 
@@ -53,19 +61,17 @@ WifiData::EState WifiData::getState(void) const
 
 
 
-void WifiData::setAvaliableNetworks(const char **ppc_Networks, const uint8_t u8_NetworkCount)
+void WifiData::setAvaliableNetworks(const char **ppc_Networks, uint8_t u8_NetworkCount)
 {
-  {
-    std::lock_guard<std::mutex> lock(m_DataMutex);
+  std::lock_guard<std::mutex> lock(m_DataMutex);
 
-    mu8_NumberOfAvaliableNetworks = (u8_NetworkCount > MAX_WIFI_NETWORKS) ? MAX_WIFI_NETWORKS : u8_NetworkCount;
-    for (uint8_t i = 0; i < mu8_NumberOfAvaliableNetworks; ++i)
-    {
-      strncpy(mac_AvailableNetworks[i], ppc_Networks[i], MAX_SSID_LENGTH);
-      mac_AvailableNetworks[i][MAX_SSID_LENGTH] = '\0'; // Ensure null-termination
-    }
+  mu8_NumberOfAvaliableNetworks = (u8_NetworkCount > MAX_WIFI_NETWORKS) ? MAX_WIFI_NETWORKS : u8_NetworkCount;
+  for (uint8_t i = 0; i < mu8_NumberOfAvaliableNetworks; ++i)
+  {
+    strncpy(mac_AvailableNetworks[i], ppc_Networks[i], MAX_SSID_LENGTH);
+    mac_AvailableNetworks[i][MAX_SSID_LENGTH] = '\0'; // Ensure null-termination
   }
-  
+
   notifyObservers(static_cast<EDataField>(EField::AvailableNetworks));
 }
 
@@ -179,12 +185,10 @@ void WifiData::getSelectedNetwork(char *pc_SSID, const size_t ssidBufferSize, ch
 
 void WifiData::setIPAddress(const char *pc_IPAddress)
 {
-  {
-    std::lock_guard<std::mutex> lock(m_DataMutex);
+  std::lock_guard<std::mutex> lock(m_DataMutex);
 
-    strncpy(mac_IPAddress, pc_IPAddress, MAX_IP_ADDRESS_LENGTH);
-    mac_IPAddress[MAX_IP_ADDRESS_LENGTH] = '\0'; // Ensure null-termination
-  }
+  strncpy(mac_IPAddress, pc_IPAddress, MAX_IP_ADDRESS_LENGTH);
+  mac_IPAddress[MAX_IP_ADDRESS_LENGTH] = '\0'; // Ensure null-termination
 
   notifyObservers(static_cast<EDataField>(EField::IPAddress));
 }

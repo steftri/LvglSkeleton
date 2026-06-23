@@ -38,6 +38,8 @@ WifiSettings::WifiSettings(void)
  */
 void WifiSettings::init(void)
 {
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
   mb_EnableState = true; // Wi-Fi station mode is initially enabled
   mu8_NetworkCount = 0;
 
@@ -57,8 +59,10 @@ void WifiSettings::init(void)
  * 
  * @param b_Enable The new enable state.
  */
-void WifiSettings::setEnableState(bool b_Enable)
+void WifiSettings::setEnable(bool b_Enable)
 {
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
   if(mb_EnableState != b_Enable)
   {
     mb_EnableState = b_Enable;
@@ -74,10 +78,43 @@ void WifiSettings::setEnableState(bool b_Enable)
  * 
  * @return The current enable state.
  */
-bool WifiSettings::getEnableState(void) const
+bool WifiSettings::getEnable(void) const
 {
   return mb_EnableState;
 }
+
+
+/**
+ * @brief Sets the Wi-Fi connect state.
+ * 
+ * This function sets the Wi-Fi connect state. If the state changes,
+ * it notifies the observers about the change.
+ * 
+ * @param b_Enabled The new connect state.
+ */
+void WifiSettings::setConnect(bool b_Enabled)
+{
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
+  if(mb_ConnectState != b_Enabled)
+  {
+    mb_ConnectState = b_Enabled;
+    notifyObservers(static_cast<EDataField>(EField::ConnectState)); // Notify observers that the connect state has changed
+  }
+}
+
+/**
+ * @brief Retrieves the Wi-Fi connect state.
+ * 
+ * This function retrieves the current connect state of the Wi-Fi station mode.
+ * 
+ * @return The current connect state.
+ */
+bool WifiSettings::getConnect(void) const
+{
+  return mb_ConnectState;
+}
+
 
 
 /**
@@ -94,67 +131,65 @@ void WifiSettings::setNetwork(const char *pc_SSID, const char *pc_Password)
 {
   bool b_DataChanged = false;
 
-  if((!pc_SSID) || (!pc_Password))
+  if((pc_SSID == nullptr) || (pc_Password == nullptr) || (strlen(pc_SSID) == 0))
     return;
 
-  { // protected section for data access
-    std::lock_guard<std::mutex> lock(m_DataMutex);    
+  std::lock_guard<std::mutex> lock(m_DataMutex);
 
-    // if the network is already at index 0 with same password, nothing changed
-    if((mu8_NetworkCount > 0)
-      && (strncmp(pc_SSID, ma_Networks[0].ac_SSID, MAX_SSID_LENGTH) == 0)
-      && (strncmp(pc_Password, ma_Networks[0].ac_Password, MAX_WPA2_PASSWORD_LENGTH) == 0))
-    {
-      return;
-    }
+  // if the network is already at index 0 with same password, nothing changed
+  if((mu8_NetworkCount > 0)
+    && (strncmp(pc_SSID, ma_Networks[0].ac_SSID, MAX_SSID_LENGTH) == 0)
+    && (strncmp(pc_Password, ma_Networks[0].ac_Password, MAX_WPA2_PASSWORD_LENGTH) == 0))
+  {
+    return;
+  }
 
-    // if the network is already known, move it to the front of the list (index 0) and replace its passwort with the new one 
-    for(uint8_t u8_Index = 0; u8_Index<mu8_NetworkCount; u8_Index++)
-    {
-      if(0 == strncmp(pc_SSID,  ma_Networks[u8_Index].ac_SSID, MAX_SSID_LENGTH))
-      { 
-        for(uint8_t i = u8_Index; i>0; i--)
-        {  
-          // i is the new position of the entry
-          strncpy(ma_Networks[i].ac_SSID, ma_Networks[i-1].ac_SSID, MAX_SSID_LENGTH);
-          ma_Networks[i].ac_SSID[MAX_SSID_LENGTH] = '\0';
-          strncpy(ma_Networks[i].ac_Password, ma_Networks[i-1].ac_Password, MAX_WPA2_PASSWORD_LENGTH);
-          ma_Networks[i].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
-        }
-        strncpy(ma_Networks[0].ac_SSID, pc_SSID, MAX_SSID_LENGTH);
-        ma_Networks[0].ac_SSID[MAX_SSID_LENGTH] = '\0';
-        strncpy(ma_Networks[0].ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
-        ma_Networks[0].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
-
-        b_DataChanged = true;
-        break;
-      }
-    }
-
-    // if there already are other known networks, move them down. The new network gets the highest priority.
-    if(!b_DataChanged)
-    {
-      if(mu8_NetworkCount>0)
-      {
-        for(uint8_t i = (mu8_NetworkCount<MAX_WIFI_NETWORKS)?mu8_NetworkCount:(MAX_WIFI_NETWORKS-1); i>0; i--)
-        {  
-          // i is the new position of the entry
-          strncpy(ma_Networks[i].ac_SSID, ma_Networks[i-1].ac_SSID, MAX_SSID_LENGTH);
-          ma_Networks[i].ac_SSID[MAX_SSID_LENGTH] = '\0';
-          strncpy(ma_Networks[i].ac_Password, ma_Networks[i-1].ac_Password, MAX_WPA2_PASSWORD_LENGTH);
-          ma_Networks[i].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
-        }
+  // if the network is already known, move it to the front of the list (index 0) and replace its passwort with the new one 
+  for(uint8_t u8_Index = 0; u8_Index<mu8_NetworkCount; u8_Index++)
+  {
+    if(0 == strncmp(pc_SSID,  ma_Networks[u8_Index].ac_SSID, MAX_SSID_LENGTH))
+    { 
+      for(uint8_t i = u8_Index; i>0; i--)
+      {  
+        // i is the new position of the entry
+        strncpy(ma_Networks[i].ac_SSID, ma_Networks[i-1].ac_SSID, MAX_SSID_LENGTH);
+        ma_Networks[i].ac_SSID[MAX_SSID_LENGTH] = '\0';
+        strncpy(ma_Networks[i].ac_Password, ma_Networks[i-1].ac_Password, MAX_WPA2_PASSWORD_LENGTH);
+        ma_Networks[i].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
       }
       strncpy(ma_Networks[0].ac_SSID, pc_SSID, MAX_SSID_LENGTH);
       ma_Networks[0].ac_SSID[MAX_SSID_LENGTH] = '\0';
       strncpy(ma_Networks[0].ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
       ma_Networks[0].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
 
-      if(mu8_NetworkCount<MAX_WIFI_NETWORKS)
-        mu8_NetworkCount++;
-
       b_DataChanged = true;
+      break;
     }
+  }
+
+  // if there already are other known networks, move them down. The new network gets the highest priority.
+  if(!b_DataChanged)
+  {
+    if(mu8_NetworkCount>0)
+    {
+      for(uint8_t i = (mu8_NetworkCount<MAX_WIFI_NETWORKS)?mu8_NetworkCount:(MAX_WIFI_NETWORKS-1); i>0; i--)
+      {  
+        // i is the new position of the entry
+        strncpy(ma_Networks[i].ac_SSID, ma_Networks[i-1].ac_SSID, MAX_SSID_LENGTH);
+        ma_Networks[i].ac_SSID[MAX_SSID_LENGTH] = '\0';
+        strncpy(ma_Networks[i].ac_Password, ma_Networks[i-1].ac_Password, MAX_WPA2_PASSWORD_LENGTH);
+        ma_Networks[i].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
+      }
+    }
+    strncpy(ma_Networks[0].ac_SSID, pc_SSID, MAX_SSID_LENGTH);
+    ma_Networks[0].ac_SSID[MAX_SSID_LENGTH] = '\0';
+    strncpy(ma_Networks[0].ac_Password, pc_Password, MAX_WPA2_PASSWORD_LENGTH);
+    ma_Networks[0].ac_Password[MAX_WPA2_PASSWORD_LENGTH] = '\0';
+
+    if(mu8_NetworkCount<MAX_WIFI_NETWORKS)
+      mu8_NetworkCount++;
+
+    b_DataChanged = true;
   }
 
   if(b_DataChanged)
@@ -170,7 +205,7 @@ void WifiSettings::setNetwork(const char *pc_SSID, const char *pc_Password)
  * 
  * @return uint8_t The number of Wi-Fi networks.
  */
-uint8_t WifiSettings::getNetworkCount(void)
+uint8_t WifiSettings::getNetworkCount(void) const
 {
   return mu8_NetworkCount;
 }
@@ -185,6 +220,8 @@ uint8_t WifiSettings::getNetworkCount(void)
  */
 void WifiSettings::getNetwork(const char **ppc_SSID, const char **ppc_Password, const uint8_t u8_Index)
 {
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
   if((u8_Index>=MAX_WIFI_NETWORKS) || (u8_Index>=mu8_NetworkCount))
   {
     if(ppc_SSID)
@@ -213,6 +250,8 @@ void WifiSettings::getNetwork(const char **ppc_SSID, const char **ppc_Password, 
  */
 const char *WifiSettings::getNetworkPassword(const char *pc_SSID)
 {
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
   for(uint8_t u8_Index = 0; u8_Index < mu8_NetworkCount; u8_Index++)
   {
     if(strcmp(ma_Networks[u8_Index].ac_SSID, pc_SSID) == 0)
@@ -243,20 +282,18 @@ uint16_t WifiSettings::serialize(uint8_t *pu8_Buffer, const uint16_t u16_BufferS
   if((!pu8_Buffer) || (u16_BufferSize<WIFI_SETTINGS_SIZE))
     return 0;
 
-  { // protected section for data access
-    std::lock_guard<std::mutex> lock(m_DataMutex);  
+  std::lock_guard<std::mutex> lock(m_DataMutex);  
 
-    pu8_Buffer[u16_BufferPos++] = mb_EnableState ? 1 : 0; // Store the enable state as a byte (1 for true, 0 for false)
+  pu8_Buffer[u16_BufferPos++] = mb_EnableState ? 1 : 0;
+  pu8_Buffer[u16_BufferPos++] = mb_ConnectState ? 1 : 0; 
 
-    pu8_Buffer[u16_BufferPos++] = mu8_NetworkCount; 
-
-    for(uint8_t u8_Index = 0; u8_Index<MAX_WIFI_NETWORKS; u8_Index++)
-    {
-      for(auto i=0; i<MAX_SSID_LENGTH; i++)
-        pu8_Buffer[u16_BufferPos++] = ma_Networks[u8_Index].ac_SSID[i];
-      for(auto i=0; i<MAX_WPA2_PASSWORD_LENGTH; i++)
-        pu8_Buffer[u16_BufferPos++] = ma_Networks[u8_Index].ac_Password[i]; 
-    }
+  pu8_Buffer[u16_BufferPos++] = mu8_NetworkCount; 
+  for(uint8_t u8_Index = 0; u8_Index<MAX_WIFI_NETWORKS; u8_Index++)
+  {
+    for(auto i=0; i<MAX_SSID_LENGTH; i++)
+      pu8_Buffer[u16_BufferPos++] = ma_Networks[u8_Index].ac_SSID[i];
+    for(auto i=0; i<MAX_WPA2_PASSWORD_LENGTH; i++)
+      pu8_Buffer[u16_BufferPos++] = ma_Networks[u8_Index].ac_Password[i]; 
   }
 
   return u16_BufferPos;
@@ -282,25 +319,23 @@ void WifiSettings::unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_Siz
 {
   uint16_t u16_BufferPos = 0;
 
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
   if((!pu8_Buffer) || (u16_Size<WIFI_SETTINGS_SIZE))
     return;
 
-  { // protected section for data access
-    std::lock_guard<std::mutex> lock(m_DataMutex);
+  mb_EnableState = pu8_Buffer[u16_BufferPos++] ? true : false;
+  mb_ConnectState = pu8_Buffer[u16_BufferPos++] ? true : false;
 
-    mb_EnableState = pu8_Buffer[u16_BufferPos++] ? true : false;
+  mu8_NetworkCount = pu8_Buffer[u16_BufferPos++];
+  for(uint8_t u8_Index=0; u8_Index<MAX_WIFI_NETWORKS; u8_Index++)
+  {
+    for(auto i=0; i<MAX_SSID_LENGTH; i++)
+      ma_Networks[u8_Index].ac_SSID[i] = pu8_Buffer[u16_BufferPos++];
+    ma_Networks[u8_Index].ac_SSID[MAX_SSID_LENGTH]=0;   
 
-    mu8_NetworkCount = pu8_Buffer[u16_BufferPos++];
-
-    for(uint8_t u8_Index=0; u8_Index<MAX_WIFI_NETWORKS; u8_Index++)
-    {
-      for(auto i=0; i<MAX_SSID_LENGTH; i++)
-        ma_Networks[u8_Index].ac_SSID[i] = pu8_Buffer[u16_BufferPos++];
-      ma_Networks[u8_Index].ac_SSID[MAX_SSID_LENGTH]=0;   
-
-      for(auto i=0; i<MAX_WPA2_PASSWORD_LENGTH; i++)
-        ma_Networks[u8_Index].ac_Password[i] = pu8_Buffer[u16_BufferPos++];
-      ma_Networks[u8_Index].ac_Password[MAX_WPA2_PASSWORD_LENGTH]=0;
-    }
+    for(auto i=0; i<MAX_WPA2_PASSWORD_LENGTH; i++)
+      ma_Networks[u8_Index].ac_Password[i] = pu8_Buffer[u16_BufferPos++];
+    ma_Networks[u8_Index].ac_Password[MAX_WPA2_PASSWORD_LENGTH]=0;
   }
 }

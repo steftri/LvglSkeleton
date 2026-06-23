@@ -103,13 +103,13 @@ void WifiTask::setup(void)
 
   m_WifiHal.setup(); // Initialize the Wi-Fi hardware and start scanning for networks
 
-  if(m_WifiSettings.getEnableState())
+  if(m_WifiSettings.getEnable())
   {
     Serial.println("Wi-Fi is enabled in settings, enabling Wi-Fi hardware...");
     m_WifiData.setEnable(true); 
     m_WifiHal.enable(); // Enable the Wi-Fi hardware if it is enabled in the settings
     
-    if(m_WifiSettings.getNetworkCount() > 0) // Check if there are any stored networks in the settings
+    if(m_WifiSettings.getConnect() && m_WifiSettings.getNetworkCount() > 0) 
     {
       // try to connect to the previously selected network if Wi-Fi was enabled
       const char *pc_SSID;
@@ -119,6 +119,8 @@ void WifiTask::setup(void)
       m_WifiData.setSelectedNetwork(pc_SSID, pc_Password); 
 
       Serial.printf("Attempting to connect to previously selected Wi-Fi network \"%s\"...\n", pc_SSID);
+
+      m_WifiData.setState(WifiData::EState::Connecting);
       m_WifiHal.connect(pc_SSID, pc_Password); 
     }
   }
@@ -128,6 +130,7 @@ void WifiTask::setup(void)
 
 void WifiTask::loop(void)
 {
+  static uint32_t lastScanTime = 0;
   static uint32_t lastUpdateTime = 0;
   uint32_t currentTime = millis();
   uint32_t u32_NotifiedValue = 0;
@@ -150,17 +153,21 @@ void WifiTask::loop(void)
     actionDisconnect();
   }
 
+  if(m_WifiData.isEnabled()) // enabled
+  {
+    if (currentTime - lastScanTime >= 10*1000UL) // Scan every 10 seconds
+    {
+      lastScanTime = currentTime;
+      m_WifiHal.scanNetworks(); // Periodically scan for Wi-Fi networks to update the list in the view
+    }
+  }
+
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
     lastUpdateTime = currentTime;
     Serial.printf("  Free WifiTask stack: %u/%u (Usage: %u%%)\n",
                   uxTaskGetStackHighWaterMark(nullptr), WIFI_TASK_STACK_SIZE,
                   ((WIFI_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / WIFI_TASK_STACK_SIZE); // nullptr = aktueller Task
-
-    if(m_WifiData.isEnabled()) // enabled, but not connected -> scan for networks to update the list in the view
-    {
-      m_WifiHal.scanNetworks(); // Periodically scan for Wi-Fi networks to update the list in the view
-    }
   }
 }
 
@@ -169,7 +176,7 @@ void WifiTask::actionEnable()
 {
   Serial.println("Enabling Wi-Fi");
   m_WifiData.setEnable(true); 
-  m_WifiSettings.setEnableState(true); // Store the enabled state in the settings for persistence
+  m_WifiSettings.setEnable(true); // Store the enabled state in the settings for persistence
   m_WifiHal.enable(); // Enable the Wi-Fi hardware
 }
 
@@ -178,7 +185,7 @@ void WifiTask::actionDisable()
   Serial.println("Disabling Wi-Fi");
   m_WifiHal.disable(); // Disable the Wi-Fi hardware
   m_WifiData.setEnable(false); // Update the Wi-Fi connection state in the data
-  m_WifiSettings.setEnableState(false); // Store the disabled state in the settings for persistence
+  m_WifiSettings.setEnable(false); // Store the disabled state in the settings for persistence
 }
 
 
@@ -190,6 +197,8 @@ void WifiTask::actionConnect()
   m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); // Get the selected network's SSID and password from the data
 
   Serial.printf("Connecting to Wi-Fi network \"%s\" with password \"%s\"\n", ac_SSID, ac_Password);
+
+  m_WifiData.setState(WifiData::EState::Connecting); // Update the Wi-Fi connection state in the data
   m_WifiHal.connect(ac_SSID, ac_Password); // Connect to the Wi-Fi network using the HAL
 }
 
@@ -199,6 +208,7 @@ void WifiTask::actionDisconnect()
   Serial.println("Disconnecting from Wi-Fi");
   m_WifiHal.disconnect(); // Disconnect from the Wi-Fi network using the HAL
   m_WifiData.setState(WifiData::EState::Disconnected);
+  m_WifiSettings.setConnect(false); // Update the connect state in the settings
 }
 
 
@@ -262,20 +272,19 @@ void WifiTask::onWifiConnected()
   char ac_SSID[MAX_SSID_LENGTH + 1];
   char ac_Password[MAX_WPA2_PASSWORD_LENGTH + 1];
 
-  Serial.println("Wi-Fi connected");
-
   m_WifiData.setState(WifiData::EState::Connected); // Update the Wi-Fi connection state in the data
   m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); // Get the selected network's SSID and password from the data
-  Serial.printf("Connected to Wi-Fi network \"%s\" with password \"%s\"\n", ac_SSID, ac_Password);
+
+  Serial.printf("Connected to Wi-Fi network \"%s\"\n", ac_SSID);
+
   m_WifiSettings.setNetwork(ac_SSID, ac_Password); // Store the last connected SSID in the settings for future reference
+  m_WifiSettings.setConnect(true); // Update the connect state in the settings
 }
 
 
 void WifiTask::onWifiDisconnected()
 {
   Serial.println("Wi-Fi disconnected");
-  
-  m_WifiData.setState(WifiData::EState::Disconnected); // wifi state goes back to not connected
 }
 
 
@@ -283,7 +292,6 @@ void WifiTask::onWifiGotIP()
 {
   char ac_IPAddress[MAX_IP_ADDRESS_LENGTH+1]; // Buffer to hold IP address as string
   m_WifiHal.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress)); // Get the IP address as a string
-  Serial.printf("Wi-Fi got IP address: %s\n", ac_IPAddress);
 
   m_WifiData.setIPAddress(ac_IPAddress); // Update the Wi-Fi data with the obtained IP address
 }
@@ -292,7 +300,8 @@ void WifiTask::onWifiGotIP()
 void WifiTask::onWifiConnectionFailed(EWifiConnectionError error)
 {
   Serial.printf("Wi-Fi connection failed with error: %d\n", static_cast<int>(error));
-  // Notify the view to update the Wi-Fi connection status and show an error message if needed
+
+  // TODO: Notify the view to update the Wi-Fi connection status and show an error message if needed
 }
 
 

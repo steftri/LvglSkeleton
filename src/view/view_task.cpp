@@ -15,11 +15,12 @@ ViewTask *ViewTask::mp_thisInstance = nullptr; // Initialize static instance poi
 enum class ENotificationBits : uint32_t
 {
   AvailableNetworks = (1UL << 0),
-  ConnectionState = (1UL << 1),
-  IPAddress = (1UL << 2),
-  FreeRTOSStats = (1UL << 3),
-  LVGLStats = (1UL << 4),
-  MQTTStats = (1UL << 5)
+  EnableState = (1UL << 1),
+  ConnectionState = (1UL << 2),
+  IPAddress = (1UL << 3),
+  FreeRTOSStats = (1UL << 4),
+  LVGLStats = (1UL << 5),
+  MQTTStats = (1UL << 6)
 };
 
 
@@ -107,6 +108,10 @@ void ViewTask::loop()
   {
     onUpdateSettingsNetworkList();
   }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::EnableState))
+  {
+    onUpdateEnableState();
+  }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ConnectionState))
   {
     onUpdateConnectionState();
@@ -139,6 +144,10 @@ void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
       Serial.println("ViewTask: Available Wi-Fi networks updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::AvailableNetworks), eSetBits);
       break;
+    case WifiData::EField::EnableState:
+      Serial.println("ViewTask: Wi-Fi enable state changed");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::EnableState), eSetBits);
+      break;
     case WifiData::EField::ConnectionState:
       Serial.println("ViewTask: Wi-Fi connection state changed");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ConnectionState), eSetBits);
@@ -161,6 +170,13 @@ void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
 void ViewTask::onUpdateSettingsNetworkList()
 {
   g_ViewLvMain.getTabSettings()->updateWlanSelectList(); // Update the Wi-Fi network list in the UI
+}
+
+
+
+void ViewTask::onUpdateEnableState()
+{
+  g_ViewLvMain.getTabSettings()->updateWlanStatePanel(); 
 }
 
 

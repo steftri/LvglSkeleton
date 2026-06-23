@@ -17,7 +17,8 @@ public:
 
   enum class EField : uint8_t 
   { 
-    ConnectionState = 0,
+    EnableState = 0,
+    ConnectionState,
     AvailableNetworks, 
     SelectedNetwork, 
     IPAddress
@@ -56,7 +57,7 @@ public:
   void setState(EState e_State);
   EState getState(void) const;
 
-  void setAvaliableNetworks(const char **ppc_Networks, const uint8_t u8_NetworkCount);
+  void setAvaliableNetworks(const char **ppc_Networks, uint8_t u8_NetworkCount);
 
   uint8_t getAvailableNetworkCount(void) const;
   void getAvailableNetwork(char *pc_SsidBuffer, const size_t bufferSize, const uint8_t u8_Index);

@@ -29,6 +29,7 @@ class WifiSettings : public Data
   static const uint8_t MAX_WPA2_PASSWORD_LENGTH = 63; ///< Maximum length of WPA2 password
 
   bool mb_EnableState; ///< Indicates whether the Wi-Fi station mode is enabled
+  bool mb_ConnectState; ///< Indicates whether the Wi-Fi station mode is (or shall be) connected to a network
   
   struct 
   {
@@ -42,18 +43,21 @@ public:
   enum class EField : uint8_t 
   { 
     EnableState = 0,
+    ConnectState,
     Networks, 
   };
 
-  static const uint16_t WIFI_SETTINGS_SIZE = 1UL + 1UL + MAX_WIFI_NETWORKS * (MAX_SSID_LENGTH + MAX_WPA2_PASSWORD_LENGTH); ///< Size of the Wi-Fi settings in bytes
+  static const uint16_t WIFI_SETTINGS_SIZE = 1UL + 1UL + 1UL + MAX_WIFI_NETWORKS * (MAX_SSID_LENGTH + MAX_WPA2_PASSWORD_LENGTH); ///< Size of the Wi-Fi settings in bytes
 
   WifiSettings(void);
 
   void init(void);
-  void setEnableState(bool b_Enable);
-  bool getEnableState(void) const;
+  void setEnable(bool b_Enable);
+  bool getEnable(void) const;
+  void setConnect(bool b_Enable);
+  bool getConnect(void) const;
   void setNetwork(const char *pc_SSID, const char *pc_Password);
-  uint8_t getNetworkCount(void);
+  uint8_t getNetworkCount(void) const;
   void getNetwork(const char **ppc_SSID, const char **ppc_Password, const uint8_t u8_Index);
   const char *getNetworkPassword(const char *pc_SSID);
 

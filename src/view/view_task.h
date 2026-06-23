@@ -56,6 +56,7 @@ private:
 
 
   // Thread-internal methods to update the UI based on notifications
+  void onUpdateEnableState();
   void onUpdateConnectionState();
   void onUpdateSettingsNetworkList();
   void onUpdateSettingsIPAddress();

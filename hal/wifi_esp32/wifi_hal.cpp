@@ -18,10 +18,11 @@ void WifiHal::setup()
 {
   Serial.println("WifiHal setup called");
 
-  WiFi.disconnect(); // Disconnect from any previous Wi-Fi connections and erase credentials
-
+  WiFi.useStaticBuffers(true);
+  WiFi.disconnect(true); // Disconnect and erase credentials
   WiFi.mode(WIFI_STA); // Optional
   WiFi.setHostname(APPLICATION_NAME);
+
   WiFi.onEvent(WifiHal::onEvent);
 }
 
@@ -30,8 +31,6 @@ void WifiHal::setup()
 void WifiHal::enable()
 {
   Serial.println("HAL: Enabling Wi-Fi");
-  WiFi.begin(); // Start Wi-Fi connection
-
   WiFi.scanNetworks(true); // Start scanning for Wi-Fi networks in the background
 }
 
@@ -141,7 +140,7 @@ void WifiHal::onEvent(WiFiEvent_t event)
       Serial.println("Authentication mode of access point has changed"); 
       break;
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-      Serial.print("Got IP address");
+      Serial.println("Got IP address");
       mp_thisInstance->m_actionListener.onWifiGotIP();
       break;
     case ARDUINO_EVENT_WIFI_STA_LOST_IP:        
