@@ -51,16 +51,16 @@ private:
   // DataObserver implementation
   void onDataChanged(Data &r_Data, EDataField e_Field) override;
 
-  void onWifiSettingsChanged(EDataField e_Field);
-  void onWifiDataChanged(EDataField e_Field);
-
+  void onWIFIDataChanged(EDataField e_Field);
+  void onMQTTDataChanged(EDataField e_Field);
+  void onSurveillanceDataChanged(EDataField e_Field);
 
   // Thread-internal methods to update the UI based on notifications
   void onUpdateEnableState();
   void onUpdateConnectionState();
   void onUpdateSettingsNetworkList();
   void onUpdateSettingsIPAddress();
-  void onUpdateInfoFreeRTOSStats();
+  void onUpdateInfoSurveillanceStats();
   void onUpdateInfoLVGLStats();
   void onUpdateInfoMQTTStats();
 };

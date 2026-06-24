@@ -4,6 +4,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "surveillance_data.h"
+
+
 static const size_t SURVEILLANCE_TASK_STACK_SIZE = 4096; // Stack size for the task
 
 
@@ -17,8 +20,10 @@ private:
   static void task(void *pvParameters);  
   static SurveillanceTask *mp_thisInstance; // Static instance pointer for task access
 
+  SurveillanceData &m_Data;
+
 public:
-  SurveillanceTask();
+  SurveillanceTask(SurveillanceData &data);
   void begin(void);
 
 private:  

@@ -6,7 +6,8 @@
 Controller::Controller(Model &model, View &view)
   : m_model(model)
   , m_view(view)
-  , m_wifiTask(model.getSettings().getWifiSettings(), model.getData().getWifiData()) // Pass the Wi-Fi settings and data references to the WifiTask
+  , m_surveillanceTask(model.getData().getSurveillanceData())
+  , m_wifiTask(model.getSettings().getWifiSettings(), model.getData().getWifiData()) 
 {
 }
 

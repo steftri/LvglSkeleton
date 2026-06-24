@@ -1,11 +1,13 @@
-#include "lv_tab_info.h"
 #include <lvgl.h>
 #include <stdio.h>
 
-#if LV_USE_OS == LV_OS_FREERTOS
-#include <FreeRTOS.h>
-#include <task.h>
-#endif
+#include "controller.h"
+#include "lv_tab_info.h"
+
+
+extern Controller g_controller;
+
+
 
 LvTabInfo::LvTabInfo()
     : mp_FreeRTOSInfoLabel(nullptr)
@@ -61,18 +63,20 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
 
 void LvTabInfo::updateFreeRTOSInfo()
 {
-    if (mp_FreeRTOSInfoLabel)
-    {
-#if LV_USE_OS == LV_OS_FREERTOS        
-        // Retrieve FreeRTOS information
-        auto taskCount = uxTaskGetNumberOfTasks();
-        char buffer[128];
-        snprintf(buffer, sizeof(buffer), "Tasks: %u\n", taskCount);      
+  SurveillanceData &r_SurveillanceData = g_controller.getModel().getData().getSurveillanceData();
 
-        lv_label_set_text_fmt(mp_FreeRTOSInfoLabel, "%s", buffer);
-#endif
-    }
+  char ac_StringBuffer[128];  
+  char ac_Uptime[64];
+
+  snprintf(ac_Uptime, sizeof(ac_Uptime), "%uh %02um %02us", 
+     r_SurveillanceData.getUptime() / 3600, (r_SurveillanceData.getUptime() % 3600) / 60, r_SurveillanceData.getUptime() % 60);
+
+  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Uptime: %s\nTasks: %u", ac_Uptime, r_SurveillanceData.getTasks());      
+
+  lv_label_set_text_fmt(mp_FreeRTOSInfoLabel, "%s", ac_StringBuffer);
 }
+
+
 
 void LvTabInfo::updateLVGLInfo()
 {
@@ -82,11 +86,11 @@ void LvTabInfo::updateLVGLInfo()
         lv_mem_monitor_t memMonitor;
         lv_mem_monitor(&memMonitor);
 
-        char buffer[128];
-        snprintf(buffer, sizeof(buffer), "Heap Memory:\n Used %u bytes,\n Free %u bytes\n", memMonitor.total_size - memMonitor.free_size, memMonitor.free_size);
+        char ac_StringBuffer[128];
+        snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Heap Memory:\n Used %u bytes,\n Free %u bytes", memMonitor.total_size - memMonitor.free_size, memMonitor.free_size);
 
         // Append LVGL information to the label
-        lv_label_set_text_fmt(mp_LVGLInfoLabel, "%s", buffer);
+        lv_label_set_text_fmt(mp_LVGLInfoLabel, "%s", ac_StringBuffer);
     }
 }
 

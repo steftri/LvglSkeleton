@@ -4,7 +4,6 @@
 
 #include "controller.h"
 
-
 extern Controller g_controller;
 
 extern LvMain g_ViewLvMain; 

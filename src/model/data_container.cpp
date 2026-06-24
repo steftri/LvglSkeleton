@@ -7,5 +7,17 @@ DataContainer::DataContainer(void)
 
 WifiData &DataContainer::getWifiData(void)
 {
-    return m_WifiData;
+  return m_WifiData;
+}
+
+
+MqttData &DataContainer::getMqttData(void)
+{
+  return m_MqttData;
+}
+
+
+SurveillanceData &DataContainer::getSurveillanceData(void)
+{
+  return m_SurveillanceData;
 }

@@ -18,7 +18,7 @@ enum class ENotificationBits : uint32_t
   EnableState = (1UL << 1),
   ConnectionState = (1UL << 2),
   IPAddress = (1UL << 3),
-  FreeRTOSStats = (1UL << 4),
+  SurveillanceStats = (1UL << 4),
   LVGLStats = (1UL << 5),
   MQTTStats = (1UL << 6)
 };
@@ -73,6 +73,8 @@ void ViewTask::task(void *pvParameters)
 
 void ViewTask::setup()
 {
+  DataContainer &r_DataContainer = g_controller.getModel().getData();
+
   Serial.println("ViewTask running.");
 
   lv_init();  
@@ -80,8 +82,10 @@ void ViewTask::setup()
   g_ViewLvMain.setup(); // Build LVGL widget tree (display must exist first)
   Serial.println("LVGL UI setup complete");
 
-  g_controller.getModel().getData().getWifiData().registerObserver(this); // Register as observer for Wi-Fi data changes
-  Serial.println("Observer registered for Wi-Fi data changes");
+  r_DataContainer.getWifiData().registerObserver(this); 
+  r_DataContainer.getMqttData().registerObserver(this); 
+  r_DataContainer.getSurveillanceData().registerObserver(this); 
+  Serial.println("Observer registered for data changes");
 }
 
 
@@ -120,9 +124,9 @@ void ViewTask::loop()
   {
     onUpdateSettingsIPAddress();
   }
-  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::FreeRTOSStats))
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::SurveillanceStats))
   {
-    onUpdateInfoFreeRTOSStats();
+    onUpdateInfoSurveillanceStats();
   }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::LVGLStats))
   {
@@ -137,6 +141,29 @@ void ViewTask::loop()
 
 
 void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
+{
+  DataContainer &r_DataContainer = g_controller.getModel().getData();
+
+  if(&r_Data == &r_DataContainer.getWifiData())
+  {
+    onWIFIDataChanged(e_Field);
+  }
+  else if(&r_Data == &r_DataContainer.getMqttData())
+  {
+    onMQTTDataChanged(e_Field);
+  }
+  else if(&r_Data == &r_DataContainer.getSurveillanceData())
+  {
+    onSurveillanceDataChanged(e_Field);
+  }
+  else
+  {
+    Serial.println("ViewTask: Unknown data source changed");
+  }
+}
+
+
+void ViewTask::onWIFIDataChanged(EDataField e_Field)
 {
   switch (static_cast<WifiData::EField>(e_Field))
   {
@@ -163,6 +190,30 @@ void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
 }
 
 
+void ViewTask::onMQTTDataChanged(EDataField e_Field)
+{
+
+}
+
+
+void ViewTask::onSurveillanceDataChanged(EDataField e_Field)
+{
+  switch (static_cast<SurveillanceData::EField>(e_Field))
+  {
+    case SurveillanceData::EField::Uptime:
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::SurveillanceStats), eSetBits);
+      break;
+    case SurveillanceData::EField::Tasks:
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::SurveillanceStats), eSetBits);
+      break;
+    case SurveillanceData::EField::FreeHeapSize:
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::SurveillanceStats), eSetBits);
+      break;
+    default:
+      Serial.println("ViewTask: Unknown surveillance data field changed");
+      break;
+  }
+}
 
 
 
@@ -195,9 +246,9 @@ void ViewTask::onUpdateSettingsIPAddress()
 }
 
 
-void ViewTask::onUpdateInfoFreeRTOSStats()
+void ViewTask::onUpdateInfoSurveillanceStats()
 {
-  //g_ViewLvMain.getTabInfo()->updateFreeRTOSInfo(); // Update the FreeRTOS stats in the info tab
+  g_ViewLvMain.getTabInfo()->updateFreeRTOSInfo(); // Update the Surveillance stats in the info tab
 }
 
 

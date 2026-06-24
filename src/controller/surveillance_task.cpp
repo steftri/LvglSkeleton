@@ -6,8 +6,9 @@
 SurveillanceTask *SurveillanceTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
-SurveillanceTask::SurveillanceTask()
+SurveillanceTask::SurveillanceTask(SurveillanceData &data)
   : mp_TaskHandle(nullptr)
+  , m_Data(data)
 {
     mp_thisInstance = this;
 }
@@ -58,14 +59,20 @@ void SurveillanceTask::setup()
 
 void SurveillanceTask::loop()
 {
-  // Anzahl der Tasks abrufen
-  UBaseType_t taskCount = uxTaskGetNumberOfTasks();
-  Serial.printf("  Number of tasks: %u\n", taskCount);
-  Serial.printf("  Free heap size: %u bytes (minimum ever: %u bytes)\n", xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize());
+  static uint32_t lastUpdateTime = 0;
+  uint32_t currentTime = millis();
 
-  Serial.printf("  Free SurveillanceTask stack: %u/%u (Usage: %u%%)\n",
-                uxTaskGetStackHighWaterMark(nullptr), SURVEILLANCE_TASK_STACK_SIZE,
-                ((SURVEILLANCE_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / SURVEILLANCE_TASK_STACK_SIZE); // nullptr = aktueller Task
+  if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
+  {
+    lastUpdateTime = currentTime;
+    Serial.printf("  Free SurveillanceTask stack: %u/%u (Usage: %u%%)\n",
+                  uxTaskGetStackHighWaterMark(nullptr), SURVEILLANCE_TASK_STACK_SIZE,
+                  ((SURVEILLANCE_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / SURVEILLANCE_TASK_STACK_SIZE); // nullptr = aktueller Task
+  } 
 
-   vTaskDelay(pdMS_TO_TICKS(60*1000UL)); // Alle 60 Sekunden aktualisieren
+  m_Data.setUptime(xTaskGetTickCount() / configTICK_RATE_HZ); // Uptime in Sekunden
+  m_Data.setTasks(uxTaskGetNumberOfTasks()); // Anzahl der Tasks aktualisieren
+  m_Data.setFreeHeapSize(xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize()); // Free heap size aktualisieren
+
+   vTaskDelay(pdMS_TO_TICKS(1000UL)); // Alle 1 Sekunde aktualisieren
 }
