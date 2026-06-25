@@ -16,11 +16,12 @@ enum class ENotificationBits : uint32_t
 {
   AvailableNetworks = (1UL << 0),
   EnableState = (1UL << 1),
-  ConnectionState = (1UL << 2),
+  WifiConnectionState = (1UL << 2),
   IPAddress = (1UL << 3),
   SurveillanceStats = (1UL << 4),
   LVGLStats = (1UL << 5),
-  MQTTStats = (1UL << 6)
+  MQTTConnectionState = (1UL << 6),
+  MQTTStats = (1UL << 7)
 };
 
 
@@ -116,9 +117,9 @@ void ViewTask::loop()
   {
     onUpdateEnableState();
   }
-  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ConnectionState))
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::WifiConnectionState))
   {
-    onUpdateConnectionState();
+    onUpdateWIFIConnectionState();
   }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::IPAddress))
   {
@@ -131,6 +132,10 @@ void ViewTask::loop()
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::LVGLStats))
   {
     onUpdateInfoLVGLStats();
+  }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::MQTTConnectionState))
+  {
+    onUpdateInfoMQTTConnectionState();
   }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::MQTTStats))
   {
@@ -177,7 +182,7 @@ void ViewTask::onWIFIDataChanged(EDataField e_Field)
       break;
     case WifiData::EField::ConnectionState:
       Serial.println("ViewTask: Wi-Fi connection state changed");
-      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ConnectionState), eSetBits);
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::WifiConnectionState), eSetBits);
       break;
     case WifiData::EField::IPAddress:
       Serial.println("ViewTask: IP address updated");
@@ -192,7 +197,20 @@ void ViewTask::onWIFIDataChanged(EDataField e_Field)
 
 void ViewTask::onMQTTDataChanged(EDataField e_Field)
 {
-
+  switch (static_cast<MqttData::EField>(e_Field))
+  {
+    case MqttData::EField::ConnectionState:
+      Serial.println("ViewTask: MQTT connection state changed");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::MQTTConnectionState), eSetBits);
+      break;
+    case MqttData::EField::MessageCount:
+      Serial.println("ViewTask: MQTT message count updated");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::MQTTStats), eSetBits);
+      break;  
+    default:
+      Serial.println("ViewTask: Unknown MQTT data field changed");
+      break;
+  }
 }
 
 
@@ -231,7 +249,7 @@ void ViewTask::onUpdateEnableState()
 }
 
 
-void ViewTask::onUpdateConnectionState()
+void ViewTask::onUpdateWIFIConnectionState()
 {
   auto &WifiData = g_controller.getModel().getData().getWifiData();
   bool b_IsConnected = (WifiData.getState() == WifiData::EState::Connected);
@@ -254,12 +272,18 @@ void ViewTask::onUpdateInfoSurveillanceStats()
 
 void ViewTask::onUpdateInfoLVGLStats()
 {
-  //g_ViewLvMain.getTabInfo()->updateLVGLInfo(); // Update the LVGL stats in the info tab
+  g_ViewLvMain.getTabInfo()->updateLVGLInfo(); // Update the LVGL stats in the info tab
+}
+
+
+void ViewTask::onUpdateInfoMQTTConnectionState()
+{
+  // TODO
 }
 
 
 void ViewTask::onUpdateInfoMQTTStats()
 {
-  //g_ViewLvMain.getTabInfo()->updateMQTTInfo(); // Update the MQTT stats in the info tab
+  g_ViewLvMain.getTabInfo()->updateMQTTInfo(); // Update the MQTT stats in the info tab
 }
 

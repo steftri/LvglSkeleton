@@ -16,7 +16,12 @@ class LvTabSettings
   lv_obj_t *mp_WlanSsidLabel[WifiData::MAX_WIFI_NETWORKS];
   lv_obj_t *mp_DisconnectButton;
 
+  lv_obj_t *mp_MqttBroker;
+
 private:
+  static void onInputEvent(lv_event_t *p_Event);
+  void onInputMqttBrokerChanged(const lv_obj_t *p_Object);
+
   static void onWlanEnableCallback(lv_event_t *p_Event);
   static void onWlanDisconnectButtonCallback(lv_event_t *p_Event);
   static void onWlanSsidButtonCallback(lv_event_t *p_Event);

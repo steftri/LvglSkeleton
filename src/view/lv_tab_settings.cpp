@@ -12,6 +12,7 @@ extern LvMain g_ViewLvMain;
 
 LvTabSettings::LvTabSettings(void)
   : mp_WlanEnableSwitch(nullptr)
+  , mp_MqttBroker(nullptr)
 {
 }
 
@@ -19,6 +20,8 @@ LvTabSettings::LvTabSettings(void)
 
 void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 {
+  lv_obj_set_flex_flow(p_ParentTab, LV_FLEX_FLOW_COLUMN);
+
   lv_obj_t *p_WlanPanel = lv_obj_create(p_ParentTab);
   {
     // lv_obj_set_height(p_WlanPanel, LV_SIZE_CONTENT);
@@ -81,12 +84,76 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
         mp_WlanSsidLabel[i] = lv_label_create(mp_WlanSsidButton[i]);
         lv_obj_add_flag(mp_WlanSsidButton[i], LV_OBJ_FLAG_HIDDEN);
       }
-    }  
+    }
+
     updateWlanStatePanel();
     updateWlanSelectList(); // Populate the Wi-Fi list with available networks
       
   }
+
+
+  lv_obj_t *p_MqttPanel = lv_obj_create(p_ParentTab);
+  {
+    // lv_obj_set_height(p_WlanPanel, LV_SIZE_CONTENT);
+    lv_obj_set_size(p_MqttPanel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(p_MqttPanel, LV_FLEX_FLOW_COLUMN);
+
+    lv_obj_t *p_MqttLabel = lv_label_create(p_MqttPanel);
+    lv_label_set_text(p_MqttLabel, "MQTT");
+
+    // Create the password input field
+    mp_MqttBroker = lv_textarea_create(p_MqttPanel);
+    lv_textarea_set_one_line(mp_MqttBroker, true);
+    lv_obj_set_width(mp_MqttBroker, lv_pct(100));
+    lv_obj_add_event_cb(mp_MqttBroker, onInputEvent, LV_EVENT_ALL, this);
+
+  }  
+
 }
+
+
+
+
+void LvTabSettings::onInputEvent(lv_event_t *p_Event)
+{
+  lv_event_code_t code = lv_event_get_code(p_Event);
+  LvTabSettings *p_This = static_cast<LvTabSettings*>(lv_event_get_user_data(p_Event));
+
+  if(code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) 
+  {
+    g_ViewLvMain.getKeyboard()->show(lv_event_get_target_obj(p_Event));
+  }
+  else if(code == LV_EVENT_DEFOCUSED) 
+  {
+    g_ViewLvMain.getKeyboard()->hide();
+  }
+  else if(code == LV_EVENT_CANCEL)
+  {
+    g_ViewLvMain.getKeyboard()->hide();
+    LV_LOG_USER("Input cancelled\n");
+  }
+  else if(code == LV_EVENT_READY)
+  {
+    lv_obj_t *p_Textarea = lv_event_get_target_obj(p_Event);
+    g_ViewLvMain.getKeyboard()->hide();
+    if(p_Textarea == p_This->mp_MqttBroker)
+    {
+      p_This->onInputMqttBrokerChanged(p_Textarea);
+    }
+  }
+}
+
+
+void LvTabSettings::onInputMqttBrokerChanged(const lv_obj_t *p_Object)
+{
+  MqttSettings &r_MqttSettings = g_controller.getModel().getSettings().getMqttSettings();
+  const char *pc_InputText = lv_textarea_get_text(p_Object);
+
+  LV_LOG_USER("new Broker: %s\n", pc_InputText);
+  r_MqttSettings.setBroker(pc_InputText); // Update the MQTT broker address in the settings 
+}
+
+
 
 
 void LvTabSettings::updateWlanStatePanel(void)

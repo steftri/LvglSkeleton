@@ -25,6 +25,12 @@ class MqttSettings : public Data
   uint16_t mu16_BrokerPort; ///< Broker port.
 
 public:
+  enum class EField : uint8_t 
+  { 
+    ConnectState = 0,
+    BrokerAddress
+  };
+
   static const uint16_t MQTT_SETTINGS_SIZE = MAX_BROKER_ADDR_LENGTH + sizeof(mu16_BrokerPort); ///< Size of the MQTT settings in bytes.
 
   MqttSettings(void);

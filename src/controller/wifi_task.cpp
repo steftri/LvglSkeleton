@@ -158,12 +158,12 @@ void WifiTask::loop(void)
     actionDisconnect();
   }
 
-  if(m_WifiData.isEnabled()) // enabled
+  if (currentTime - lastScanTime >= 10*1000UL) // Scan every 10 seconds
   {
-    if (currentTime - lastScanTime >= 10*1000UL) // Scan every 10 seconds
+    if(m_WifiData.isEnabled() && m_WifiData.getState() == WifiData::EState::Disconnected) 
     {
-      lastScanTime = currentTime;
       m_WifiHal.scanNetworks(); // Periodically scan for Wi-Fi networks to update the list in the view
+      lastScanTime = currentTime;
     }
   }
 

@@ -57,11 +57,12 @@ private:
 
   // Thread-internal methods to update the UI based on notifications
   void onUpdateEnableState();
-  void onUpdateConnectionState();
+  void onUpdateWIFIConnectionState();
   void onUpdateSettingsNetworkList();
   void onUpdateSettingsIPAddress();
   void onUpdateInfoSurveillanceStats();
   void onUpdateInfoLVGLStats();
+  void onUpdateInfoMQTTConnectionState();
   void onUpdateInfoMQTTStats();
 };
 

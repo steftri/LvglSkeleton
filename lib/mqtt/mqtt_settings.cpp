@@ -38,9 +38,13 @@ void MqttSettings::init(void)
  */
 void MqttSettings::setBroker(const char *pc_Addr, const uint16_t u16_Port)
 {
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
   strncpy(mac_BrokerAddr, pc_Addr, MAX_BROKER_ADDR_LENGTH);
   mac_BrokerAddr[MAX_BROKER_ADDR_LENGTH] = '\0';
   mu16_BrokerPort = u16_Port;
+
+  notifyObservers(static_cast<EDataField>(EField::BrokerAddress));
 }
 
 /**
@@ -77,6 +81,8 @@ uint16_t MqttSettings::serialize(uint8_t *pu8_Buffer, const uint16_t u16_BufferS
   if((!pu8_Buffer) || (u16_BufferSize<MQTT_SETTINGS_SIZE))
     return 0;
 
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
   for(auto i=0; i<MAX_BROKER_ADDR_LENGTH; i++)
       pu8_Buffer[u16_BufferPos++] = mac_BrokerAddr[i];
   pu8_Buffer[u16_BufferPos++] = static_cast<uint8_t>(mu16_BrokerPort>>8);
@@ -97,6 +103,8 @@ void MqttSettings::unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_Siz
 
   if((!pu8_Buffer) || (u16_Size<MQTT_SETTINGS_SIZE))
     return;
+
+  std::lock_guard<std::mutex> lock(m_DataMutex);    
 
   for(auto i=0; i<MAX_BROKER_ADDR_LENGTH; i++)
     mac_BrokerAddr[i] = pu8_Buffer[u16_BufferPos++];

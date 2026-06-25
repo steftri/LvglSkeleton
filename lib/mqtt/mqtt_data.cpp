@@ -13,16 +13,16 @@ MqttData::MqttData()
 
 void MqttData::incrementSentMessageCount()
 {
-  if(mu32_SentMessageCount < UINT32_MAX) // Prevent overflow
-    mu32_SentMessageCount++;
+  mu32_SentMessageCount++;
+  notifyObservers(static_cast<EDataField>(EField::MessageCount));
 }
 
 
 
 void MqttData::incrementReceivedMessageCount()
 {
-  if(mu32_ReceivedMessageCount < UINT32_MAX) // Prevent overflow
-    mu32_ReceivedMessageCount++;
+  mu32_ReceivedMessageCount++;
+  notifyObservers(static_cast<EDataField>(EField::MessageCount));
 }
 
 

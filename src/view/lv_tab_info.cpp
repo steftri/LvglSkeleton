@@ -96,23 +96,23 @@ void LvTabInfo::updateFreeRTOSInfo()
 
 void LvTabInfo::updateLVGLInfo()
 {
-    if (mp_LVGLInfoLabel)
-    {
-        // Retrieve LVGL memory usage information
-        lv_mem_monitor_t memMonitor;
-        lv_mem_monitor(&memMonitor);
+  // Retrieve LVGL memory usage information
+  lv_mem_monitor_t memMonitor;
+  lv_mem_monitor(&memMonitor);
 
-        char ac_StringBuffer[128];
-        snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Heap Memory:\n Used %u bytes,\n Free %u bytes", memMonitor.total_size - memMonitor.free_size, memMonitor.free_size);
+  char ac_StringBuffer[128];
+  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Heap Memory:\n Used %u bytes,\n Free %u bytes", memMonitor.total_size - memMonitor.free_size, memMonitor.free_size);
 
-        // Append LVGL information to the label
-        lv_label_set_text_fmt(mp_LVGLInfoLabel, "%s", ac_StringBuffer);
-    }
+  lv_label_set_text_fmt(mp_LVGLInfoLabel, "%s", ac_StringBuffer);
 }
 
 
 void LvTabInfo::updateMQTTInfo()
 {
-    // This function can be implemented to retrieve and display MQTT-related information
-    // For example, you could display the connection status, broker address, etc.
+  MqttData &r_MqttData = g_controller.getModel().getData().getMqttData();
+
+  char ac_StringBuffer[128];
+  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Messages sent: %u\nReceived: %u", r_MqttData.getSentMessageCount(), r_MqttData.getReceivedMessageCount());
+
+  lv_label_set_text_fmt(mp_MQTTInfoLabel, "%s", ac_StringBuffer);
 }

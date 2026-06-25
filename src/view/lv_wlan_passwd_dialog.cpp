@@ -104,14 +104,6 @@ void LvWlanPasswdDialog::onInputEvent(lv_event_t *p_Event)
     {
         g_ViewLvMain.getKeyboard()->hide();
     }
-/*    else if(code == LV_EVENT_READY) 
-    {
-        LvWlanPasswdDialog *p_Instance = static_cast<LvWlanPasswdDialog *>(lv_event_get_user_data(p_Event));
-        const char *pc_Passwd = lv_textarea_get_text(p_TargetObj);
-        p_Instance->hide();
-        LV_LOG_USER("Password \"%s\" entered", pc_Passwd);
-        g_controller.getModel().getData().getWifiData().setSelectedNetworkPassword(pc_Passwd);
-    }*/
     else if(code == LV_EVENT_CANCEL)
     {
         LvWlanPasswdDialog *p_Instance = static_cast<LvWlanPasswdDialog *>(lv_event_get_user_data(p_Event));

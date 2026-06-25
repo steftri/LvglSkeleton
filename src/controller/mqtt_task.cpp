@@ -98,7 +98,7 @@ void MqttTask::loop(void)
   uint32_t currentTime = millis();
   uint32_t u32_NotifiedValue = 0;
 
-  xTaskNotifyWait(0, 0xffff, &u32_NotifiedValue, pdMS_TO_TICKS(1000)); // Wait for notifications with a timeout
+  xTaskNotifyWait(0, 0xffff, &u32_NotifiedValue, pdMS_TO_TICKS(100)); // Wait for notifications with a timeout
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::Connect))
   {
     actionConnect();
