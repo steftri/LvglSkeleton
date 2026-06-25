@@ -56,9 +56,25 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
     lv_label_set_text(mp_LVGLInfoLabel, "LVGL information will be displayed here.");    
   }
 
+  lv_obj_t *p_MQTTPanel = lv_obj_create(p_ParentTab);
+  {
+    lv_obj_set_size(p_MQTTPanel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(p_MQTTPanel, LV_FLEX_FLOW_COLUMN);
+
+    LV_IMAGE_DECLARE(mqtt);
+    lv_obj_t * img1 = lv_image_create(p_MQTTPanel);
+    lv_image_set_src(img1, &mqtt);
+    lv_obj_align(img1, LV_ALIGN_CENTER, 0, 0);
+
+    // Create a label to display MQTT information
+    mp_MQTTInfoLabel = lv_label_create(p_MQTTPanel);
+    lv_label_set_text(mp_MQTTInfoLabel, "MQTT information will be displayed here.");
+  }
+
   // Prepare sections for FreeRTOS and LVGL information
   updateFreeRTOSInfo();
   updateLVGLInfo();
+  updateMQTTInfo();
 }
 
 void LvTabInfo::updateFreeRTOSInfo()

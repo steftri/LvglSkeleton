@@ -2,6 +2,11 @@
 
 #include "wifi_task.h"
 
+#include "controller.h"
+
+extern Controller g_controller; // Declare the external Controller instance
+
+
 
 static const size_t MAX_NETWORK_COUNT = 16; // Maximum number of networks to handle in the buffer
 static const size_t MAX_SSID_LENGTH = 32; // Maximum length of SSID
@@ -294,6 +299,8 @@ void WifiTask::onWifiGotIP()
   m_WifiHal.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress)); // Get the IP address as a string
 
   m_WifiData.setIPAddress(ac_IPAddress); // Update the Wi-Fi data with the obtained IP address
+
+  g_controller.getMqtt().connect(); // Attempt to connect to the MQTT broker after obtaining an IP address
 }
 
 
