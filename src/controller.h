@@ -4,9 +4,6 @@
 #include "model.h"
 #include "view.h"
 
-
-#include "os.h"
-
 #include "controller/surveillance_task.h"
 #include "controller/wifi_task.h"
 #include "controller/mqtt_task.h"
@@ -19,8 +16,6 @@ class Controller
 {
   Model &m_model; // Reference to the model
   View &m_view;   // Reference to the view
-
-  Os m_os; // OS interface
 
   SurveillanceTask m_surveillanceTask; // Surveillance task
   WifiTask m_wifiTask; // Wi-Fi task

@@ -3,8 +3,8 @@
 
 
 WifiData::WifiData()
-  : mu8_NumberOfAvaliableNetworks(0)
-  , mb_Enabled(false) // Wi-Fi is initially disabled
+  : mb_Enabled(false) // Wi-Fi is initially disabled
+  , mu8_NumberOfAvaliableNetworks(0)
   , me_State(EState::Disconnected)
 {
   // Initialize the available networks to empty strings

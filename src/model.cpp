@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 #include "model.h"
-#include "os.h"
 
 
 Model::Model()
@@ -22,15 +21,15 @@ void Model::setup(void)
     // Handle error if needed, e.g., log or set default values
     if (result == SettingsContainer::ERc::NotFoundError) 
     {
-      Os::log("Settings not found, using defaults.");
+      Serial.println("Settings not found, using defaults.");
     } 
     else if (result == SettingsContainer::ERc::VersionMismatchError) 
     {
-      Os::log("Settings version mismatch, using defaults.");
+      Serial.println("Settings version mismatch, using defaults.");
     } 
     else if (result == SettingsContainer::ERc::VerificationError) 
     {
-      Os::log("Settings verification failed, using defaults.");
+      Serial.println("Settings verification failed, using defaults.");
     }
   }
 

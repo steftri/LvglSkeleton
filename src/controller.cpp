@@ -15,8 +15,6 @@ Controller::Controller(Model &model, View &view)
 
 void Controller::setup(void)
 {
-  m_os.setup(); // Initialize the OS interface
-
   // Initialize the model and view
   m_model.setup();
   m_view.setup();
