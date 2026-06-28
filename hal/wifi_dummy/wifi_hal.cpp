@@ -1,12 +1,20 @@
 #include "wifi_hal.h"
 
-WifiHal::WifiHal()
+WifiHal::WifiHal(WifiActionInterface & /*actionListener*/)
 {
 }
 
 void WifiHal::setup()
 {
   // Initialize Wi-Fi here
+}
+
+void WifiHal::enable()
+{
+}
+
+void WifiHal::disable()
+{
 }
 
 void WifiHal::scanNetworks()
@@ -26,7 +34,7 @@ void WifiHal::getAvailableNetworkSSID(char* buffer, size_t bufferSize, uint8_t i
 }
 
 
-void WifiHal::getAvailableNetworkSignalStrength(int* signalStrength, uint8_t index) const
+void WifiHal::getAvailableNetworkSignalStrength(int32_t* ps32_signalStrength, uint8_t u8_index) const
 {
   // Implement logic to get the signal strength of the available network at the specified index
 }
@@ -44,7 +52,7 @@ void WifiHal::disconnect()
 bool WifiHal::isConnected() const
 {
   // Implement logic to check if the device is currently connected to a Wi-Fi network
-
+  return false; // Placeholder
 }
 
 void WifiHal::getIPAddress(char* buffer, size_t bufferSize) const
