@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "lv_main.h"
 
 #include "controller.h"

@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "lv_tab_settings.h"
 #include "lv_main.h"
 

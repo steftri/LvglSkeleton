@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "view.h"
 #include "controller.h"
 

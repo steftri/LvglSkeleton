@@ -87,7 +87,9 @@ void LvTabInfo::updateLVGLInfo()
         lv_mem_monitor(&memMonitor);
 
         char ac_StringBuffer[128];
-        snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Heap Memory:\n Used %u bytes,\n Free %u bytes", memMonitor.total_size - memMonitor.free_size, memMonitor.free_size);
+        snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Heap Memory:\n Used %u bytes,\n Free %u bytes", 
+          static_cast<unsigned int>(memMonitor.total_size - memMonitor.free_size), 
+          static_cast<unsigned int>(memMonitor.free_size));
 
         // Append LVGL information to the label
         lv_label_set_text_fmt(mp_LVGLInfoLabel, "%s", ac_StringBuffer);
