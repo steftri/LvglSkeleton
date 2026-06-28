@@ -1,4 +1,4 @@
-/* FreeRTOS application hooks for Windows (desktop) simulation */
+/* FreeRTOS application hooks for desktop simulation (Windows + macOS/Linux) */
 
 #include <cstdio>
 #include <cstdlib>
