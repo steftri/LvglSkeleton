@@ -4,8 +4,8 @@
 
 WifiData::WifiData()
   : mb_Enabled(false) // Wi-Fi is initially disabled
-  , mu8_NumberOfAvaliableNetworks(0)
   , me_State(EState::Disconnected)
+  , mu8_NumberOfAvaliableNetworks(0)
 {
   // Initialize the available networks to empty strings
   for (uint8_t i = 0; i < MAX_WIFI_NETWORKS; ++i)

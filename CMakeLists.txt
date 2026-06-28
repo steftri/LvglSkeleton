@@ -9,13 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add the example application
 add_executable(LvglSkeletonApp 
                 hal/main_plain/main.cpp
-                hal/os_desktop/os.cpp
                 hal/datastorage_file/datastorage.cpp)
 
 # Include directories
 target_include_directories(LvglSkeletonApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
                 hal/main_plain
-                hal/os_desktop
                 hal/datastorage_file)
 
 # Link the library to the example application
