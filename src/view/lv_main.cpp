@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include "lv_main.h"
 
 #include "controller.h"
@@ -27,7 +25,7 @@ void LvMain::setup(void)
 
   lv_disp_set_theme(nullptr, p_Theme); /*Assign the theme to the display*/
 
-  Serial.println("Creating main grid...");
+//  Serial.println("Creating main grid...");
 
   lv_obj_t *p_Grid = lv_obj_create(lv_screen_active()); /*Create the screen object, this is needed to use the screen as a parent for other objects*/
   {
@@ -92,7 +90,7 @@ void LvMain::setup(void)
 
   m_Keyboard.setup();
 
-  Serial.println("LvMain setup completed");
+//  Serial.println("LvMain setup completed");
 }
 
 LvKeyboard *LvMain::getKeyboard(void)

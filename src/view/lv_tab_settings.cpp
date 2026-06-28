@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include "lv_tab_settings.h"
 #include "lv_main.h"
 
@@ -138,7 +136,7 @@ void LvTabSettings::updateWlanSelectList(void)
   if (!r_WifiData.isEnabled())
   {
     u8_NumberOfNetworks = 0; // No networks available when Wi-Fi is disabled
-    Serial.println("Wi-Fi is disabled, hiding available networks");
+//    Serial.println("Wi-Fi is disabled, hiding available networks");
   }
     
   for(uint8_t i = 0; i < WifiData::MAX_WIFI_NETWORKS; i++) 

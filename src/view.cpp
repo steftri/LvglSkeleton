@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include "view.h"
 #include "controller.h"
 
@@ -17,7 +15,6 @@ void View::setup(void)
 
 void View::begin(void)
 {
-  Serial.println("Starting UiTask");
   m_Task.begin();
 }
 
