@@ -10,7 +10,7 @@ WifiData::WifiData()
   // Initialize the available networks to empty strings
   for (uint8_t i = 0; i < MAX_WIFI_NETWORKS; ++i)
   {
-      mac_AvailableNetworks[i][0] = '\0';
+    mac_AvailableNetworks[i][0] = '\0';
   }
   
   // Initialize the selected network to empty strings
