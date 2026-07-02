@@ -1,4 +1,4 @@
-# FreeRTOS-Kernel für Windows-Simulation
+# FreeRTOS-Kernel für Windows/Posix-Simulation
 
 Diese Library benötigt den offiziellen FreeRTOS-Kernel.
 
@@ -7,14 +7,14 @@ Diese Library benötigt den offiziellen FreeRTOS-Kernel.
 1. FreeRTOS-Kernel in dieses Verzeichnis clonen:
 
    ```
-   cd lib/freertos_windows
+   cd hal/freertos_desktop
    git clone --branch V11.1.0 --depth 1 https://github.com/FreeRTOS/FreeRTOS-Kernel.git kernel
    ```
 
 2. Danach sollte folgende Struktur existieren:
 
    ```
-   lib/freertos_windows/
+   hal/freertos_desktop/
      kernel/
        include/         ← FreeRTOS-Header (FreeRTOS.h, task.h, ...)
        portable/
