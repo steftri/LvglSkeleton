@@ -33,6 +33,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 
     lv_obj_t *p_WlanEnablePanel = lv_obj_create(p_WlanPanel);
     {
+      lv_obj_remove_style_all(p_WlanEnablePanel);
       lv_obj_set_size(p_WlanEnablePanel, lv_pct(100), LV_SIZE_CONTENT);
       lv_obj_set_flex_flow(p_WlanEnablePanel, LV_FLEX_FLOW_ROW);
 
@@ -44,29 +45,24 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
       lv_obj_align_to(p_WlanEnableLabel, mp_WlanEnableSwitch, LV_ALIGN_OUT_TOP_MID, 0, -15);
     }
 
-    mp_WlanStatePanel = lv_obj_create(p_WlanPanel);
+
+    mp_CurrentWlan = lv_label_create(p_WlanPanel); 
+    lv_label_set_text(mp_CurrentWlan, "");
+    mp_CurrentIp = lv_label_create(p_WlanPanel); 
+    lv_label_set_text(mp_CurrentIp, "");
+
+    lv_obj_t *p_ButtonPanel = lv_obj_create(p_WlanPanel);
     {
-      lv_obj_set_size(mp_WlanStatePanel, lv_pct(100), LV_SIZE_CONTENT);
-      lv_obj_set_flex_flow(mp_WlanStatePanel, LV_FLEX_FLOW_COLUMN);
+      lv_obj_remove_style_all(p_ButtonPanel);
+      lv_obj_set_size(p_ButtonPanel, lv_pct(100), LV_SIZE_CONTENT);
 
-      mp_CurrentWlan = lv_label_create(mp_WlanStatePanel); 
-      lv_label_set_text(mp_CurrentWlan, "");
-      mp_CurrentIp = lv_label_create(mp_WlanStatePanel); 
-      lv_label_set_text(mp_CurrentIp, "");
-
-      lv_obj_t *p_ButtonPanel = lv_obj_create(mp_WlanStatePanel);
+      // Create the disconnect button
+      mp_DisconnectButton = lv_btn_create(p_ButtonPanel);
       {
-        lv_obj_remove_style_all(p_ButtonPanel);
-        lv_obj_set_size(p_ButtonPanel, lv_pct(100), LV_SIZE_CONTENT);
-
-        // Create the disconnect button
-        mp_DisconnectButton = lv_btn_create(p_ButtonPanel);
-        {
-          lv_obj_align(mp_DisconnectButton, LV_ALIGN_RIGHT_MID, 0, 0);
-          lv_obj_t *p_Label = lv_label_create(mp_DisconnectButton);
-          lv_label_set_text(p_Label, "Disconnect");
-          lv_obj_add_event_cb(mp_DisconnectButton, onWlanDisconnectButtonCallback, LV_EVENT_CLICKED, NULL);
-        }
+        lv_obj_align(mp_DisconnectButton, LV_ALIGN_RIGHT_MID, 0, 0);
+        lv_obj_t *p_Label = lv_label_create(mp_DisconnectButton);
+        lv_label_set_text(p_Label, "Disconnect");
+        lv_obj_add_event_cb(mp_DisconnectButton, onWlanDisconnectButtonCallback, LV_EVENT_CLICKED, NULL);
       }
     }
 
@@ -137,23 +133,60 @@ void LvTabSettings::onInputEvent(lv_event_t *p_Event)
     lv_obj_t *p_Textarea = lv_event_get_target_obj(p_Event);
     g_ViewLvMain.getKeyboard()->hide();
     if(p_Textarea == p_This->mp_MqttBroker)
-    {
-      p_This->onInputMqttBrokerChanged(p_Textarea);
+    {    
+      p_This->onInputMqttBrokerCallback(lv_textarea_get_text(p_Textarea));
     }
   }
 }
 
 
-void LvTabSettings::onInputMqttBrokerChanged(const lv_obj_t *p_Object)
-{
-  MqttSettings &r_MqttSettings = g_controller.getModel().getSettings().getMqttSettings();
-  const char *pc_InputText = lv_textarea_get_text(p_Object);
 
-  LV_LOG_USER("new Broker: %s\n", pc_InputText);
-  r_MqttSettings.setBroker(pc_InputText); // Update the MQTT broker address in the settings 
+void LvTabSettings::onInputSystemHostName(const char *pc_HostName)
+{
+  SystemSettings &r_SystemSettings = g_controller.getModel().getSettings().getSystemSettings();
+
+  LV_LOG_USER("new Hostname: %s\n", pc_HostName);
+  r_SystemSettings.setHostName(pc_HostName); // Update the hostname in the settings
 }
 
 
+
+
+void LvTabSettings::onInputSystemSplashScreen(uint8_t u8_SplashScreen)
+{
+  SystemSettings &r_SystemSettings = g_controller.getModel().getSettings().getSystemSettings();
+
+  LV_LOG_USER("new SplashScreen: %d\n", u8_SplashScreen);
+  r_SystemSettings.setSplashScreen(static_cast<SystemSettings::ESplashScreen>(u8_SplashScreen)); // Update the splash screen in the settings
+}
+
+
+
+
+void LvTabSettings::onInputMqttBrokerCallback(const char *pc_Broker)
+{
+  MqttSettings &r_MqttSettings = g_controller.getModel().getSettings().getMqttSettings();
+
+  LV_LOG_USER("new Broker: %s\n", pc_Broker);
+  r_MqttSettings.setBrokerAddr(pc_Broker); // Update the MQTT broker address in the settings 
+}
+
+
+
+void LvTabSettings::onInputMqttPortCallback(uint16_t u16_Port)
+{
+  MqttSettings &r_MqttSettings = g_controller.getModel().getSettings().getMqttSettings();
+
+  LV_LOG_USER("new Port: %d\n", u16_Port);
+  r_MqttSettings.setBrokerPort(u16_Port);
+}
+
+
+
+void LvTabSettings::onInputMqttGroupIdCallback(const char *pc_GroupId)
+{
+
+}
 
 
 void LvTabSettings::updateWlanStatePanel(void)
@@ -162,7 +195,8 @@ void LvTabSettings::updateWlanStatePanel(void)
 
   if(!r_WifiData.isEnabled())
   {
-    lv_obj_add_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mp_CurrentWlan, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(mp_CurrentIp, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_state(mp_WlanEnableSwitch, LV_STATE_CHECKED, false);
   }
@@ -182,12 +216,14 @@ void LvTabSettings::updateWlanStatePanel(void)
       r_WifiData.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress));
       lv_label_set_text(mp_CurrentIp, ac_IPAddress);
 
-      lv_obj_clear_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_clear_flag(mp_CurrentWlan, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_clear_flag(mp_CurrentIp, LV_OBJ_FLAG_HIDDEN);
       lv_obj_add_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
     }
     else
     {
-      lv_obj_add_flag(mp_WlanStatePanel, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(mp_CurrentWlan, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(mp_CurrentIp, LV_OBJ_FLAG_HIDDEN);
       lv_obj_clear_flag(mp_WlanSelectList, LV_OBJ_FLAG_HIDDEN);
     }
   }

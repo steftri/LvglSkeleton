@@ -4,7 +4,7 @@
 
 
 static const char *MQTT_GROUP_ID = "ERNI"; // Group ID for Sparkplug-B messages
-static const char *MQTT_NODE_ID = "LvglSkeleton"; // Node ID for Sparkplug-B messages
+static const char *MQTT_NODE_ID = "LvglSkeleton"; // Node ID for Sparkplug-B messages - shall be the same as the hostname for WIFI
 
 
 MqttTask *MqttTask::mp_thisInstance = nullptr; // Initialize static instance pointer
@@ -13,7 +13,8 @@ MqttTask *MqttTask::mp_thisInstance = nullptr; // Initialize static instance poi
 enum class ENotificationBits : uint32_t
 {
   Connect = (1UL << 0),
-  Disconnect = (1UL << 1)
+  Disconnect = (1UL << 1),
+  ChangeNodeId = (1UL << 2)
 };
 
 
@@ -29,8 +30,11 @@ MqttTask::MqttTask(MqttSettings &mqttSettings, MqttData &mqttData)
 
 
 
-void MqttTask::begin(void)
+void MqttTask::begin(const char *pc_NodeId)
 {
+  strncpy(mac_NodeId, pc_NodeId, MAX_NODEID_LENGTH);
+  mac_NodeId[MAX_NODEID_LENGTH] = '\0'; // Ensure null-termination
+
   Serial.println("Creating MqttTask");
 
   mp_TaskHandle = xTaskCreateStaticPinnedToCore(
@@ -57,6 +61,21 @@ void MqttTask::connect()
 void MqttTask::disconnect()
 {
   xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::Disconnect), eSetBits);
+}
+
+
+void MqttTask::setGroupId(const char *pc_GroupId)
+{
+  // TODO: store the group ID in the settings 
+  xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangeNodeId), eSetBits);
+}
+
+
+void MqttTask::setNodeId(const char *pc_NodeId)
+{
+  strncpy(mac_NodeId, pc_NodeId, MAX_NODEID_LENGTH);
+  mac_NodeId[MAX_NODEID_LENGTH] = '\0'; // Ensure null-termination
+  xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangeNodeId), eSetBits);
 }
 
 
@@ -156,6 +175,16 @@ void MqttTask::actionDisconnect()
   Serial.println("Disconnecting from MQTT broker");
   m_MqttHal.disconnect(); // Disconnect from the MQTT broker using the HAL
 }
+
+
+
+
+void MqttTask::actionChangeNodeId()
+{
+  Serial.printf("Sparkplug-B Node ID changed to: %s\n", mac_NodeId);
+
+  // TODO: Handle the change in Node ID, e.g., by reconnecting to the MQTT broker with the new ID
+}  
 
 
 

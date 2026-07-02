@@ -25,7 +25,7 @@ void Controller::begin(void)
 {
   m_surveillanceTask.begin(); // Start the surveillance task
   m_wifiTask.begin(); // Start the Wi-Fi task
-  m_mqttTask.begin(); // Start the MQTT task
+  m_mqttTask.begin(APPLICATION_NAME); // Start the MQTT task
   m_model.begin(); // Start any model-related threads
   m_view.begin(); // Start any view-related threads
 }

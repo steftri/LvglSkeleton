@@ -25,6 +25,8 @@ public:
   };
 
 private:
+
+
   EState me_State; ///< Current state of the MQTT connection
   uint32_t mu32_SentMessageCount; ///< Number of messages sent
   uint32_t mu32_ReceivedMessageCount; ///< Number of messages received
@@ -40,6 +42,9 @@ public:
   void incrementReceivedMessageCount();
   uint32_t getSentMessageCount() const;
   uint32_t getReceivedMessageCount() const;
+
+  void setNodeId(const char *pc_NodeId);
+  const char *getNodeId() const;
 };
 
 #endif // MQTT_DATA_H

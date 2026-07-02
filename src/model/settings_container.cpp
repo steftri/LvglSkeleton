@@ -21,6 +21,9 @@ SettingsContainer::ERc SettingsContainer::save(void)
 { 
   uint8_t au8_VersionBuffer[2];
 
+  uint8_t au8_SystemSettingBuffer[SystemSettings::SYSTEM_SETTINGS_SIZE];
+  uint16_t u16_SystemSettingsSize = 0;
+
   uint8_t au8_WifiSettingBuffer[WifiSettings::WIFI_SETTINGS_SIZE];
   uint16_t u16_WifiSettingSize = 0; 
 
@@ -40,6 +43,11 @@ SettingsContainer::ERc SettingsContainer::save(void)
   au8_VersionBuffer[1] = static_cast<uint8_t>(EEPROM_SETTINGS_VERSION);
   m_DataStorage.write(au8_VersionBuffer, 2);  
   crc.add(au8_VersionBuffer, 2);
+
+  // serialize and store System settings
+  u16_SystemSettingsSize = m_SystemSettings.serialize(au8_SystemSettingBuffer, sizeof(au8_SystemSettingBuffer));
+  m_DataStorage.write(au8_SystemSettingBuffer, u16_SystemSettingsSize);
+  crc.add(au8_SystemSettingBuffer, u16_SystemSettingsSize);
   
   // serialize and store WIFI settings 
   u16_WifiSettingSize = m_WifiSettings.serialize(au8_WifiSettingBuffer, sizeof(au8_WifiSettingBuffer));
@@ -70,6 +78,8 @@ SettingsContainer::ERc SettingsContainer::load(void)
   uint32_t u32_Magic;
   uint8_t au8_VersionBuffer[2];
   uint16_t u16_Version;
+
+  uint8_t au8_SystemSettingsBuffer[SystemSettings::SYSTEM_SETTINGS_SIZE];
   
   uint8_t au8_WifiSettingBuffer[WifiSettings::WIFI_SETTINGS_SIZE];
 
@@ -104,6 +114,10 @@ SettingsContainer::ERc SettingsContainer::load(void)
     return ERc::VersionMismatchError;
   }
 
+  // load System settings to flat buffer
+  m_DataStorage.read(au8_SystemSettingsBuffer, SystemSettings::SYSTEM_SETTINGS_SIZE);
+  crc.add(au8_SystemSettingsBuffer, SystemSettings::SYSTEM_SETTINGS_SIZE);
+
   // load WIFI settings to flat buffer
   m_DataStorage.read(au8_WifiSettingBuffer, WifiSettings::WIFI_SETTINGS_SIZE);
   crc.add(au8_WifiSettingBuffer, WifiSettings::WIFI_SETTINGS_SIZE);  
@@ -123,6 +137,9 @@ SettingsContainer::ERc SettingsContainer::load(void)
   {
     return ERc::VerificationError;
   }
+
+  // unserialize System settings
+  m_SystemSettings.unserialize(au8_SystemSettingsBuffer, sizeof(au8_SystemSettingsBuffer));
 
   // unserialize WIFI settings
   m_WifiSettings.unserialize(au8_WifiSettingBuffer, sizeof(au8_WifiSettingBuffer));
@@ -147,6 +164,12 @@ void SettingsContainer::clear(void)
 bool SettingsContainer::isValid(void)
 {
   return mb_Valid;
+}
+
+
+SystemSettings &SettingsContainer::getSystemSettings(void)
+{
+  return m_SystemSettings;
 }
 
 

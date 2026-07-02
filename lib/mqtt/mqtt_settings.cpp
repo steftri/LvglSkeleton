@@ -31,20 +31,21 @@ void MqttSettings::init(void)
 }
 
 /**
- * @brief Sets the MQTT broker address and port.
+ * @brief Sets the MQTT broker address.
  * 
  * @param pc_Addr The broker address as a C-string.
- * @param u16_Port The broker port as a 16-bit unsigned integer.
  */
-void MqttSettings::setBroker(const char *pc_Addr, const uint16_t u16_Port)
+void MqttSettings::setBrokerAddr(const char *pc_Addr)
 {
   std::lock_guard<std::mutex> lock(m_DataMutex);
 
-  strncpy(mac_BrokerAddr, pc_Addr, MAX_BROKER_ADDR_LENGTH);
-  mac_BrokerAddr[MAX_BROKER_ADDR_LENGTH] = '\0';
-  mu16_BrokerPort = u16_Port;
+  if(strncmp(mac_BrokerAddr, pc_Addr, MAX_BROKER_ADDR_LENGTH) != 0)
+  {
+    strncpy(mac_BrokerAddr, pc_Addr, MAX_BROKER_ADDR_LENGTH);
+    mac_BrokerAddr[MAX_BROKER_ADDR_LENGTH] = '\0'; // Ensure null-termination
 
-  notifyObservers(static_cast<EDataField>(EField::BrokerAddress));
+    notifyObservers(static_cast<EDataField>(EField::BrokerAddress));
+  }
 }
 
 /**
@@ -57,6 +58,26 @@ const char *MqttSettings::getBrokerAddr(void)
   return mac_BrokerAddr;
 }
 
+
+
+
+/**
+ * @brief Sets the MQTT broker port.
+ * 
+ * @param u16_Port The broker port as a 16-bit unsigned integer.
+ */
+void MqttSettings::setBrokerPort(uint16_t u16_Port)
+{
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
+  if(mu16_BrokerPort != u16_Port)
+  {
+    mu16_BrokerPort = u16_Port;
+    notifyObservers(static_cast<EDataField>(EField::BrokerAddress));
+  }
+}
+
+
 /**
  * @brief Gets the MQTT broker port.
  * 
@@ -66,6 +87,38 @@ uint16_t MqttSettings::getBrokerPort(void)
 {
   return mu16_BrokerPort;
 }
+
+
+
+/**
+ * @brief Sets the MQTT Sparkplug-B Group ID.
+ * 
+ * @param pc_GroupId The Group ID as a C-string.
+ */
+void MqttSettings::setGroupId(const char *pc_GroupId)
+{
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+
+  if(strncmp(mac_GroupId, pc_GroupId, MAX_GROUP_ID_LENGTH) != 0)
+  {
+    strncpy(mac_GroupId, pc_GroupId, MAX_GROUP_ID_LENGTH);
+    mac_GroupId[MAX_GROUP_ID_LENGTH] = '\0'; // Ensure null-termination
+
+    notifyObservers(static_cast<EDataField>(EField::GroupId));
+  }
+}
+
+/**
+ * @brief Gets the MQTT Sparkplug-B Group ID
+ * 
+ * @return The group ID address as a C-string.
+ */
+const char *MqttSettings::getGroupId(void)
+{
+  return mac_GroupId;
+}
+
+
 
 /**
  * @brief Serializes the MQTT settings into a buffer.

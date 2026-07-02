@@ -6,6 +6,7 @@
 
 #include "datastorage.h"
 
+#include "system_settings.h"
 #include "wifi_settings.h"
 #include "mqtt_settings.h"
 
@@ -23,6 +24,7 @@ public:
 
 private:
   DataStorage m_DataStorage;
+  SystemSettings m_SystemSettings;
   WifiSettings m_WifiSettings;
   MqttSettings m_MqttSettings;
   bool mb_Valid;
@@ -36,6 +38,7 @@ public:
 
   bool isValid(void);
 
+  SystemSettings &getSystemSettings(void);
   WifiSettings &getWifiSettings(void);
   MqttSettings &getMqttSettings(void);
 };
