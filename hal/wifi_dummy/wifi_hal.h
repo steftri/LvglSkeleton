@@ -6,6 +6,11 @@
 
 class WifiHal : public WifiHalInterface
 {
+  WifiActionInterface &mr_ActionListener;
+  bool mb_Enabled;
+  bool mb_Connected;
+  bool mb_NetworksFound;
+
 public:
   WifiHal(WifiActionInterface &actionListener);
   ~WifiHal() = default;

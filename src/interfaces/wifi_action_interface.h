@@ -7,6 +7,7 @@ public:
   virtual ~WifiActionInterface() = default;
 
   virtual void onWifiNetworksUpdated() = 0;
+  virtual void onWifiConnecting() = 0;
   virtual void onWifiConnected() = 0;
   virtual void onWifiDisconnected() = 0;
   virtual void onWifiGotIP() = 0;

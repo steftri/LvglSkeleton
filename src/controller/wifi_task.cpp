@@ -218,14 +218,6 @@ void WifiTask::actionDisconnect()
 
 
 
-
-
-
-
-
-
-
-
 // WifiActionInterface implementation
 void WifiTask::onWifiNetworksUpdated()
 {
@@ -272,35 +264,47 @@ void WifiTask::onWifiNetworksUpdated()
 
 
 
+void WifiTask::onWifiConnecting()
+{
+  m_WifiData.setState(WifiData::EState::Connecting); // Update the Wi-Fi connection state in the data
+}
+
+
+
 void WifiTask::onWifiConnected()
 {
   char ac_SSID[MAX_SSID_LENGTH + 1];
   char ac_Password[MAX_WPA2_PASSWORD_LENGTH + 1];
 
-  m_WifiData.setState(WifiData::EState::Connected); // Update the Wi-Fi connection state in the data
-  m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); // Get the selected network's SSID and password from the data
+  m_WifiData.setState(WifiData::EState::Connected); 
+  m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); 
 
   Serial.printf("Connected to Wi-Fi network \"%s\"\n", ac_SSID);
 
-  m_WifiSettings.setNetwork(ac_SSID, ac_Password); // Store the last connected SSID in the settings for future reference
-  m_WifiSettings.setConnect(true); // Update the connect state in the settings
+  m_WifiSettings.setNetwork(ac_SSID, ac_Password); 
+  m_WifiSettings.setConnect(true); // Update the connect state in the settings to trigger saving the network
 }
 
 
 void WifiTask::onWifiDisconnected()
 {
   Serial.println("Wi-Fi disconnected");
+  m_WifiData.setState(WifiData::EState::Disconnected); 
 }
 
 
 void WifiTask::onWifiGotIP()
 {
-  char ac_IPAddress[MAX_IP_ADDRESS_LENGTH+1]; // Buffer to hold IP address as string
-  m_WifiHal.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress)); // Get the IP address as a string
+  char ac_IPAddress[MAX_IP_ADDRESS_LENGTH+1]; 
 
-  m_WifiData.setIPAddress(ac_IPAddress); // Update the Wi-Fi data with the obtained IP address
+  m_WifiHal.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress)); 
 
-  g_controller.getMqtt().connect(); // Attempt to connect to the MQTT broker after obtaining an IP address
+  Serial.printf("Got IP address %s\n", ac_IPAddress);
+
+  m_WifiData.setIPAddress(ac_IPAddress);
+
+  // we are fully connected. Trigger MQTT connection...
+  g_controller.getMqtt().connect();
 }
 
 
@@ -308,7 +312,7 @@ void WifiTask::onWifiConnectionFailed(EWifiConnectionError error)
 {
   Serial.printf("Wi-Fi connection failed with error: %d\n", static_cast<int>(error));
 
-  // TODO: Notify the view to update the Wi-Fi connection status and show an error message if needed
+  m_WifiData.setState(WifiData::EState::Error);
 }
 
 

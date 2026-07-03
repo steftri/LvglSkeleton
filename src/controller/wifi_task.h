@@ -50,6 +50,7 @@ private:
 
   // WifiActionInterface implementation
   void onWifiNetworksUpdated() override;
+  void onWifiConnecting() override;
   void onWifiConnected() override;
   void onWifiDisconnected() override;
   void onWifiGotIP() override;

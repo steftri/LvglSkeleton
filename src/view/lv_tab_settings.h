@@ -7,23 +7,33 @@
 
 class LvTabSettings
 {
-  lv_obj_t *mp_HostName;
-  lv_obj_t *mp_SplashScreen;
+  struct 
+  {
+    lv_obj_t *mp_HostName;
+    lv_obj_t *mp_SplashScreen;
+  } m_System;
 
-  lv_obj_t *mp_WlanEnableSwitch;
-  //lv_obj_t *mp_WlanStatePanel;
-  lv_obj_t *mp_CurrentWlan;
-  lv_obj_t *mp_CurrentIp;
-  lv_obj_t *mp_SelectWlanButton;
-  lv_obj_t *mp_WlanSelectList;
-  lv_obj_t *mp_WlanSsidButton[WifiData::MAX_WIFI_NETWORKS];
-  lv_obj_t *mp_WlanSsidLabel[WifiData::MAX_WIFI_NETWORKS];
-  lv_obj_t *mp_DisconnectButton;
+  struct  
+  {
+    lv_obj_t *mp_EnableSwitch;
+    lv_obj_t *mp_StatePanel;
+    lv_obj_t *mp_CurrentWlan;
+    lv_obj_t *mp_CurrentIp;
+    lv_obj_t *mp_SelectList;
+    lv_obj_t *mp_SsidButton[WifiData::MAX_WIFI_NETWORKS];
+    lv_obj_t *mp_SsidLabel[WifiData::MAX_WIFI_NETWORKS];
+    lv_obj_t *mp_DisconnectButton;
+    lv_obj_t *mp_PasswordDialog;
+    lv_obj_t *mp_SsidPassword;
+  } m_Wlan;
 
-  lv_obj_t *mp_MqttBroker;
-  lv_obj_t *mp_MqttPort;
-  lv_obj_t *mp_MqttGroupId;
 
+  struct 
+  {
+    lv_obj_t *mp_Broker;
+    lv_obj_t *mp_Port;
+    lv_obj_t *mp_GroupId;
+  } m_Mqtt;
 
 private:
   static void onInputEvent(lv_event_t *p_Event);
@@ -39,11 +49,15 @@ private:
   static void onWlanDisconnectButtonCallback(lv_event_t *p_Event);
   static void onWlanSsidButtonCallback(lv_event_t *p_Event);
 
+  static void onPasswordEnteredEvent(lv_event_t *p_Event);
+
 public:
   LvTabSettings();
   ~LvTabSettings() = default;
 
   void setup(lv_obj_t *p_ParentTab);
+
+  void showWlanPasswordDialog(const char *pc_Ssid, const char *pc_Password);
 
   void updateWlanStatePanel(void);
   void updateWlanSelectList(void);
