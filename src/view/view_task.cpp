@@ -335,8 +335,8 @@ void ViewTask::onShowMessageBox(const char *pc_Title, const char *pc_Message)
 
 void ViewTask::updateStateIndicators()
 {
-  auto &WifiData = g_controller.getModel().getData().getWifiData();
-  auto e_WifiConnectionState = WifiData.getState();
+  auto e_WifiConnectionState = g_controller.getModel().getData().getWifiData().getState();
+  auto e_MqttConnectionState = g_controller.getModel().getData().getMqttData().getState();
 
   switch(e_WifiConnectionState)
   {
@@ -348,6 +348,19 @@ void ViewTask::updateStateIndicators()
       break;
     default:
       g_ViewLvMain.setWlanSymbol(false); // Update the Wi-Fi symbol in the UI
+      break;
+  }
+
+  switch(e_MqttConnectionState)
+  {
+    case MqttData::EState::Connected: 
+      g_ViewLvMain.setCloudSymbol(true); 
+      break;
+    case MqttData::EState::Connecting:
+      g_ViewLvMain.setCloudSymbol(mb_BlinkState); 
+      break;
+    default:
+      g_ViewLvMain.setCloudSymbol(false); // Update the Cloud symbol in the UI
       break;
   }
 }

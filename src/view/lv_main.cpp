@@ -47,15 +47,22 @@ void LvMain::setup(void)
       lv_obj_set_style_pad_right(p_TitleBar, 10, LV_PART_MAIN);
       lv_obj_set_style_pad_top(p_TitleBar, 6, LV_PART_MAIN);
       lv_obj_set_style_pad_bottom(p_TitleBar, 6, LV_PART_MAIN);
-      lv_obj_set_flex_flow(p_TitleBar, LV_FLEX_FLOW_ROW);
+      lv_obj_set_flex_align(p_TitleBar, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
       lv_obj_t *p_Title = lv_label_create(p_TitleBar);
       lv_label_set_text(p_Title, APPLICATION_NAME);
       lv_obj_set_flex_grow(p_Title, 1); 
 
-      mp_WifiSymbol = lv_label_create(p_TitleBar);
-      lv_obj_align(mp_WifiSymbol, LV_ALIGN_RIGHT_MID, 0, 0);
-      lv_label_set_text(mp_WifiSymbol, LV_SYMBOL_WIFI);
+      LV_IMAGE_DECLARE(cloud_22x17);
+      mp_CloudSymbol = lv_image_create(p_TitleBar);
+      lv_image_set_src(mp_CloudSymbol, &cloud_22x17);
+      lv_obj_set_style_image_recolor(mp_CloudSymbol, lv_color_black(), LV_PART_MAIN);
+      lv_obj_add_flag(mp_CloudSymbol, LV_OBJ_FLAG_HIDDEN);
+
+      LV_IMAGE_DECLARE(wifi_23x17);
+      mp_WifiSymbol = lv_image_create(p_TitleBar);
+      lv_image_set_src(mp_WifiSymbol, &wifi_23x17);
+      lv_obj_set_style_margin_left(mp_WifiSymbol, 8, 0);
       lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
     }
 
@@ -137,11 +144,25 @@ void LvMain::setWlanSymbol(bool b_Visible)
   if(b_Visible)
   {
     lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-    //LV_LOG_USER("Wifi visible");
   }
   else
   {
     lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-    //LV_LOG_USER("Wifi hidden");
+  }
+}
+
+
+void LvMain::setCloudSymbol(bool b_Visible)
+{
+  if(mp_CloudSymbol == nullptr)
+    return;
+
+  if(b_Visible)
+  {
+    lv_obj_clear_flag(mp_CloudSymbol, LV_OBJ_FLAG_HIDDEN);
+  }
+  else
+  {
+    lv_obj_add_flag(mp_CloudSymbol, LV_OBJ_FLAG_HIDDEN);
   }
 }

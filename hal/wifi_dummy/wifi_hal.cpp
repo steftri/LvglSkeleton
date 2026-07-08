@@ -79,7 +79,7 @@ void WifiHal::connect(const char* ssid, const char* password)
   mr_ActionListener.onWifiConnecting();
   vTaskDelay(CONNECTION_TIME_TICKS);
 
-  if(strcmp(ssid, "Kugelblitz-Gast") == 0 && strcmp(password, "B-AR 3045") == 0)
+  if(strcmp(ssid, "Hyperraum-Transit") == 0 && strcmp(password, "B-AR 3045") == 0)
   {
     mb_Connected = true;
     mr_ActionListener.onWifiConnected();

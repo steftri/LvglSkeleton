@@ -7,6 +7,8 @@
 
 class MqttHal : public MqttHalInterface
 {
+  MqttActionInterface &mr_ActionListener;
+
 public:
   MqttHal(MqttActionInterface &actionListener);
   ~MqttHal() = default;

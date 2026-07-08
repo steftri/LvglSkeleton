@@ -2,6 +2,7 @@
 
 
 MqttHal::MqttHal(MqttActionInterface &actionListener)
+ : mr_ActionListener(actionListener)
 {
 }
 
@@ -13,12 +14,14 @@ void MqttHal::setup()
 
 MqttHal::ERc MqttHal::connect(const char *pc_BrokerAddress, uint16_t u16_BrokerPort)
 {
+  mr_ActionListener.onConnected();
   return MqttHal::ERc::Ok; // Dummy implementation, always return Ok
 } 
 
 
 void MqttHal::disconnect()
 {
+  mr_ActionListener.onDisconnected();
 }
 
 

@@ -19,6 +19,7 @@ class LvMain
   LvTabSettings m_TabSettings;
 
   lv_obj_t *mp_WifiSymbol; 
+  lv_obj_t *mp_CloudSymbol;
 
 public:
   LvMain();
@@ -26,6 +27,7 @@ public:
   void setup(void);
 
   void setWlanSymbol(bool b_Visible);
+  void setCloudSymbol(bool b_Visible);
 
   void showMessageBox(const char *pc_Title, const char *pc_Message);
 
