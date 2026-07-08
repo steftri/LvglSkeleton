@@ -61,7 +61,7 @@ uint8_t WifiHal::getAvailableNetworkCount() const
 
 void WifiHal::getAvailableNetworkSSID(char *pc_buffer, size_t bufferSize, uint8_t u8_Index) const
 {
-  if((pc_buffer == nullptr) || (u8_Index > NUMBER_OF_NETWORKS))
+  if((pc_buffer == nullptr) || (u8_Index >= NUMBER_OF_NETWORKS))
     return;
 
   strncpy(pc_buffer, NETWORK_LIST[u8_Index], bufferSize);
@@ -78,9 +78,19 @@ void WifiHal::connect(const char* ssid, const char* password)
 {
   mr_ActionListener.onWifiConnecting();
   vTaskDelay(CONNECTION_TIME_TICKS);
-  mr_ActionListener.onWifiConnected();
-  vTaskDelay(IP_FETCH_TIME_TICKS);
-  mr_ActionListener.onWifiGotIP();
+
+  if(strcmp(ssid, "Kugelblitz-Gast") == 0 && strcmp(password, "B-AR 3045") == 0)
+  {
+    mb_Connected = true;
+    mr_ActionListener.onWifiConnected();
+    vTaskDelay(IP_FETCH_TIME_TICKS);
+    mr_ActionListener.onWifiGotIP();
+  }
+  else
+  {
+    mb_Connected = false;
+    mr_ActionListener.onWifiConnectionFailed(WifiActionInterface::EWifiConnectionError::WrongPassword);
+  }
 }
 
 void WifiHal::disconnect()

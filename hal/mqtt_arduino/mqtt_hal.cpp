@@ -45,6 +45,7 @@ MqttHal::ERc MqttHal::connect(const char *pc_BrokerAddress, uint16_t u16_BrokerP
   else
   {
     error = m_MqttClient.connectError();
+    // TODO: Handle different error codes and notify the action listener accordingly
     m_actionListener.onConnectionFailed(MqttActionInterface::EConnectionError::UnknownError); 
   }
   return mqttErrorToERc(error);

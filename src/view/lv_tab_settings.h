@@ -59,6 +59,10 @@ public:
 
   void showWlanPasswordDialog(const char *pc_Ssid, const char *pc_Password);
 
+  void updateSystemSettingsPanel(void);
+  void updateWlanSettingsPanel(void);
+  void updateMqttSettingsPanel(void);
+  
   void updateWlanStatePanel(void);
   void updateWlanSelectList(void);
 };

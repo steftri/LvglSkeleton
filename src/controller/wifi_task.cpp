@@ -308,11 +308,13 @@ void WifiTask::onWifiGotIP()
 }
 
 
+
 void WifiTask::onWifiConnectionFailed(EWifiConnectionError error)
 {
   Serial.printf("Wi-Fi connection failed with error: %d\n", static_cast<int>(error));
 
   m_WifiData.setState(WifiData::EState::Error);
+  g_controller.getView().showMessageBox("Wi-Fi", "Connection failed. Please check your settings and try again.");
 }
 
 

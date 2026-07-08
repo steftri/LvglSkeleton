@@ -2,6 +2,10 @@
 
 #include "mqtt_task.h"
 
+#include "controller.h"
+
+extern Controller g_controller; // Declare the external Controller instance
+
 
 static const char *MQTT_GROUP_ID = "ERNI"; // Group ID for Sparkplug-B messages
 static const char *MQTT_NODE_ID = "LvglSkeleton"; // Node ID for Sparkplug-B messages - shall be the same as the hostname for WIFI
@@ -66,7 +70,7 @@ void MqttTask::disconnect()
 
 void MqttTask::setGroupId(const char *pc_GroupId)
 {
-  // TODO: store the group ID in the settings 
+  m_MqttSettings.setGroupId(pc_GroupId); // Update the group ID in the settings
   xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangeNodeId), eSetBits);
 }
 
@@ -126,6 +130,10 @@ void MqttTask::loop(void)
   {
     actionDisconnect();
   }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ChangeNodeId))
+  {
+    actionChangeNodeId();
+  }
 
   m_MqttHal.poll();  // handling of keepalive messages
 
@@ -167,6 +175,7 @@ void MqttTask::actionConnect()
   {
     m_MqttData.setState(MqttData::EState::Error);
     Serial.println("MQTT connection failed");
+    g_controller.getView().showMessageBox("MQTT Connection Failed", "Failed to connect to the MQTT broker. Please check the broker address and port.");
   }
 }
 
@@ -183,7 +192,8 @@ void MqttTask::actionChangeNodeId()
 {
   Serial.printf("Sparkplug-B Node ID changed to: %s\n", mac_NodeId);
 
-  // TODO: Handle the change in Node ID, e.g., by reconnecting to the MQTT broker with the new ID
+  actionDisconnect(); // Disconnect from the broker
+  actionConnect();    // Reconnect with the new Node ID
 }  
 
 
@@ -229,8 +239,9 @@ void MqttTask::onDisconnected()
 void MqttTask::onConnectionFailed(EConnectionError error)
 {
   Serial.printf("MQTT connection failed with error: %d\n", static_cast<int>(error));
+  m_MqttData.setState(MqttData::EState::Error); // Update the MQTT connection state in the data
 
-  // TODO: Notify the view to update the MQTT connection status and show an error message if needed
+  g_controller.getView().showMessageBox("MQTT Connection Failed", "Failed to connect to the MQTT broker. Please check the broker address and port.");
 }
 
 

@@ -3,7 +3,7 @@
 
 #include "datastorage.h"
 
-static const uint16_t EEPROM_SIZE = 1024;  // must be anything between 4 and 4096
+static const uint16_t EEPROM_SIZE = 2048;  // must be anything between 4 and 4096
 
 
 

@@ -95,8 +95,11 @@ void LvMain::setup(void)
 void LvMain::showMessageBox(const char *pc_Title, const char *pc_Message)
 {
   lv_obj_t *p_MsgBox = lv_msgbox_create(lv_screen_active());
-  // lv_msgbox_add_title(p_MsgBox, pc_Title);
+  lv_msgbox_add_title(p_MsgBox, pc_Title);
   lv_msgbox_add_text(p_MsgBox, pc_Message);
+  lv_msgbox_add_close_button(p_MsgBox);
+  lv_obj_set_size(p_MsgBox, lv_pct(80), LV_SIZE_CONTENT);
+  lv_obj_set_style_pad_all(p_MsgBox, 8, LV_PART_MAIN);
   lv_obj_center(p_MsgBox);
 }
 
@@ -134,11 +137,11 @@ void LvMain::setWlanSymbol(bool b_Visible)
   if(b_Visible)
   {
     lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-    LV_LOG_USER("Wifi visible");
+    //LV_LOG_USER("Wifi visible");
   }
   else
   {
     lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-    LV_LOG_USER("Wifi hidden");
+    //LV_LOG_USER("Wifi hidden");
   }
 }

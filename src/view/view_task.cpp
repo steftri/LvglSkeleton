@@ -10,7 +10,7 @@ extern Controller g_controller;
 LvMain g_ViewLvMain; // Global instance of the LVGL main view class to be used in the ViewTask
 
 ViewTask *ViewTask::mp_thisInstance = nullptr; // Initialize static instance pointer
-
+StaticQueue_t ViewTask::m_xStaticQueue;
 
 enum class ENotificationBits : uint32_t
 {
@@ -21,7 +21,7 @@ enum class ENotificationBits : uint32_t
   SurveillanceStats = (1UL << 4),
   LVGLStats = (1UL << 5),
   MQTTConnectionState = (1UL << 6),
-  MQTTStats = (1UL << 7)
+  MQTTStats = (1UL << 7) 
 };
 
 
@@ -36,6 +36,9 @@ ViewTask::ViewTask()
 void ViewTask::begin(void)
 {
   Serial.println("Creating ViewTask");
+
+  m_xQueueHandle = xQueueCreateStatic(VIEW_TASK_MESSAGE_QUEUE_SIZE, sizeof(SMessage),
+                                      reinterpret_cast<uint8_t*>(ma_MessageQueueStorage), &m_xStaticQueue);
 
   mp_TaskHandle = xTaskCreateStaticPinnedToCore(
      task,                     // Task function
@@ -83,12 +86,30 @@ void ViewTask::setup()
   g_ViewLvMain.setup(); // Build LVGL widget tree (display must exist first)
   Serial.println("LVGL UI setup complete");
 
+  g_ViewLvMain.getTabSettings()->updateSystemSettingsPanel();
+  g_ViewLvMain.getTabSettings()->updateWlanSettingsPanel();
+  g_ViewLvMain.getTabSettings()->updateMqttSettingsPanel();
+  Serial.println("Settings panels updated");
+
   r_DataContainer.getWifiData().registerObserver(this); 
   r_DataContainer.getMqttData().registerObserver(this); 
   r_DataContainer.getSurveillanceData().registerObserver(this); 
   Serial.println("Observer registered for data changes");
 }
 
+
+
+void ViewTask::showMessageBox(const char *pc_Title, const char *pc_Message)
+{
+  SMessage xMessage;
+  xMessage.pc_Title = pc_Title;
+  xMessage.pc_Text = pc_Message;
+
+  if (xQueueSend(m_xQueueHandle, &xMessage, 0) != pdPASS)
+  {
+    Serial.println("ViewTask: Failed to enqueue message box request");
+  }
+}
 
 
 
@@ -141,6 +162,15 @@ void ViewTask::loop()
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::MQTTStats))
   {
     onUpdateInfoMQTTStats();
+  }
+
+  if(uxQueueMessagesWaiting(m_xQueueHandle) > 0)
+  {
+    SMessage xReceivedMessage;
+    if (xQueueReceive(m_xQueueHandle, &xReceivedMessage, 0) == pdPASS)
+    {
+      onShowMessageBox(xReceivedMessage.pc_Title, xReceivedMessage.pc_Text);
+    }
   }
 
   if (u32_CurrentTime - u32_LastBlinkToggleTime >= 500UL) // Update every 500 milliseconds
@@ -292,6 +322,14 @@ void ViewTask::onUpdateInfoMQTTStats()
 {
   g_ViewLvMain.getTabInfo()->updateMQTTInfo(); // Update the MQTT stats in the info tab
 }
+
+
+void ViewTask::onShowMessageBox(const char *pc_Title, const char *pc_Message)
+{
+  g_ViewLvMain.showMessageBox(pc_Title, pc_Message);
+}
+
+
 
 
 

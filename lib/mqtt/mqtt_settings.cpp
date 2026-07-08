@@ -141,6 +141,9 @@ uint16_t MqttSettings::serialize(uint8_t *pu8_Buffer, const uint16_t u16_BufferS
   pu8_Buffer[u16_BufferPos++] = static_cast<uint8_t>(mu16_BrokerPort>>8);
   pu8_Buffer[u16_BufferPos++] = static_cast<uint8_t>(mu16_BrokerPort); 
 
+  for(auto i=0; i<MAX_GROUP_ID_LENGTH; i++)
+    pu8_Buffer[u16_BufferPos++] = mac_GroupId[i];
+
   return u16_BufferPos;
 }
 
@@ -165,4 +168,8 @@ void MqttSettings::unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_Siz
 
   mu16_BrokerPort  = static_cast<uint16_t>(pu8_Buffer[u16_BufferPos++])<<8;
   mu16_BrokerPort |= static_cast<uint16_t>(pu8_Buffer[u16_BufferPos++]);
+
+  for(auto i=0; i<MAX_GROUP_ID_LENGTH; i++)
+    mac_GroupId[i] = pu8_Buffer[u16_BufferPos++];
+  mac_GroupId[MAX_GROUP_ID_LENGTH]='\0';
 }

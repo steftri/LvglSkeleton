@@ -108,7 +108,7 @@ int WifiHal::getSignalStrength() const
 }
 
 
-void WifiHal::onEvent(WiFiEvent_t event) 
+void WifiHal::onEvent(arduino_event_id_t event, arduino_event_info_t info)
 {
   if(mp_thisInstance == nullptr) 
     return; // No instance to handle the event
@@ -132,9 +132,26 @@ void WifiHal::onEvent(WiFiEvent_t event)
       Serial.println("Connected to access point"); 
       mp_thisInstance->m_actionListener.onWifiConnected();
       break;
-    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:    
-      Serial.println("Disconnected from WiFi access point"); 
-      mp_thisInstance->m_actionListener.onWifiDisconnected();
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+      {
+        uint8_t reason = info.wifi_sta_disconnected.reason;
+        Serial.printf("Disconnected from WiFi access point, reason: %d\n", reason);
+        if(reason == WIFI_REASON_NO_AP_FOUND)
+        {
+          mp_thisInstance->m_actionListener.onWifiConnectionFailed(WifiActionInterface::EWifiConnectionError::NoSSIDAvailable);
+        }
+        else if(reason == WIFI_REASON_AUTH_FAIL ||
+                reason == WIFI_REASON_AUTH_EXPIRE ||
+                reason == WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT ||
+                reason == WIFI_REASON_HANDSHAKE_TIMEOUT)
+        {
+          mp_thisInstance->m_actionListener.onWifiConnectionFailed(WifiActionInterface::EWifiConnectionError::WrongPassword);
+        }
+        else
+        {
+          mp_thisInstance->m_actionListener.onWifiDisconnected();
+        }
+      }
       break;
     case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE: 
       Serial.println("Authentication mode of access point has changed"); 

@@ -170,6 +170,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 
     m_Mqtt.mp_Broker = lv_textarea_create(p_MqttPanel);
     lv_textarea_set_one_line(m_Mqtt.mp_Broker, true);
+    lv_textarea_set_accepted_chars(m_Mqtt.mp_Broker, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-");
     lv_obj_set_grid_cell(m_Mqtt.mp_Broker, LV_GRID_ALIGN_STRETCH, 1, 1, //column
                                                LV_GRID_ALIGN_CENTER, 1, 1); //row
     lv_obj_set_width(m_Mqtt.mp_Broker, lv_pct(100));
@@ -186,7 +187,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
     lv_textarea_set_accepted_chars(m_Mqtt.mp_Port, "0123456789");
     lv_obj_set_grid_cell(m_Mqtt.mp_Port, LV_GRID_ALIGN_STRETCH, 1, 1, //column
                                                LV_GRID_ALIGN_CENTER, 2, 1); //row
-    lv_obj_set_width(m_Mqtt.mp_Port, lv_pct(100));
+    lv_obj_set_width(m_Mqtt.mp_Port, 80);
     lv_obj_add_event_cb(m_Mqtt.mp_Port, onInputEvent, LV_EVENT_ALL, this);
 
     // MQTT Sparkplug-B Group ID
@@ -197,6 +198,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 
     m_Mqtt.mp_GroupId = lv_textarea_create(p_MqttPanel);
     lv_textarea_set_one_line(m_Mqtt.mp_GroupId, true);
+    lv_textarea_set_accepted_chars(m_Mqtt.mp_GroupId, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-");
     lv_obj_set_grid_cell(m_Mqtt.mp_GroupId, LV_GRID_ALIGN_STRETCH, 1, 1, //column
                                                LV_GRID_ALIGN_CENTER, 3, 1); //row
     lv_obj_set_width(m_Mqtt.mp_GroupId, lv_pct(100));
@@ -251,6 +253,45 @@ void LvTabSettings::showWlanPasswordDialog(const char *pc_Ssid, const char *pc_P
   //lv_obj_t *p_CancelButton = lv_msgbox_add_footer_button(m_Wlan.mp_PasswordDialog, "Cancel");
   //lv_obj_add_event_cb(btn, event_cb, LV_EVENT_CLICKED, NULL);
 }
+
+
+
+void LvTabSettings::updateSystemSettingsPanel(void)
+{
+  SystemSettings &r_SystemSettings = g_controller.getModel().getSettings().getSystemSettings();
+
+  lv_textarea_set_text(m_System.mp_HostName, r_SystemSettings.getHostName());
+  lv_dropdown_set_selected(m_System.mp_SplashScreen, static_cast<uint8_t>(r_SystemSettings.getSplashScreen()));
+}
+
+
+
+void LvTabSettings::updateWlanSettingsPanel(void)
+{
+  WifiSettings &r_WifiSettings = g_controller.getModel().getSettings().getWifiSettings();
+
+  // Update the Wi-Fi enable switch state
+  lv_obj_set_state(m_Wlan.mp_EnableSwitch, LV_STATE_CHECKED, r_WifiSettings.getEnable());
+}
+
+
+
+void LvTabSettings::updateMqttSettingsPanel(void)
+{
+  MqttSettings &r_MqttSettings = g_controller.getModel().getSettings().getMqttSettings();
+
+  lv_textarea_set_text(m_Mqtt.mp_Broker, r_MqttSettings.getBrokerAddr());
+
+  char ac_Port[6];
+  snprintf(ac_Port, sizeof(ac_Port), "%d", r_MqttSettings.getBrokerPort());
+  ac_Port[sizeof(ac_Port) - 1] = '\0'; // Ensure null-termination
+
+  lv_textarea_set_text(m_Mqtt.mp_Port, ac_Port);
+
+  lv_textarea_set_text(m_Mqtt.mp_GroupId, r_MqttSettings.getGroupId());
+}
+
+
 
 
 void LvTabSettings::onPasswordEnteredEvent(lv_event_t *p_Event)
@@ -342,7 +383,10 @@ void LvTabSettings::onInputMqttPortCallback(uint16_t u16_Port)
 
 void LvTabSettings::onInputMqttGroupIdCallback(const char *pc_GroupId)
 {
+  MqttSettings &r_MqttSettings = g_controller.getModel().getSettings().getMqttSettings();
 
+  LV_LOG_USER("new GroupId: %s\n", pc_GroupId);
+  r_MqttSettings.setGroupId(pc_GroupId);
 }
 
 

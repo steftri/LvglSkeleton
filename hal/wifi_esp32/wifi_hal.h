@@ -31,7 +31,7 @@ public:
 private:
   static WifiHal *mp_thisInstance; // Static instance pointer for task access
   WifiActionInterface &m_actionListener; // Reference to the action listener
-  static void onEvent(WiFiEvent_t event);
+  static void onEvent(arduino_event_id_t event, arduino_event_info_t info);
 };
 
 #endif  // WIFI_HAL_H
