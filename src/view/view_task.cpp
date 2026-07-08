@@ -94,14 +94,15 @@ void ViewTask::setup()
 
 void ViewTask::loop()
 {
-  static uint32_t lastUpdateTime = 0;
-  uint32_t currentTime = millis();
+  static uint32_t u32_LastSurveillanceUpdateTime = 0;
+  static uint32_t u32_LastBlinkToggleTime = 0;
+  uint32_t u32_CurrentTime = millis();
 
   m_ui.loop(); // Update the UI components
 
-  if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
+  if (u32_CurrentTime - u32_LastSurveillanceUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
-    lastUpdateTime = currentTime;
+    u32_LastSurveillanceUpdateTime = u32_CurrentTime;
     Serial.printf("  Free ViewTask stack: %u/%u (Usage: %u%%)\n",
                   uxTaskGetStackHighWaterMark(nullptr), VIEW_TASK_STACK_SIZE,
                   ((VIEW_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / VIEW_TASK_STACK_SIZE); // nullptr = aktueller Task
@@ -141,7 +142,15 @@ void ViewTask::loop()
   {
     onUpdateInfoMQTTStats();
   }
+
+  if (u32_CurrentTime - u32_LastBlinkToggleTime >= 500UL) // Update every 500 milliseconds
+  {  
+    mb_BlinkState = !mb_BlinkState;
+    u32_LastBlinkToggleTime = u32_CurrentTime;
+    updateStateIndicators();
+  }
 }
+
 
 
 
@@ -251,9 +260,6 @@ void ViewTask::onUpdateEnableState()
 
 void ViewTask::onUpdateWIFIConnectionState()
 {
-  auto &WifiData = g_controller.getModel().getData().getWifiData();
-  bool b_IsConnected = (WifiData.getState() == WifiData::EState::Connected);
-  g_ViewLvMain.setWlanSymbol(b_IsConnected); // Update the Wi-Fi symbol in the UI
   g_ViewLvMain.getTabSettings()->updateWlanStatePanel(); // Update the Wi-Fi state panel in the settings tab
 }
 
@@ -287,3 +293,23 @@ void ViewTask::onUpdateInfoMQTTStats()
   g_ViewLvMain.getTabInfo()->updateMQTTInfo(); // Update the MQTT stats in the info tab
 }
 
+
+
+void ViewTask::updateStateIndicators()
+{
+  auto &WifiData = g_controller.getModel().getData().getWifiData();
+  auto e_WifiConnectionState = WifiData.getState();
+
+  switch(e_WifiConnectionState)
+  {
+    case WifiData::EState::Connected: 
+      g_ViewLvMain.setWlanSymbol(true); 
+      break;
+    case WifiData::EState::Connecting:
+      g_ViewLvMain.setWlanSymbol(mb_BlinkState); 
+      break;
+    default:
+      g_ViewLvMain.setWlanSymbol(false); // Update the Wi-Fi symbol in the UI
+      break;
+  }
+}

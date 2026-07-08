@@ -9,6 +9,11 @@ extern Controller g_controller;
 extern LvMain g_ViewLvMain; 
 
 
+const static uint8_t CONTAINER_PADDING = 12;
+
+const static uint32_t ICON_COLOR = 0x8f8f8f; // Gray color for icons
+
+
 
 LvTabSettings::LvTabSettings(void)
 {
@@ -18,51 +23,79 @@ LvTabSettings::LvTabSettings(void)
 
 void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 {
+  static const lv_coord_t a_GridColumns[] = {132, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
   lv_obj_set_flex_flow(p_ParentTab, LV_FLEX_FLOW_COLUMN);
 
   lv_obj_t *p_SystemPanel = lv_obj_create(p_ParentTab);
   {
-    lv_obj_set_size(p_SystemPanel, lv_pct(100), LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(p_SystemPanel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_all(p_SystemPanel, CONTAINER_PADDING, 0);
 
+    static const lv_coord_t a_GridRows[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+
+    lv_obj_set_size(p_SystemPanel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_layout(p_SystemPanel, LV_LAYOUT_GRID);
+    lv_obj_set_grid_dsc_array(p_SystemPanel, a_GridColumns, a_GridRows);
+
+    // Host name
     lv_obj_t *p_HostnameLabel = lv_label_create(p_SystemPanel);
     lv_label_set_text(p_HostnameLabel, "Hostname");
+    lv_obj_set_grid_cell(p_HostnameLabel, LV_GRID_ALIGN_START, 0, 1, //column
+                                          LV_GRID_ALIGN_CENTER, 0, 1); //row
 
     m_System.mp_HostName = lv_textarea_create(p_SystemPanel);
     lv_textarea_set_one_line(m_System.mp_HostName, true);
+    lv_obj_set_grid_cell(m_System.mp_HostName, LV_GRID_ALIGN_STRETCH, 1, 1, //column
+                                               LV_GRID_ALIGN_CENTER, 0, 1); //row
     lv_obj_set_width(m_System.mp_HostName, lv_pct(100));
     lv_obj_add_event_cb(m_System.mp_HostName, onInputEvent, LV_EVENT_ALL, this);
 
+    // Splash screen
     lv_obj_t *p_SplashScreenLabel = lv_label_create(p_SystemPanel);
     lv_label_set_text(p_SplashScreenLabel, "Splash Screen");
+    lv_obj_set_grid_cell(p_SplashScreenLabel, LV_GRID_ALIGN_START, 0, 1, //column
+                                          LV_GRID_ALIGN_CENTER, 1, 1); //row
+
     m_System.mp_SplashScreen = lv_dropdown_create(p_SystemPanel);
+    lv_obj_set_grid_cell(m_System.mp_SplashScreen, LV_GRID_ALIGN_STRETCH, 1, 1, //column
+                                               LV_GRID_ALIGN_CENTER, 1, 1); //row
     lv_obj_set_width(m_System.mp_SplashScreen, lv_pct(100));
-    lv_dropdown_set_options_static(m_System.mp_SplashScreen, "None\nLogo1\nLogo2");
+    lv_dropdown_set_options_static(m_System.mp_SplashScreen, "None\n8-bit");
   }
 
 
   lv_obj_t *p_WlanPanel = lv_obj_create(p_ParentTab);
   {
+    lv_obj_set_style_pad_all(p_WlanPanel, CONTAINER_PADDING, 0);
+
     lv_obj_set_size(p_WlanPanel, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(p_WlanPanel, LV_FLEX_FLOW_COLUMN);
 
-    lv_obj_t *p_WlanLabel = lv_label_create(p_WlanPanel);
-    lv_label_set_text(p_WlanLabel, "WLAN");
+    // WiFi symbol image
+    LV_IMAGE_DECLARE(wifi_32x26);
+    lv_obj_t * p_imgWifi = lv_image_create(p_WlanPanel);
+    lv_image_set_src(p_imgWifi, &wifi_32x26);
+    lv_obj_set_style_image_recolor(p_imgWifi, lv_color_hex(ICON_COLOR), LV_PART_MAIN);
+    //lv_obj_align(p_imgWifi, LV_ALIGN_CENTER, 0, 0);
+    //lv_obj_set_size(p_imgWifi, 34, 34);
+    lv_image_set_inner_align(p_imgWifi, LV_IMAGE_ALIGN_CENTER);
 
+    // Wi-Fi enable switch
     lv_obj_t *p_WlanEnablePanel = lv_obj_create(p_WlanPanel);
     {
-      //lv_obj_remove_style_all(p_WlanEnablePanel);
+      lv_obj_remove_style_all(p_WlanEnablePanel);
+      lv_obj_set_style_margin_right(p_WlanEnablePanel, 16, 0);
       lv_obj_set_size(p_WlanEnablePanel, lv_pct(100), LV_SIZE_CONTENT);
-      lv_obj_set_flex_flow(p_WlanEnablePanel, LV_FLEX_FLOW_ROW);
-
+      lv_obj_set_flex_align(p_WlanEnablePanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+ 
       lv_obj_t *p_WlanEnableLabel = lv_label_create(p_WlanEnablePanel);
-      lv_label_set_text(p_WlanEnableLabel, "WLAN");
-
+      lv_obj_set_style_margin_right(p_WlanEnableLabel, 8, 0);
+      lv_label_set_text(p_WlanEnableLabel, "Wi-Fi");
       m_Wlan.mp_EnableSwitch = lv_switch_create(p_WlanEnablePanel);
       lv_obj_add_event_cb(m_Wlan.mp_EnableSwitch, onWlanEnableCallback, LV_EVENT_CLICKED, NULL);
-      lv_obj_align_to(p_WlanEnableLabel, m_Wlan.mp_EnableSwitch, LV_ALIGN_OUT_TOP_MID, 0, -15);
     }
 
+    // Wi-Fi state panel
     m_Wlan.mp_StatePanel = lv_obj_create(p_WlanPanel);
     {
       //lv_obj_remove_style_all(p_WlanEnablePanel);
@@ -93,8 +126,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
     m_Wlan.mp_SelectList = lv_list_create(p_WlanPanel);
     {
       lv_obj_set_size(m_Wlan.mp_SelectList, lv_pct(100), LV_SIZE_CONTENT);
-
-      //lv_obj_set_style_pad_row(p_WlanSelectList, 4, 0);
+      lv_obj_set_style_max_height(m_Wlan.mp_SelectList, 180, 0);
 
       /*Add buttons to the list*/
       for(uint8_t i = 0; i < WifiData::MAX_WIFI_NETWORKS; i++) 
@@ -111,37 +143,62 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
       
   }
 
-
   lv_obj_t *p_MqttPanel = lv_obj_create(p_ParentTab);
   {
-    // lv_obj_set_height(p_WlanPanel, LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_all(p_MqttPanel, CONTAINER_PADDING, 0);
+
+    static const lv_coord_t a_GridRows[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+
     lv_obj_set_size(p_MqttPanel, lv_pct(100), LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(p_MqttPanel, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_layout(p_MqttPanel, LV_LAYOUT_GRID);
+    lv_obj_set_grid_dsc_array(p_MqttPanel, a_GridColumns, a_GridRows);
 
-    lv_obj_t *p_MqttLabel = lv_label_create(p_MqttPanel);
-    lv_label_set_text(p_MqttLabel, "MQTT");
+    // Icon
+    LV_IMAGE_DECLARE(mqtt_28x28);
+    lv_obj_t * p_imgMqtt = lv_image_create(p_MqttPanel);
+    lv_image_set_src(p_imgMqtt, &mqtt_28x28);
+    lv_obj_set_style_image_recolor(p_imgMqtt, lv_color_hex(ICON_COLOR), LV_PART_MAIN);
+    //lv_obj_align(p_imgMqtt, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_grid_cell(p_imgMqtt, LV_GRID_ALIGN_START, 0, 1, //column
+                                    LV_GRID_ALIGN_CENTER, 0, 1); //row
 
+    // MQTT Broker Address
     lv_obj_t *p_MqttBrokerLabel = lv_label_create(p_MqttPanel);
-    lv_label_set_text(p_MqttBrokerLabel, "Broker");
+    lv_label_set_text(p_MqttBrokerLabel, "MQTT Broker");
+    lv_obj_set_grid_cell(p_MqttBrokerLabel, LV_GRID_ALIGN_START, 0, 1, //column
+                                          LV_GRID_ALIGN_CENTER, 1, 1); //row
 
     m_Mqtt.mp_Broker = lv_textarea_create(p_MqttPanel);
     lv_textarea_set_one_line(m_Mqtt.mp_Broker, true);
+    lv_obj_set_grid_cell(m_Mqtt.mp_Broker, LV_GRID_ALIGN_STRETCH, 1, 1, //column
+                                               LV_GRID_ALIGN_CENTER, 1, 1); //row
     lv_obj_set_width(m_Mqtt.mp_Broker, lv_pct(100));
     lv_obj_add_event_cb(m_Mqtt.mp_Broker, onInputEvent, LV_EVENT_ALL, this);
 
+    // MQTT Port
     lv_obj_t *p_MqttPortLabel = lv_label_create(p_MqttPanel);
     lv_label_set_text(p_MqttPortLabel, "Port");
+    lv_obj_set_grid_cell(p_MqttPortLabel, LV_GRID_ALIGN_START, 0, 1, //column
+                                          LV_GRID_ALIGN_CENTER, 2, 1); //row
 
     m_Mqtt.mp_Port = lv_textarea_create(p_MqttPanel);
     lv_textarea_set_one_line(m_Mqtt.mp_Port, true);
+    lv_textarea_set_accepted_chars(m_Mqtt.mp_Port, "0123456789");
+    lv_obj_set_grid_cell(m_Mqtt.mp_Port, LV_GRID_ALIGN_STRETCH, 1, 1, //column
+                                               LV_GRID_ALIGN_CENTER, 2, 1); //row
     lv_obj_set_width(m_Mqtt.mp_Port, lv_pct(100));
     lv_obj_add_event_cb(m_Mqtt.mp_Port, onInputEvent, LV_EVENT_ALL, this);
 
+    // MQTT Sparkplug-B Group ID
     lv_obj_t *p_MqttGroupIdLabel = lv_label_create(p_MqttPanel);
     lv_label_set_text(p_MqttGroupIdLabel, "Group");
+    lv_obj_set_grid_cell(p_MqttGroupIdLabel, LV_GRID_ALIGN_START, 0, 1, //column
+                                          LV_GRID_ALIGN_CENTER, 3, 1); //row
 
     m_Mqtt.mp_GroupId = lv_textarea_create(p_MqttPanel);
     lv_textarea_set_one_line(m_Mqtt.mp_GroupId, true);
+    lv_obj_set_grid_cell(m_Mqtt.mp_GroupId, LV_GRID_ALIGN_STRETCH, 1, 1, //column
+                                               LV_GRID_ALIGN_CENTER, 3, 1); //row
     lv_obj_set_width(m_Mqtt.mp_GroupId, lv_pct(100));
     lv_obj_add_event_cb(m_Mqtt.mp_GroupId, onInputEvent, LV_EVENT_ALL, this);
   }  
@@ -154,10 +211,15 @@ void LvTabSettings::showWlanPasswordDialog(const char *pc_Ssid, const char *pc_P
 {
   m_Wlan.mp_PasswordDialog = lv_msgbox_create(lv_screen_active());
 
-  lv_msgbox_add_title(m_Wlan.mp_PasswordDialog, "WLAN");
+  lv_obj_set_size(m_Wlan.mp_PasswordDialog, lv_pct(80), LV_SIZE_CONTENT);
+  //lv_obj_set_style_pad_all(m_Wlan.mp_PasswordDialog, 8, LV_PART_MAIN);
+
+  lv_msgbox_add_title(m_Wlan.mp_PasswordDialog, "Wi-Fi");
 
   lv_obj_t * mp_PasswordPanel = lv_msgbox_get_content(m_Wlan.mp_PasswordDialog);
   {
+    lv_obj_set_style_pad_all(mp_PasswordPanel, 8, LV_PART_MAIN);
+
     lv_obj_t *p_SsidLabel = lv_label_create(mp_PasswordPanel);
     //lv_label_set_text(mp_SsidLabel, "SSID:");
     lv_obj_align(p_SsidLabel, LV_ALIGN_TOP_LEFT, 0, 0);

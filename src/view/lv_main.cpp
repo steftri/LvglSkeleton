@@ -10,7 +10,6 @@ extern Controller g_controller;
 
 
 LvMain::LvMain(void)
- : m_WlanPasswdDialog(*this) 
 {
 }
 
@@ -84,7 +83,6 @@ void LvMain::setup(void)
       m_TabInfo.setup(p_TabInfo);
       m_TabHistory.setup(p_TabHistory);
       m_TabSettings.setup(p_TabSettings);
-      m_WlanPasswdDialog.setup(p_TabSettings);
     }
   }
 
@@ -92,6 +90,17 @@ void LvMain::setup(void)
 
 //  Serial.println("LvMain setup completed");
 }
+
+
+void LvMain::showMessageBox(const char *pc_Title, const char *pc_Message)
+{
+  lv_obj_t *p_MsgBox = lv_msgbox_create(lv_screen_active());
+  // lv_msgbox_add_title(p_MsgBox, pc_Title);
+  lv_msgbox_add_text(p_MsgBox, pc_Message);
+  lv_obj_center(p_MsgBox);
+}
+
+
 
 LvKeyboard *LvMain::getKeyboard(void)
 {
@@ -115,11 +124,6 @@ LvTabSettings *LvMain::getTabSettings(void)
   return &m_TabSettings;
 }
 
-
-LvWlanPasswdDialog *LvMain::getWlanPasswdDialog(void)
-{
-  return &m_WlanPasswdDialog;
-}
 
 
 void LvMain::setWlanSymbol(bool b_Visible)

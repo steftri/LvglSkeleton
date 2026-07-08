@@ -7,7 +7,6 @@
 #include "lv_tab_info.h"
 #include "lv_tab_history.h"
 #include "lv_tab_settings.h"
-#include "lv_wlan_passwd_dialog.h"
 
 
 class LvMain
@@ -19,8 +18,6 @@ class LvMain
   LvTabHistory m_TabHistory;
   LvTabSettings m_TabSettings;
 
-  LvWlanPasswdDialog m_WlanPasswdDialog;
-
   lv_obj_t *mp_WifiSymbol; 
 
 public:
@@ -30,13 +27,13 @@ public:
 
   void setWlanSymbol(bool b_Visible);
 
+  void showMessageBox(const char *pc_Title, const char *pc_Message);
+
   LvKeyboard *getKeyboard(void);
 
   LvTabInfo *getTabInfo(void);
   LvTabHistory *getTabHistory(void);
   LvTabSettings *getTabSettings(void);
-
-  LvWlanPasswdDialog *getWlanPasswdDialog(void);
 };
 
 

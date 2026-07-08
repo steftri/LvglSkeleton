@@ -1,9 +1,17 @@
 #include <string.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include "wifi_hal.h"
 
 
 static const uint8_t NUMBER_OF_NETWORKS = 3;
+
+
+static const TickType_t CONNECTION_TIME_TICKS = 3000 / portTICK_PERIOD_MS;
+static const TickType_t IP_FETCH_TIME_TICKS = 1000 / portTICK_PERIOD_MS;
+static const TickType_t NETWORK_SCAN_TIME_TICKS = 1000 / portTICK_PERIOD_MS;
 
 static const char *NETWORK_LIST[] = 
 {
@@ -41,6 +49,7 @@ void WifiHal::disable()
 
 void WifiHal::scanNetworks()
 {
+  vTaskDelay(NETWORK_SCAN_TIME_TICKS);
   mb_NetworksFound = true;
   mr_ActionListener.onWifiNetworksUpdated();
 }
@@ -68,7 +77,9 @@ void WifiHal::getAvailableNetworkSignalStrength(int32_t* ps32_signalStrength, ui
 void WifiHal::connect(const char* ssid, const char* password)
 {
   mr_ActionListener.onWifiConnecting();
+  vTaskDelay(CONNECTION_TIME_TICKS);
   mr_ActionListener.onWifiConnected();
+  vTaskDelay(IP_FETCH_TIME_TICKS);
   mr_ActionListener.onWifiGotIP();
 }
 

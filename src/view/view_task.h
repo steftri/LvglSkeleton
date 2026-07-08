@@ -30,6 +30,8 @@ private:
   StaticTask_t m_TaskBuffer;
   StackType_t m_TaskStack[ VIEW_TASK_STACK_SIZE ];
 
+  bool mb_BlinkState;
+
   static void task(void *pvParameters);  
   static ViewTask *mp_thisInstance; // Static instance pointer for task access
 
@@ -64,6 +66,8 @@ private:
   void onUpdateInfoLVGLStats();
   void onUpdateInfoMQTTConnectionState();
   void onUpdateInfoMQTTStats();
+
+  void updateStateIndicators();
 };
 
 
