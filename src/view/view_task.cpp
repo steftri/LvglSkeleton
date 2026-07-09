@@ -21,7 +21,8 @@ enum class ENotificationBits : uint32_t
   SurveillanceStats = (1UL << 4),
   LVGLStats = (1UL << 5),
   MQTTConnectionState = (1UL << 6),
-  MQTTStats = (1UL << 7) 
+  MQTTStats = (1UL << 7),
+  MQTTError = (1UL << 8)
 };
 
 
@@ -163,6 +164,11 @@ void ViewTask::loop()
   {
     onUpdateInfoMQTTStats();
   }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::MQTTError))
+  {
+    DataContainer &r_DataContainer = g_controller.getModel().getData();
+    onShowMessageBox("MQTT Error", r_DataContainer.getMqttData().getLastErrorMessage());
+  }
 
   if(uxQueueMessagesWaiting(m_xQueueHandle) > 0)
   {
@@ -245,7 +251,11 @@ void ViewTask::onMQTTDataChanged(EDataField e_Field)
     case MqttData::EField::MessageCount:
       Serial.println("ViewTask: MQTT message count updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::MQTTStats), eSetBits);
-      break;  
+      break;
+    case MqttData::EField::LastError:
+      Serial.println("ViewTask: MQTT last error updated");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::MQTTError), eSetBits);
+      break;
     default:
       Serial.println("ViewTask: Unknown MQTT data field changed");
       break;
