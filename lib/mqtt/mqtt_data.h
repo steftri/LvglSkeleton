@@ -42,9 +42,6 @@ public:
   void incrementReceivedMessageCount();
   uint32_t getSentMessageCount() const;
   uint32_t getReceivedMessageCount() const;
-
-  void setNodeId(const char *pc_NodeId);
-  const char *getNodeId() const;
 };
 
 #endif // MQTT_DATA_H

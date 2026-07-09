@@ -27,9 +27,10 @@ enum class ENotificationBits : uint32_t
 
 
 
-WifiTask::WifiTask(WifiSettings &wifiSettings, WifiData &wifiData)
+WifiTask::WifiTask(SystemSettings &systemSettings, WifiSettings &wifiSettings, WifiData &wifiData)
   : mp_TaskHandle(nullptr)
   , m_WifiHal(*this) // Pass the WifiActionInterface reference to the WifiHal
+  , m_SystemSettings(systemSettings) // Initialize the reference to the system settings
   , m_WifiSettings(wifiSettings) // Initialize the reference to the Wi-Fi settings
   , m_WifiData(wifiData) // Initialize the reference to the Wi-Fi data
 {
@@ -106,13 +107,14 @@ void WifiTask::setup(void)
 {
   Serial.println("WifiTask running.");
 
-  m_WifiHal.setup(); // Initialize the Wi-Fi hardware and start scanning for networks
+  m_WifiHal.setup(); 
+  m_WifiHal.setHostname(m_SystemSettings.getHostName()); 
 
   if(m_WifiSettings.getEnable())
   {
     Serial.println("Wi-Fi is enabled in settings, enabling Wi-Fi hardware...");
     m_WifiData.setEnable(true); 
-    m_WifiHal.enable(); // Enable the Wi-Fi hardware if it is enabled in the settings
+    m_WifiHal.enable(); 
     
     if(m_WifiSettings.getConnect() && m_WifiSettings.getNetworkCount() > 0) 
     {
@@ -276,7 +278,6 @@ void WifiTask::onWifiConnected()
   char ac_SSID[MAX_SSID_LENGTH + 1];
   char ac_Password[MAX_WPA2_PASSWORD_LENGTH + 1];
 
-  m_WifiData.setState(WifiData::EState::Connected); 
   m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); 
 
   Serial.printf("Connected to Wi-Fi network \"%s\"\n", ac_SSID);
@@ -289,7 +290,7 @@ void WifiTask::onWifiConnected()
 void WifiTask::onWifiDisconnected()
 {
   Serial.println("Wi-Fi disconnected");
-  m_WifiData.setState(WifiData::EState::Disconnected); 
+  m_WifiData.setState(WifiData::EState::Disconnected);
 }
 
 
@@ -298,13 +299,10 @@ void WifiTask::onWifiGotIP()
   char ac_IPAddress[MAX_IP_ADDRESS_LENGTH+1]; 
 
   m_WifiHal.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress)); 
-
   Serial.printf("Got IP address %s\n", ac_IPAddress);
 
+  m_WifiData.setState(WifiData::EState::Connected);  
   m_WifiData.setIPAddress(ac_IPAddress);
-
-  // we are fully connected. Trigger MQTT connection...
-  g_controller.getMqtt().connect();
 }
 
 
@@ -314,6 +312,7 @@ void WifiTask::onWifiConnectionFailed(EWifiConnectionError error)
   Serial.printf("Wi-Fi connection failed with error: %d\n", static_cast<int>(error));
 
   m_WifiData.setState(WifiData::EState::Error);
+
   g_controller.getView().showMessageBox("Wi-Fi", "Connection failed. Please check your settings and try again.");
 }
 

@@ -20,6 +20,8 @@ public:
   void enable() override;
   void disable() override;
 
+  void setHostname(const char *pc_Hostname) override;
+
   void scanNetworks() override;
   uint8_t getAvailableNetworkCount() const override;
   void getAvailableNetworkSSID(char* buffer, size_t bufferSize, uint8_t index) const override;

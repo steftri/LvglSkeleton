@@ -42,6 +42,15 @@ void WifiHal::disable()
 }
 
 
+void WifiHal::setHostname(const char *pc_Hostname)
+{
+  if(pc_Hostname != nullptr)
+  {
+    WiFi.setHostname(pc_Hostname);
+  }
+}
+
+
 
 void WifiHal::scanNetworks()
 {

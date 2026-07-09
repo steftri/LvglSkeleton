@@ -14,6 +14,8 @@ public:
   virtual void enable() = 0;
   virtual void disable() = 0;
 
+  virtual void setHostname(const char *pc_Hostname) = 0;
+
   virtual void scanNetworks() = 0;
   virtual uint8_t getAvailableNetworkCount() const = 0;
   virtual void getAvailableNetworkSSID(char* pc_buffer, size_t bufferSize, uint8_t u8_index) const = 0;

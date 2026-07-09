@@ -333,6 +333,22 @@ void LvTabSettings::onInputEvent(lv_event_t *p_Event)
     if(p_Textarea == p_This->m_Mqtt.mp_Broker)
     {    
       p_This->onInputMqttBrokerCallback(lv_textarea_get_text(p_Textarea));
+    } 
+    else if (p_Textarea == p_This->m_Mqtt.mp_Port)
+    {
+      p_This->onInputMqttPortCallback(static_cast<uint16_t>(atoi(lv_textarea_get_text(p_Textarea))));
+    }
+    else if (p_Textarea == p_This->m_Mqtt.mp_GroupId)
+    {
+      p_This->onInputMqttGroupIdCallback(lv_textarea_get_text(p_Textarea));
+    }
+    else if (p_Textarea == p_This->m_System.mp_HostName)
+    {
+      p_This->onInputSystemHostName(lv_textarea_get_text(p_Textarea));
+    }
+    else
+    {
+      LV_LOG_USER("Unhandled input event for object\n");
     }
   }
 }

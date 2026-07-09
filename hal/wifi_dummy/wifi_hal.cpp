@@ -47,6 +47,13 @@ void WifiHal::disable()
   mb_Connected = false;
 }
 
+
+void WifiHal::setHostname(const char *pc_Hostname)
+{
+  (void)pc_Hostname;
+}
+
+
 void WifiHal::scanNetworks()
 {
   vTaskDelay(NETWORK_SCAN_TIME_TICKS);
@@ -65,7 +72,7 @@ void WifiHal::getAvailableNetworkSSID(char *pc_buffer, size_t bufferSize, uint8_
     return;
 
   strncpy(pc_buffer, NETWORK_LIST[u8_Index], bufferSize);
-  pc_buffer[bufferSize] = 0;
+  pc_buffer[bufferSize - 1] = 0;
 }
 
 

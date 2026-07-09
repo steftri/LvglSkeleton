@@ -86,10 +86,12 @@ void ModelTask::setup(void)
 {
   Serial.println("ModelTask running.");
 
-  // The settings are already loaded in the Model's setup, so we can just register as an observer here
+  // The settings are already loaded in the Model's setup, 
+  // so we can just register as an observer here
 
-   m_Settings.getWifiSettings().registerObserver(this); 
-   m_Settings.getMqttSettings().registerObserver(this); 
+  m_Settings.getSystemSettings().registerObserver(this);
+  m_Settings.getWifiSettings().registerObserver(this); 
+  m_Settings.getMqttSettings().registerObserver(this); 
 }
 
 

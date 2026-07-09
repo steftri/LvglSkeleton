@@ -6,52 +6,59 @@
 
 #include "mqtt_hal.h"
 #include "interfaces/mqtt_action_interface.h"
+#include "data_observer.h"
 
-#include "mqtt_data.h"
+#include "system_settings.h"
 #include "mqtt_settings.h"
+#include "mqtt_data.h"
+#include "wifi_data.h"
 
 
 
 
-class MqttTask : public MqttActionInterface
+class MqttTask : public MqttActionInterface, public DataObserverInterface
 {
 private:
   TaskHandle_t mp_TaskHandle;
   StaticTask_t m_TaskBuffer;
 
-  static const size_t MQTT_TASK_STACK_SIZE = 4096; // Stack size for the task
+  static const size_t MQTT_TASK_STACK_SIZE = 4096;
   StackType_t m_TaskStack[ MQTT_TASK_STACK_SIZE ];
 
   static void task(void *pvParameters);  
-  static MqttTask *mp_thisInstance; // Static instance pointer for task access
-
-  static const uint8_t MAX_NODEID_LENGTH = 64;
-  char mac_NodeId[MAX_NODEID_LENGTH+1]; ///< Node ID for the MQTT connection  
+  static MqttTask *mp_thisInstance; 
 
   MqttHal m_MqttHal;
-  MqttSettings &m_MqttSettings; // Reference to the MQTT settings in the model
-  MqttData &m_MqttData; // Reference to the MQTT data in the model
+  SystemSettings &m_SystemSettings;
+  MqttSettings &m_MqttSettings;
+  MqttData &m_MqttData;
+  WifiData &m_WifiData;
 
 public:
-  MqttTask(MqttSettings &mqttSettings, MqttData &mqttData);
+  MqttTask(SystemSettings &systemSettings, MqttSettings &mqttSettings, MqttData &mqttData, WifiData &wifiData);
 
-  void begin(const char *pc_NodeId);  // NodeId shall be the same as the host name - not stored in Mqtt context;
+  void begin();
 
-  void connect();
-  void disconnect();
-
-  void setGroupId(const char *pc_GroupId);
-  void setNodeId(const char *pc_NodeId);
+  void publish(const char *pc_Topic, const uint8_t *pu8_MessageBuffer, const size_t MessageSize, uint8_t u8_QoS, bool b_Retain);
+  void subscribe(const char *pc_Topic);
 
 private:  
   void setup(void);
   void loop(void);
 
-  // Thread-internal methods to perform actions based on notifications
-  void actionConnect();
-  void actionDisconnect();
-  void actionChangeNodeId();
+  void connect();
+  void disconnect();
 
+  // DataObserver implementation
+  void onDataChanged(Data &r_Data, EDataField e_Field) override;
+  void onSystemSettingsChanged(EDataField e_Field);
+  void onMqttSettingsChanged(EDataField e_Field);
+  void onWifiDataChanged(EDataField e_Field);  
+  
+  // Thread-internal methods to perform actions based on notifications
+  void actionChangedWifiConnectionState();
+  void actionChangeBrokerSettings();
+  void actionChangeSparkplugBSettings();
 
   // MqttActionInterface implementation
   void onConnected() override;
