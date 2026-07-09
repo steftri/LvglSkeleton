@@ -81,13 +81,21 @@ void LvTabInfo::updateFreeRTOSInfo()
 {
   SurveillanceData &r_SurveillanceData = g_controller.getModel().getData().getSurveillanceData();
 
-  char ac_StringBuffer[128];  
   char ac_Uptime[64];
+  char ac_StringBuffer[256];  
 
   snprintf(ac_Uptime, sizeof(ac_Uptime), "%uh %02um %02us", 
      r_SurveillanceData.getUptime() / 3600, (r_SurveillanceData.getUptime() % 3600) / 60, r_SurveillanceData.getUptime() % 60);
 
-  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Uptime: %s\nTasks: %u", ac_Uptime, r_SurveillanceData.getTasks());      
+  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Uptime: %s\nTasks: %u\n"
+                                                     "Free heap total: %u bytes\n"
+                                                     "Minimum ever: %u bytes\n"
+                                                     "Free internal heap: %u bytes\n"
+                                                     "Total PSRAM memory: %u bytes\n"
+                                                     "Free PSRAM memory: %u bytes", 
+          ac_Uptime, r_SurveillanceData.getTasks(), 
+          r_SurveillanceData.getFreeHeapSizeTotal(), r_SurveillanceData.getMinimumEverFreeHeapSize(), 
+          r_SurveillanceData.getFreeHeapSizeInternal(), ESP.getPsramSize(), r_SurveillanceData.getFreePsramSize());      
 
   lv_label_set_text_fmt(mp_FreeRTOSInfoLabel, "%s", ac_StringBuffer);
 }
@@ -101,9 +109,13 @@ void LvTabInfo::updateLVGLInfo()
   lv_mem_monitor(&memMonitor);
 
   char ac_StringBuffer[128];
-  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Heap Memory:\n Used %u bytes,\n Free %u bytes", 
-    static_cast<unsigned int>(memMonitor.total_size - memMonitor.free_size), 
-    static_cast<unsigned int>(memMonitor.free_size));
+  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Total Heap Memory: %u bytes\n"
+                                                     "Free: %u bytes\n"
+                                                     "Used: %u%%, fragmentation: %u%%", 
+    static_cast<unsigned int>(memMonitor.total_size), 
+    static_cast<unsigned int>(memMonitor.free_size),
+    static_cast<unsigned int>(memMonitor.used_pct),
+    static_cast<unsigned int>(memMonitor.frag_pct));
 
   lv_label_set_text_fmt(mp_LVGLInfoLabel, "%s", ac_StringBuffer);
 }

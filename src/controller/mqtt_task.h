@@ -14,7 +14,7 @@
 #include "mqtt_data.h"
 #include "wifi_data.h"
 
-static const size_t MAX_MQTT_MESSAGE_SIZE = 64; // Maximum supported MQTT payload size in bytes
+static const size_t MAX_MQTT_MESSAGE_SIZE = 128; // Maximum supported MQTT payload size in bytes
 static const size_t MQTT_TASK_MESSAGE_QUEUE_SIZE = 4; // Size of the message queue for inter-task communication
 
 

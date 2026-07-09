@@ -65,22 +65,34 @@ uint32_t SurveillanceData::getTasks(void) const
 
 
 
-void SurveillanceData::setFreeHeapSize(uint32_t u32_FreeHeapSize, uint32_t u32_MinimumEverFreeHeapSize)
+void SurveillanceData::setFreeHeapSize(uint32_t u32_FreeHeapTotal, uint32_t u32_MinimumEverFreeHeap, uint32_t u32_FreeHeapInternal, uint32_t u32_FreePSRAM)
 {
   bool b_DataChanged = false;
 
   {
     std::lock_guard<std::mutex> lock(m_DataMutex);
 
-    if(mu32_FreeHeapSize != u32_FreeHeapSize)
+    if(mu32_FreeHeapSizeTotal != u32_FreeHeapTotal)
     {
-      mu32_FreeHeapSize = u32_FreeHeapSize;
+      mu32_FreeHeapSizeTotal = u32_FreeHeapTotal;
       b_DataChanged = true;
     }
 
-    if(mu32_MinimumEverFreeHeapSize != u32_MinimumEverFreeHeapSize)
+    if(mu32_MinimumEverFreeHeapSize != u32_MinimumEverFreeHeap)
     {
-      mu32_MinimumEverFreeHeapSize = u32_MinimumEverFreeHeapSize;
+      mu32_MinimumEverFreeHeapSize = u32_MinimumEverFreeHeap;
+      b_DataChanged = true;
+    }
+
+    if(mu32_FreeHeapSizeInternal != u32_FreeHeapInternal)
+    {
+      mu32_FreeHeapSizeInternal = u32_FreeHeapInternal;
+      b_DataChanged = true;
+    }
+
+    if(mu32_FreePSRAM != u32_FreePSRAM)
+    {
+      mu32_FreePSRAM = u32_FreePSRAM;
       b_DataChanged = true;
     }
   }
@@ -92,9 +104,11 @@ void SurveillanceData::setFreeHeapSize(uint32_t u32_FreeHeapSize, uint32_t u32_M
 }
 
 
-uint32_t SurveillanceData::getFreeHeapSize(void) const
+
+
+uint32_t SurveillanceData::getFreeHeapSizeTotal(void) const
 {
-  return mu32_FreeHeapSize;
+  return mu32_FreeHeapSizeTotal;
 }
 
 
@@ -102,4 +116,16 @@ uint32_t SurveillanceData::getFreeHeapSize(void) const
 uint32_t SurveillanceData::getMinimumEverFreeHeapSize(void) const
 {
   return mu32_MinimumEverFreeHeapSize;
+}
+
+
+uint32_t SurveillanceData::getFreeHeapSizeInternal(void) const
+{
+  return mu32_FreeHeapSizeInternal;
+}
+
+
+uint32_t SurveillanceData::getFreePsramSize(void) const
+{
+  return mu32_FreePSRAM;
 }
