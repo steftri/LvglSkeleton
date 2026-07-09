@@ -2,6 +2,10 @@
 
 #include "surveillance_task.h"
 
+#include "controller.h"
+
+extern Controller g_controller; // Declare the external Controller instance
+
 
 SurveillanceTask *SurveillanceTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
@@ -74,5 +78,7 @@ void SurveillanceTask::loop()
   m_Data.setTasks(uxTaskGetNumberOfTasks()); // Anzahl der Tasks aktualisieren
   m_Data.setFreeHeapSize(xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize()); // Free heap size aktualisieren
 
-   vTaskDelay(pdMS_TO_TICKS(1000UL)); // Alle 1 Sekunde aktualisieren
+  g_controller.getMqtt().publishNodeData(reinterpret_cast<uint8_t*>(&m_Data), sizeof(SurveillanceData)); 
+
+  vTaskDelay(pdMS_TO_TICKS(1000UL)); // Alle 1 Sekunde aktualisieren
 }

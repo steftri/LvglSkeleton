@@ -124,6 +124,9 @@ MqttHal::ERc MqttHal::mqttErrorToERc(int errorCode)
 
 void MqttHal::onMessage(int messageSize)
 {
+  char ac_MessageBuffer[MAX_MESSAGE_SIZE + 1]; // Buffer to hold the incoming message
+  size_t bytesRead = 0;
+
   if (mp_thisInstance == nullptr) 
   {
     Serial.println("Error: MqttHal instance not set");
@@ -131,10 +134,19 @@ void MqttHal::onMessage(int messageSize)
   }
 
   String topic = m_MqttClient.messageTopic();
-  String message = m_MqttClient.readString();
 
-  Serial.printf("MqttHal: Message received on topic %s: %s\n", topic.c_str(), message.c_str());
-  mp_thisInstance->m_actionListener.onMessageReceived(topic.c_str(), message.c_str());
+  while (m_MqttClient.available()) 
+  {
+    char c = m_MqttClient.read();
+    if(bytesRead < MAX_MESSAGE_SIZE) 
+    {
+      ac_MessageBuffer[bytesRead++] = c;
+    }
+  }
+  ac_MessageBuffer[bytesRead] = '\0'; // Null-terminate the string
+  
+  Serial.printf("MqttHal: Message received on topic %s\n", topic.c_str());
+  mp_thisInstance->m_actionListener.onMessageReceived(topic.c_str(), reinterpret_cast<const uint8_t *>(ac_MessageBuffer), bytesRead);
 }
 
 

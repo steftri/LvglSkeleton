@@ -7,17 +7,21 @@
 extern Controller g_controller; // Declare the external Controller instance
 
 
-static const size_t MAX_MQTT_BIRTH_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + SystemSettings::MAX_HOSTNAME_LENGTH;
+static const size_t MAX_NODE_ID_LENGTH = SystemSettings::MAX_HOSTNAME_LENGTH;
+static const size_t MAX_DEVICE_ID_LENGTH = 64;
+
+static const size_t MAX_MQTT_BIRTH_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + MAX_NODE_ID_LENGTH;
 static const size_t MAX_MQTT_BIRTH_MESSAGE_LENGTH = 80;
-static const size_t MAX_MQTT_LAST_WILL_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + SystemSettings::MAX_HOSTNAME_LENGTH;
+static const size_t MAX_MQTT_LAST_WILL_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + MAX_NODE_ID_LENGTH;
 static const size_t MAX_MQTT_LAST_WILL_MESSAGE_LENGTH = 80;
 
+static const size_t MAX_MQTT_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 1 + 7 + 1 + MAX_NODE_ID_LENGTH + 1 + MAX_DEVICE_ID_LENGTH;
 static const size_t MAX_MQTT_SUBSCRIBE_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + 1 + 1;
 
 
 
 MqttTask *MqttTask::mp_thisInstance = nullptr; // Initialize static instance pointer
-
+StaticQueue_t MqttTask::m_MqttStaticQueue;
 
 enum class ENotificationBits : uint32_t
 {
@@ -45,6 +49,13 @@ MqttTask::MqttTask(SystemSettings &systemSettings, MqttSettings &mqttSettings, M
 void MqttTask::begin()
 {
   Serial.println("Creating MqttTask");
+
+  m_MqttQueueHandle = xQueueCreateStatic(
+    MQTT_TASK_MESSAGE_QUEUE_SIZE,
+    sizeof(SMqttMessage),
+    reinterpret_cast<uint8_t*>(ma_MqttMessageQueueStorage),
+    &m_MqttStaticQueue
+  );
 
   mp_TaskHandle = xTaskCreateStaticPinnedToCore(
      task,                     // Task function
@@ -122,6 +133,17 @@ void MqttTask::loop(void)
     actionChangedWifiIPAddress();
   }
 
+  
+  // Check if there are any messages in the MQTT message queue
+  if(uxQueueMessagesWaiting(m_MqttQueueHandle) > 0)
+  {
+    SMqttMessage MqttMessage;
+    if (xQueueReceive(m_MqttQueueHandle, &MqttMessage, 0) == pdPASS)
+    {
+      actionPublishNodeData(MqttMessage.au8_MessageBuffer, MqttMessage.MessageSize, MqttMessage.u8_QoS, MqttMessage.b_Retain);
+    }
+  } 
+
   m_MqttHal.poll();  // handling of keepalive messages
 
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
@@ -132,6 +154,33 @@ void MqttTask::loop(void)
                   ((MQTT_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / MQTT_TASK_STACK_SIZE); 
   }
 }
+
+
+
+
+
+void MqttTask::publishNodeData(uint8_t *pu8_MessageBuffer, const size_t MessageSize, uint8_t u8_QoS, bool b_Retain)
+{
+  if(MessageSize > MAX_MQTT_MESSAGE_SIZE)
+  {
+    Serial.printf("Error: Message size %zu exceeds maximum allowed size of %zu bytes\n", MessageSize, MAX_MQTT_MESSAGE_SIZE);
+    return;
+  }
+
+  SMqttMessage MqttMessage;
+  memcpy(MqttMessage.au8_MessageBuffer, pu8_MessageBuffer, MessageSize);
+  MqttMessage.MessageSize = MessageSize;
+  MqttMessage.u8_QoS = u8_QoS;
+  MqttMessage.b_Retain = b_Retain;
+
+  if (xQueueSend(m_MqttQueueHandle, &MqttMessage, pdMS_TO_TICKS(100)) != pdPASS)
+  {
+    Serial.println("MqttTask: Failed to enqueue message for publishing");
+  }
+}
+
+
+
 
 
 
@@ -277,12 +326,25 @@ void MqttTask::actionChangedWifiConnectionState()
 }
 
 
+
 void MqttTask::actionChangedWifiIPAddress()
 {
   Serial.println("Wi-Fi IP address changed, connecting to MQTT broker...");
   connect();  
 }
 
+
+
+
+void MqttTask::actionPublishNodeData(uint8_t *pu8_MessageBuffer, const size_t MessageSize, uint8_t u8_QoS, bool b_Retain)
+{
+  char ac_Topic[MAX_MQTT_TOPIC_LENGTH + 1];
+
+  snprintf(ac_Topic, sizeof(ac_Topic), "spBv1.0/%s/NDATA/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
+  m_MqttHal.publish(ac_Topic, pu8_MessageBuffer, MessageSize, u8_QoS, b_Retain);
+
+  m_MqttData.incrementSentMessageCount();
+}
 
 
 
@@ -330,8 +392,99 @@ void MqttTask::onConnectionFailed(int32_t s32_Error)
 }
 
 
-void MqttTask::onMessageReceived(const char *topic, const char *message)
+
+void MqttTask::onMessageReceived(const char *pc_Topic, const uint8_t *pu8_MessageBuffer, const size_t MessageSize)
 {
-  Serial.printf("MQTT message received on topic \"%s\": %s\n", topic, message);
-  m_MqttData.incrementReceivedMessageCount(); // Increment the received message count in the data
+  char ac_TopicCopy[MAX_MQTT_TOPIC_LENGTH + 1] = {0};
+
+  //char *pc_GroupId = nullptr;
+  char *pc_MessageType = nullptr;
+  char *pc_NodeID = nullptr;
+  char *pc_DeviceID = nullptr;
+  //char *pc_Extra = nullptr;
+
+  Mqtt::EMessageType e_MessageType = Mqtt::EMessageType::NBIRTH; // safe default; overwritten below
+
+  if(pc_Topic == nullptr || pu8_MessageBuffer == nullptr)
+  {
+    return;
+  }
+
+  m_MqttData.incrementReceivedMessageCount();
+
+  Serial.printf("Topic: \"%s\" Content: \"%.*s\"\n", pc_Topic, static_cast<int>(MessageSize), pu8_MessageBuffer);
+
+  // we need some buffer to work with strtok, so we copy the topic into a local buffer
+  strncpy(ac_TopicCopy, pc_Topic, sizeof(ac_TopicCopy) - 1);
+  ac_TopicCopy[sizeof(ac_TopicCopy) - 1] = '\0';
+
+  const char *pc_Prefix = "spBv1.0/";
+  const size_t PrefixLen = strlen(pc_Prefix);  
+  if(strncmp(ac_TopicCopy, pc_Prefix, PrefixLen) == 0)
+  {
+    char *pc_Rest = ac_TopicCopy + PrefixLen;
+    /*pc_GroupId = */strtok(pc_Rest, "/");
+    pc_MessageType = strtok(nullptr, "/");
+    pc_NodeID = strtok(nullptr, "/");
+    pc_DeviceID = strtok(nullptr, "/");
+    //pc_Extra = strtok(nullptr, "/");
+
+    if(strcmp(pc_MessageType, "NBIRTH") == 0) 
+      e_MessageType = Mqtt::EMessageType::NBIRTH;
+    else if(strcmp(pc_MessageType, "NDEATH") == 0)
+      e_MessageType = Mqtt::EMessageType::NDEATH;
+    else if(strcmp(pc_MessageType, "NDATA") == 0)
+      e_MessageType = Mqtt::EMessageType::NDATA;
+    else if(strcmp(pc_MessageType, "NCMD") == 0)
+      e_MessageType = Mqtt::EMessageType::NCMD;
+    else if(strcmp(pc_MessageType, "DBIRTH") == 0)
+      e_MessageType = Mqtt::EMessageType::DBIRTH;
+    else if(strcmp(pc_MessageType, "DDEATH") == 0)
+      e_MessageType = Mqtt::EMessageType::DDEATH;
+    else if(strcmp(pc_MessageType, "DDATA") == 0)
+      e_MessageType = Mqtt::EMessageType::DDATA;
+    else if(strcmp(pc_MessageType, "DCMD") == 0)
+      e_MessageType = Mqtt::EMessageType::DCMD;
+    else
+    {
+      Serial.printf("Invalid/unsupported Sparkplug-B topic: %s\n", pc_Topic);
+      return; 
+    }
+  }
+  else
+  {
+    Serial.printf("MqttTask: Non-Sparkplug topic received, ignoring: %s\n", pc_Topic);
+    return;
+  }
+
+  switch(e_MessageType)
+  {
+    case Mqtt::EMessageType::NBIRTH:
+      Serial.printf("NBIRTH message from node \"%s\" received with size %d\n", pc_NodeID, static_cast<int>(MessageSize));
+      break;
+    case Mqtt::EMessageType::NDEATH:
+      Serial.printf("NDEATH message from node \"%s\" received with size %d\n", pc_NodeID, static_cast<int>(MessageSize));
+      break;
+    case Mqtt::EMessageType::NDATA:
+      Serial.printf("NDATA message from node \"%s\" received with size %d\n", pc_NodeID, static_cast<int>(MessageSize));
+      break;
+    case Mqtt::EMessageType::NCMD:
+      Serial.printf("NCMD message for node \"%s\" received with size %d\n", pc_NodeID, static_cast<int>(MessageSize));
+      break;
+    case Mqtt::EMessageType::DBIRTH:
+      Serial.printf("DBIRTH message from device \"%s/%s\" received with size %d\n", pc_NodeID, pc_DeviceID, static_cast<int>(MessageSize));
+      break;  
+    case Mqtt::EMessageType::DDEATH:
+      Serial.printf("DDEATH message from device \"%s/%s\" received with size %d\n", pc_NodeID, pc_DeviceID, static_cast<int>(MessageSize));
+      break;  
+    case Mqtt::EMessageType::DDATA:
+      Serial.printf("DDATA message from device \"%s/%s\" received with size %d\n", pc_NodeID, pc_DeviceID, static_cast<int>(MessageSize));
+      break;
+    case Mqtt::EMessageType::DCMD:
+      Serial.printf("DCMD message for device \"%s/%s\" received with size %d\n", pc_NodeID, pc_DeviceID, static_cast<int>(MessageSize));
+      break;
+    default:
+      Serial.printf("Unknown MQTT message type received; NodeID: %s, DeviceID: %s, Size: %d\n", pc_NodeID, pc_DeviceID, static_cast<int>(MessageSize));
+      break;
+  }
 }

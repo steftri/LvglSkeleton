@@ -3,6 +3,7 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <freertos/queue.h>
 
 #include "mqtt_hal.h"
 #include "interfaces/mqtt_action_interface.h"
@@ -13,7 +14,8 @@
 #include "mqtt_data.h"
 #include "wifi_data.h"
 
-
+static const size_t MAX_MQTT_MESSAGE_SIZE = 64; // Maximum supported MQTT payload size in bytes
+static const size_t MQTT_TASK_MESSAGE_QUEUE_SIZE = 4; // Size of the message queue for inter-task communication
 
 
 class MqttTask : public MqttActionInterface, public DataObserverInterface
@@ -28,6 +30,18 @@ private:
   static void task(void *pvParameters);  
   static MqttTask *mp_thisInstance; 
 
+  typedef struct
+  {
+    uint8_t au8_MessageBuffer[MAX_MQTT_MESSAGE_SIZE];
+    size_t MessageSize;
+    uint8_t u8_QoS;
+    bool b_Retain;
+  } SMqttMessage;
+
+  SMqttMessage ma_MqttMessageQueueStorage[MQTT_TASK_MESSAGE_QUEUE_SIZE];
+  static StaticQueue_t m_MqttStaticQueue;
+  QueueHandle_t m_MqttQueueHandle;
+
   MqttHal m_MqttHal;
   SystemSettings &m_SystemSettings;
   MqttSettings &m_MqttSettings;
@@ -39,8 +53,7 @@ public:
 
   void begin();
 
-  void publish(const char *pc_Topic, const uint8_t *pu8_MessageBuffer, const size_t MessageSize, uint8_t u8_QoS, bool b_Retain);
-  void subscribe(const char *pc_Topic);
+  void publishNodeData(uint8_t *pu8_MessageBuffer, const size_t MessageSize, uint8_t u8_QoS = 0, bool b_Retain = false);
 
 private:  
   void setup(void);
@@ -61,12 +74,14 @@ private:
   void actionChangeBrokerSettings();
   void actionChangeSparkplugBSettings();
 
+  void actionPublishNodeData(uint8_t *pu8_MessageBuffer, const size_t MessageSize, uint8_t u8_QoS, bool b_Retain);
+
   // MqttActionInterface implementation
   void onConnected() override;
   void onDisconnected() override;
-
-  void onMessageReceived(const char *topic, const char *message) override;
   void onConnectionFailed(int32_t s32_Error) override;
+
+  void onMessageReceived(const char *pc_Topic, const uint8_t *pu8_MessageBuffer, const size_t MessageSize) override;
 };
 
 

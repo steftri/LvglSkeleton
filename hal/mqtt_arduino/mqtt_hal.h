@@ -9,7 +9,8 @@
 
 class MqttHal : public MqttHalInterface
 {
-  static const uint8_t MAX_IDENTIFIER_LENGTH = 64; // Maximum length for the client identifier
+  static const uint8_t  MAX_IDENTIFIER_LENGTH = 64;  // Maximum length for the client identifier
+  static const uint16_t MAX_MESSAGE_SIZE      = 512; // Maximum supported MQTT payload size in bytes
 
   static WiFiClient m_MqttTcpClient;
   static MqttClient m_MqttClient;
