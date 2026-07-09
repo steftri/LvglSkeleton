@@ -24,9 +24,9 @@
  */
 class SystemSettings : public Data
 {
+public:
   static const uint8_t MAX_HOSTNAME_LENGTH = 64; ///< Maximum length of the hostname
 
-public:
   enum class ESplashScreen : uint8_t
   {
     None = 0,

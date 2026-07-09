@@ -7,6 +7,15 @@
 extern Controller g_controller; // Declare the external Controller instance
 
 
+static const size_t MAX_MQTT_BIRTH_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + SystemSettings::MAX_HOSTNAME_LENGTH;
+static const size_t MAX_MQTT_BIRTH_MESSAGE_LENGTH = 80;
+static const size_t MAX_MQTT_LAST_WILL_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + SystemSettings::MAX_HOSTNAME_LENGTH;
+static const size_t MAX_MQTT_LAST_WILL_MESSAGE_LENGTH = 80;
+
+static const size_t MAX_MQTT_SUBSCRIBE_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + 1 + 1;
+
+
+
 MqttTask *MqttTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
@@ -14,7 +23,8 @@ enum class ENotificationBits : uint32_t
 {
   ChangedBrokerSettings = (1UL << 0),
   ChangedSparkplugBSettings = (1UL << 1),
-  ChangedWifiConnectionState = (1UL << 2)
+  ChangedWifiConnectionState = (1UL << 2),
+  ChangedWifiIPAddress = (1UL << 3)
 };
 
 
@@ -107,6 +117,10 @@ void MqttTask::loop(void)
   {
     actionChangedWifiConnectionState();
   }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ChangedWifiIPAddress))
+  {
+    actionChangedWifiIPAddress();
+  }
 
   m_MqttHal.poll();  // handling of keepalive messages
 
@@ -138,7 +152,7 @@ void MqttTask::onDataChanged(Data &r_Data, EDataField e_Field)
   }
   else
   {
-    Serial.println("ViewTask: Unknown data source changed");
+    Serial.println("MqttTask: Unknown data source changed");
   }
 }
 
@@ -152,7 +166,7 @@ void MqttTask::onSystemSettingsChanged(EDataField e_Field)
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangedSparkplugBSettings), eSetBits);
       break;
     default:
-      Serial.println("MqttTask: Unknown data field changed");
+      Serial.println("MqttTask: Unknown System settings field changed");
       break;
   }
 }
@@ -171,7 +185,7 @@ void MqttTask::onMqttSettingsChanged(EDataField e_Field)
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangedSparkplugBSettings), eSetBits);
       break;  
     default:
-      Serial.println("MqttTask: Unknown data field changed");
+      Serial.println("MqttTask: Unknown MQTT settings field changed");
       break;
   }
 }
@@ -186,8 +200,12 @@ void MqttTask::onWifiDataChanged(EDataField e_Field)
       Serial.println("MqttTask: Wi-Fi connection state changed");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangedWifiConnectionState), eSetBits);
       break;
+    case WifiData::EField::IPAddress:
+      Serial.println("MqttTask: Wi-Fi IP address changed");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangedWifiIPAddress), eSetBits);
+      break;
     default:
-      Serial.println("MqttTask: Unknown data field changed");
+      Serial.println("MqttTask: Unknown Wi-Fi data field changed");
       break;
   }
 }
@@ -198,33 +216,22 @@ void MqttTask::onWifiDataChanged(EDataField e_Field)
 
 void MqttTask::connect()
 {
-  const char *pc_BrokerAddr = m_MqttSettings.getBrokerAddr();
-  uint16_t u16_BrokerPort = m_MqttSettings.getBrokerPort();
+  if(m_MqttData.getState() == MqttData::EState::Connected)
+  {
+    return; // Already connected, no need to connect again
+  }
 
-  char ac_DbgConnectMsg[80];
-  snprintf(ac_DbgConnectMsg, 80, "Trying to connect to %s:%i", pc_BrokerAddr, u16_BrokerPort);
-  Serial.println(ac_DbgConnectMsg);
-
-  m_MqttData.setState(MqttData::EState::Connecting); // Update the MQTT connection state in the data
+  m_MqttData.setState(MqttData::EState::Connecting); 
 
   // specify last will message for the broker
-  char ac_lastWillTopic[80];
-  uint8_t au8_lastWillMessage[80];
+  char ac_lastWillTopic[MAX_MQTT_LAST_WILL_TOPIC_LENGTH + 1];
+  uint8_t au8_lastWillMessage[MAX_MQTT_LAST_WILL_MESSAGE_LENGTH + 1];
 
   snprintf(ac_lastWillTopic, sizeof(ac_lastWillTopic), "spBv1.0/%s/NDEATH/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
   snprintf((char*)au8_lastWillMessage, sizeof(au8_lastWillMessage), "I am dead, Jim.");
   m_MqttHal.setLastWill(ac_lastWillTopic, au8_lastWillMessage, strlen((char*)au8_lastWillMessage), 0, false); 
 
-  if(m_MqttHal.connect(pc_BrokerAddr, u16_BrokerPort) == MqttHal::ERc::Ok)
-  {
-    m_MqttData.setState(MqttData::EState::Connected);
-  }
-  else
-  {
-    m_MqttData.setState(MqttData::EState::Error);
-    Serial.println("MQTT connection failed");
-    g_controller.getView().showMessageBox("MQTT Connection Failed", "Failed to connect to the MQTT broker. Please check the broker address and port.");
-  }
+  m_MqttHal.connect(m_MqttSettings.getBrokerAddr(), m_MqttSettings.getBrokerPort());
 }
 
 
@@ -259,8 +266,8 @@ void MqttTask::actionChangedWifiConnectionState()
 {
   if(m_WifiData.getState() == WifiData::EState::Connected)
   {
-    Serial.println("Wi-Fi connected, attempting to connect to MQTT broker...");
-    connect();
+    // wi-Fi is connected, but we need the IP adress to connect to the broker, 
+    // so we wait for the IP address notification
   }
   else
   {
@@ -270,12 +277,20 @@ void MqttTask::actionChangedWifiConnectionState()
 }
 
 
+void MqttTask::actionChangedWifiIPAddress()
+{
+  Serial.println("Wi-Fi IP address changed, connecting to MQTT broker...");
+  connect();  
+}
+
 
 
 
 void MqttTask::onConnected()
 {
-  char ac_SubscribeTopic[80];
+  char ac_SubscribeTopic[MAX_MQTT_SUBSCRIBE_TOPIC_LENGTH + 1];
+  char ac_birthTopic[MAX_MQTT_BIRTH_TOPIC_LENGTH + 1];
+  uint8_t au8_birthMessage[MAX_MQTT_BIRTH_MESSAGE_LENGTH + 1];
 
   m_MqttData.setState(MqttData::EState::Connected); // Update the MQTT connection state in the data
   Serial.println("Connected to MQTT broker");
@@ -291,32 +306,27 @@ void MqttTask::onConnected()
   m_MqttHal.subscribe(ac_SubscribeTopic); // Subscribe to all Sparkplug-B command topics for the group "ERNI"
 
   // send Spartkplug-B birth message
-  char ac_birthTopic[80];
-  uint8_t au8_birthMessage[80];
-
   snprintf(ac_birthTopic, sizeof(ac_birthTopic), "spBv1.0/%s/NBIRTH/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
   snprintf((char*)au8_birthMessage, sizeof(au8_birthMessage), "Hello from ESP32!");
 
   m_MqttHal.publish(ac_birthTopic, au8_birthMessage, strlen((char*)au8_birthMessage), 0, false); // Publish a test message to verify connection
-
 }
 
 
 
 void MqttTask::onDisconnected()
 {
-  m_MqttData.setState(MqttData::EState::Disconnected); // Update the MQTT connection state in the data
   Serial.println("Disconnected from MQTT broker");
+  m_MqttData.setState(MqttData::EState::Disconnected); // Update the MQTT connection state in the data
 }
 
 
 
-void MqttTask::onConnectionFailed(EConnectionError error)
+void MqttTask::onConnectionFailed(int32_t s32_Error)
 {
-  Serial.printf("MQTT connection failed with error: %d\n", static_cast<int>(error));
-  m_MqttData.setState(MqttData::EState::Error); // Update the MQTT connection state in the data
-
-  g_controller.getView().showMessageBox("MQTT Connection Failed", "Failed to connect to the MQTT broker. Please check the broker address and port.");
+  const char *pc_ErrorMessage = MqttHal::RcToString(static_cast<MqttHal::ERc>(s32_Error));
+  Serial.printf("MQTT connection failed with error code: %d, message: %s\n", s32_Error, pc_ErrorMessage);
+  m_MqttData.setState(MqttData::EState::Error, s32_Error, pc_ErrorMessage);
 }
 
 

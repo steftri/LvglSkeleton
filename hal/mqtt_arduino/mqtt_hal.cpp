@@ -14,28 +14,26 @@ MqttHal::MqttHal(MqttActionInterface &actionListener)
   : m_actionListener(actionListener) 
 {
   mp_thisInstance = this; // Set the static instance pointer to this instance
-
-  strncpy(mac_ClientId, WiFi.macAddress().c_str(), sizeof(mac_ClientId) - 1);
-  mac_ClientId[sizeof(mac_ClientId) - 1] = '\0'; // Ensure null termination
+  mac_ClientId[0] = '\0';
 }
 
 
 void MqttHal::setup()
 {
   Serial.println("MqttHal setup called");
+
+  strncpy(mac_ClientId, WiFi.macAddress().c_str(), sizeof(mac_ClientId) - 1);
+  mac_ClientId[sizeof(mac_ClientId) - 1] = '\0'; // Ensure null termination
+
   m_MqttClient.setId(mac_ClientId); // Set the MQTT client ID
+  m_MqttClient.setConnectionTimeout(3 * 1000);
   m_MqttClient.onMessage(MqttHal::onMessage); // Set the callback for incoming messages
 }
 
 
 MqttHal::ERc MqttHal::connect(const char *pc_BrokerAddress, uint16_t u16_BrokerPort)
 {
-  int error = 0;
-
-  if(m_MqttClient.connected())
-  {
-    return ERc::Ok; // Already connected
-  }
+  ERc rc = ERc::Ok;
 
   Serial.printf("MqttHal: Connecting to broker %s:%u\n", pc_BrokerAddress, u16_BrokerPort);
   if (m_MqttClient.connect(pc_BrokerAddress, u16_BrokerPort))
@@ -44,11 +42,10 @@ MqttHal::ERc MqttHal::connect(const char *pc_BrokerAddress, uint16_t u16_BrokerP
   }
   else
   {
-    error = m_MqttClient.connectError();
-    // TODO: Handle different error codes and notify the action listener accordingly
-    m_actionListener.onConnectionFailed(MqttActionInterface::EConnectionError::UnknownError); 
+    rc = mqttErrorToERc(m_MqttClient.connectError());
+    m_actionListener.onConnectionFailed(static_cast<int32_t>(rc)); 
   }
-  return mqttErrorToERc(error);
+  return rc;
 } 
 
 

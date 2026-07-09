@@ -33,6 +33,24 @@ public:
   virtual void subscribe(const char *pc_Topic) = 0;
 
   virtual void poll() = 0;
+
+  static const char *RcToString(ERc e_Rc)
+  {
+    switch(e_Rc)
+    {
+      case ERc::Ok: return "Ok";
+      case ERc::Error: return "Error";
+      case ERc::ConnectionRefused: return "Connection Refused";
+      case ERc::ConnectionTimeout: return "Connection Timeout";
+      case ERc::UnacceptableProtocolVersion: return "Unacceptable Protocol Version";
+      case ERc::IdentifierRejected: return "Identifier Rejected";
+      case ERc::ServerUnavailable: return "Server Unavailable";
+      case ERc::BadUserNameOrPassword: return "Bad User Name or Password";
+      case ERc::NotAuthorized: return "Not Authorized";
+      case ERc::UnknownError: return "Unknown Error";
+      default: return "Invalid Error Code";
+    }
+  }
 };
 
 

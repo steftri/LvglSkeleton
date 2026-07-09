@@ -139,7 +139,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
     }
 
     updateWlanStatePanel();
-    updateWlanSelectList(); // Populate the Wi-Fi list with available networks
+    updateWlanSelectList(); 
       
   }
 
@@ -350,6 +350,19 @@ void LvTabSettings::onInputEvent(lv_event_t *p_Event)
     {
       LV_LOG_USER("Unhandled input event for object\n");
     }
+  }
+}
+
+
+void LvTabSettings::onInputEventSplashScreen(lv_event_t *p_Event)
+{
+  lv_event_code_t code = lv_event_get_code(p_Event);
+  LvTabSettings *p_This = static_cast<LvTabSettings*>(lv_event_get_user_data(p_Event));
+
+  if(code == LV_EVENT_VALUE_CHANGED)
+  {
+    uint8_t u8_SelectedIndex = lv_dropdown_get_selected(p_This->m_System.mp_SplashScreen);
+    p_This->onInputSystemSplashScreen(u8_SelectedIndex);
   }
 }
 

@@ -18,10 +18,12 @@
  */
 class MqttSettings : public Data
 {
+public:
   static const uint8_t MAX_BROKER_ADDR_LENGTH = 64; ///< Maximum length of the broker address.
-  static const uint16_t DEFAULT_BROKER_PORT = 1883; ///< Default port number for the MQTT broker.
-
   static const uint8_t MAX_GROUP_ID_LENGTH = 32; ///< Maximum length of the Sparkplug-B Group ID
+
+private:
+  static const uint16_t DEFAULT_BROKER_PORT = 1883; ///< Default port number for the MQTT broker.
 
   char mac_BrokerAddr[MAX_BROKER_ADDR_LENGTH+1]; ///< Broker address.
   uint16_t mu16_BrokerPort; ///< Broker port.

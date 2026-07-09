@@ -36,6 +36,7 @@ class LvTabSettings
   } m_Mqtt;
 
 private:
+  static void onInputEventSplashScreen(lv_event_t *p_Event);
   static void onInputEvent(lv_event_t *p_Event);
 
   void onInputSystemHostName(const char *pc_HostName);

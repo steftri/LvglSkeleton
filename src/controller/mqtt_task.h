@@ -57,6 +57,7 @@ private:
   
   // Thread-internal methods to perform actions based on notifications
   void actionChangedWifiConnectionState();
+  void actionChangedWifiIPAddress();
   void actionChangeBrokerSettings();
   void actionChangeSparkplugBSettings();
 
@@ -65,7 +66,7 @@ private:
   void onDisconnected() override;
 
   void onMessageReceived(const char *topic, const char *message) override;
-  void onConnectionFailed(EConnectionError error) override;
+  void onConnectionFailed(int32_t s32_Error) override;
 };
 
 

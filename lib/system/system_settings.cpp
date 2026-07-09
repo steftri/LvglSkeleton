@@ -55,11 +55,20 @@ void SystemSettings::init(void)
  */
 void SystemSettings::setSplashScreen(ESplashScreen e_SplashScreen)
 {
-  std::lock_guard<std::mutex> lock(m_DataMutex);
+  bool b_Changed = false;
 
-  if(me_SplashScreen != e_SplashScreen)
   {
-    me_SplashScreen = e_SplashScreen;
+    std::lock_guard<std::mutex> lock(m_DataMutex);
+
+    if(me_SplashScreen != e_SplashScreen)
+    {
+      me_SplashScreen = e_SplashScreen;
+      b_Changed = true;
+    }
+  }
+
+  if(b_Changed)
+  {
     notifyObservers(static_cast<EDataField>(EField::SplashScreen)); // Notify observers that the splash screen setting has changed
   }
 }
@@ -88,12 +97,21 @@ SystemSettings::ESplashScreen SystemSettings::getSplashScreen(void) const
  */
 void SystemSettings::setHostName(const char *pc_HostName)
 {
-  std::lock_guard<std::mutex> lock(m_DataMutex);
+  bool b_Changed = false;
 
-  if(strncmp(mac_HostName, pc_HostName, MAX_HOSTNAME_LENGTH) != 0)
   {
-    strncpy(mac_HostName, pc_HostName, MAX_HOSTNAME_LENGTH);
-    mac_HostName[MAX_HOSTNAME_LENGTH] = '\0'; // Ensure null-termination
+    std::lock_guard<std::mutex> lock(m_DataMutex);
+
+    if(strncmp(mac_HostName, pc_HostName, MAX_HOSTNAME_LENGTH) != 0)
+    {
+      strncpy(mac_HostName, pc_HostName, MAX_HOSTNAME_LENGTH);
+      mac_HostName[MAX_HOSTNAME_LENGTH] = '\0'; // Ensure null-termination
+      b_Changed = true;
+    }
+  }
+
+  if(b_Changed)
+  {
     notifyObservers(static_cast<EDataField>(EField::HostName)); // Notify observers that the hostname has changed
   }
 }
@@ -130,11 +148,13 @@ uint16_t SystemSettings::serialize(uint8_t *pu8_Buffer, const uint16_t u16_Buffe
   if((!pu8_Buffer) || (u16_BufferSize<SYSTEM_SETTINGS_SIZE))
     return 0;
 
-  std::lock_guard<std::mutex> lock(m_DataMutex);  
+  {
+    std::lock_guard<std::mutex> lock(m_DataMutex);  
 
-  pu8_Buffer[u16_BufferPos++] = static_cast<uint8_t>(me_SplashScreen);
-  for(auto i=0; i<MAX_HOSTNAME_LENGTH; i++)
-    pu8_Buffer[u16_BufferPos++] = mac_HostName[i];
+    pu8_Buffer[u16_BufferPos++] = static_cast<uint8_t>(me_SplashScreen);
+    for(auto i=0; i<MAX_HOSTNAME_LENGTH; i++)
+      pu8_Buffer[u16_BufferPos++] = mac_HostName[i];
+  }
 
   return u16_BufferPos;
 }
@@ -159,13 +179,15 @@ void SystemSettings::unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_S
 {
   uint16_t u16_BufferPos = 0;
 
-  std::lock_guard<std::mutex> lock(m_DataMutex);
-
   if((!pu8_Buffer) || (u16_Size<SYSTEM_SETTINGS_SIZE))
     return;
 
-  me_SplashScreen = static_cast<ESplashScreen>(pu8_Buffer[u16_BufferPos++]);
-  for(auto i=0; i<MAX_HOSTNAME_LENGTH; i++)
-    mac_HostName[i] = pu8_Buffer[u16_BufferPos++];
-  mac_HostName[MAX_HOSTNAME_LENGTH] = '\0'; // Ensure null-termination
+  {
+    std::lock_guard<std::mutex> lock(m_DataMutex);
+
+    me_SplashScreen = static_cast<ESplashScreen>(pu8_Buffer[u16_BufferPos++]);
+    for(auto i=0; i<MAX_HOSTNAME_LENGTH; i++)
+      mac_HostName[i] = pu8_Buffer[u16_BufferPos++];
+    mac_HostName[MAX_HOSTNAME_LENGTH] = '\0'; // Ensure null-termination
+  }
 }
