@@ -18,11 +18,12 @@ enum class ENotificationBits : uint32_t
   EnableState = (1UL << 1),
   WifiConnectionState = (1UL << 2),
   IPAddress = (1UL << 3),
-  SurveillanceStats = (1UL << 4),
-  LVGLStats = (1UL << 5),
-  MQTTConnectionState = (1UL << 6),
-  MQTTStats = (1UL << 7),
-  MQTTError = (1UL << 8)
+  WIFIError = (1UL << 4),
+  SurveillanceStats = (1UL << 5),
+  LVGLStats = (1UL << 6),
+  MQTTConnectionState = (1UL << 7),
+  MQTTStats = (1UL << 8),
+  MQTTError = (1UL << 9)
 };
 
 
@@ -148,6 +149,11 @@ void ViewTask::loop()
   {
     onUpdateSettingsIPAddress();
   }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::WIFIError))
+  {
+    DataContainer &r_DataContainer = g_controller.getModel().getData();
+    onShowMessageBox("Wi-Fi Error", r_DataContainer.getWifiData().getLastErrorMessage());
+  }
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::SurveillanceStats))
   {
     onUpdateInfoSurveillanceStats();
@@ -233,8 +239,12 @@ void ViewTask::onWIFIDataChanged(EDataField e_Field)
       Serial.println("ViewTask: IP address updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::IPAddress), eSetBits);
       break;
+    case WifiData::EField::LastError:
+      Serial.println("ViewTask: Wi-Fi last error updated");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::WIFIError), eSetBits);
+      break;
     default:
-      Serial.println("ViewTask: Unknown data field changed");
+      Serial.println("ViewTask: Unknown Wi-Fi data field changed");
       break;
   }
 }

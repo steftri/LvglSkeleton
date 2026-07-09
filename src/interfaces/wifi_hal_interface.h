@@ -26,6 +26,8 @@ public:
   virtual bool isConnected() const = 0;
   virtual void getIPAddress(char* pc_buffer, size_t bufferSize) const = 0;
   virtual int getSignalStrength() const = 0;
+
+  virtual const char *disconnectReasonToString(uint8_t u8_Reason) const = 0;  
 };
 
 

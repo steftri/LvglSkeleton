@@ -96,12 +96,13 @@ void WifiHal::connect(const char* ssid, const char* password)
   else
   {
     mb_Connected = false;
-    mr_ActionListener.onWifiConnectionFailed(WifiActionInterface::EWifiConnectionError::WrongPassword);
+    mr_ActionListener.onWifiConnectionFailed(static_cast<uint8_t>(EWifiConnectionError::WrongPassword));
   }
 }
 
 void WifiHal::disconnect()
 {
+  mb_Connected = false;
   mr_ActionListener.onWifiDisconnected();
 }
 
@@ -113,6 +114,7 @@ bool WifiHal::isConnected() const
 void WifiHal::getIPAddress(char* buffer, size_t bufferSize) const
 {
   strncpy(buffer, "192.168.178.33", bufferSize);
+  buffer[bufferSize - 1] = 0;
 }
 
 
@@ -122,3 +124,20 @@ int WifiHal::getSignalStrength() const
   return 0; // Placeholder
 }
 
+
+const char *WifiHal::disconnectReasonToString(uint8_t u8_Reason) const
+{
+  switch(u8_Reason)
+  {
+    case static_cast<uint8_t>(EWifiConnectionError::None):
+      return "No error";
+    case static_cast<uint8_t>(EWifiConnectionError::WrongPassword):
+      return "Wrong password";
+    case static_cast<uint8_t>(EWifiConnectionError::NetworkNotFound):
+      return "Network not found";
+    case static_cast<uint8_t>(EWifiConnectionError::Timeout):
+      return "Connection timeout";
+    default:
+      return "Unknown error";
+  }
+}  

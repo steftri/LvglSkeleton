@@ -58,7 +58,7 @@ private:
   void onWifiConnected() override;
   void onWifiDisconnected() override;
   void onWifiGotIP() override;
-  void onWifiConnectionFailed(EWifiConnectionError error) override;
+  void onWifiConnectionFailed(uint8_t u8_Reason) override;
 };
 
 

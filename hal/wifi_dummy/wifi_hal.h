@@ -11,6 +11,14 @@ class WifiHal : public WifiHalInterface
   bool mb_Connected;
   bool mb_NetworksFound;
 
+  enum class EWifiConnectionError : uint8_t
+  {
+    None = 0,
+    WrongPassword,
+    NetworkNotFound,
+    Timeout
+  };
+
 public:
   WifiHal(WifiActionInterface &actionListener);
   ~WifiHal() = default;
@@ -32,6 +40,8 @@ public:
   bool isConnected() const override;
   void getIPAddress(char* buffer, size_t bufferSize) const override;
   int getSignalStrength() const override;
+
+  const char *disconnectReasonToString(uint8_t u8_Reason) const override;
 };
 
 #endif // WIFI_H

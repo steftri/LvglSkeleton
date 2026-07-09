@@ -192,7 +192,7 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 
     // MQTT Sparkplug-B Group ID
     lv_obj_t *p_MqttGroupIdLabel = lv_label_create(p_MqttPanel);
-    lv_label_set_text(p_MqttGroupIdLabel, "Group");
+    lv_label_set_text(p_MqttGroupIdLabel, "Group ID");
     lv_obj_set_grid_cell(p_MqttGroupIdLabel, LV_GRID_ALIGN_START, 0, 1, //column
                                           LV_GRID_ALIGN_CENTER, 3, 1); //row
 

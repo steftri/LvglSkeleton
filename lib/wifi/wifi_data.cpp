@@ -50,27 +50,41 @@ bool WifiData::isEnabled() const
 
 
 
-void WifiData::setState(EState e_State)
+void WifiData::setState(EState e_State, uint8_t u8_ErrorCode, const char *pc_ErrorMessage)
 {
-  bool b_Changed = false;
+  bool b_StateChanged = false;
+  bool b_ErrorChanged = false;
 
   {
     std::lock_guard<std::mutex> lock(m_DataMutex);
-    
     if(me_State != e_State)
     {
       me_State = e_State;
-      if(e_State != EState::Connected)
+      b_StateChanged = true;
+    }
+    if(e_State == EState::Error)
+    {
+      mu8_LastErrorCode = u8_ErrorCode;
+      if(pc_ErrorMessage != nullptr)
       {
-        mac_IPAddress[0] = '\0'; // Clear IP address when not connected
+        strncpy(mac_LastErrorMessage, pc_ErrorMessage, sizeof(mac_LastErrorMessage) - 1);
+        mac_LastErrorMessage[sizeof(mac_LastErrorMessage) - 1] = '\0'; // Ensure null-termination
       }
-      b_Changed = true;
+      else
+      {
+        mac_LastErrorMessage[0] = '\0'; // Clear the last error message if none provided
+      }
+      b_ErrorChanged = true;
     }
   }
 
-  if(b_Changed)
+  if(b_StateChanged)
   {
     notifyObservers(static_cast<EDataField>(EField::ConnectionState));
+    if(b_ErrorChanged)
+    {
+      notifyObservers(static_cast<EDataField>(EField::LastError));
+    }
   }
 }
 
@@ -79,6 +93,20 @@ void WifiData::setState(EState e_State)
 WifiData::EState WifiData::getState(void) const
 {
   return me_State;
+}
+
+
+
+uint8_t WifiData::getLastErrorCode(void) const
+{
+  return mu8_LastErrorCode;
+}
+
+
+
+const char *WifiData::getLastErrorMessage(void) const
+{
+  return mac_LastErrorMessage;
 }
 
 

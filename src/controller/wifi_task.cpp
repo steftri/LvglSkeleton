@@ -307,13 +307,14 @@ void WifiTask::onWifiGotIP()
 
 
 
-void WifiTask::onWifiConnectionFailed(EWifiConnectionError error)
+void WifiTask::onWifiConnectionFailed(uint8_t u8_Reason)
 {
-  Serial.printf("Wi-Fi connection failed with error: %d\n", static_cast<int>(error));
+  const char *pc_ReasonString = m_WifiHal.disconnectReasonToString(u8_Reason);
 
-  m_WifiData.setState(WifiData::EState::Error);
+  Serial.printf("Wi-Fi connection failed with error: %d (%s)\n", static_cast<int>(u8_Reason), pc_ReasonString);
 
-  g_controller.getView().showMessageBox("Wi-Fi", "Connection failed. Please check your settings and try again.");
+  m_WifiData.setState(WifiData::EState::Error, u8_Reason, pc_ReasonString); // Update the Wi-Fi connection state in the data with error details
+  m_WifiSettings.setConnect(false); // Update the connect state in the settings to reflect
 }
 
 

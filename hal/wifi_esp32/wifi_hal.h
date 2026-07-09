@@ -12,7 +12,21 @@ public:
   WifiHal(WifiActionInterface &actionListener);
   ~WifiHal() = default;
 
-  void setup() override;
+  enum class ERc : int32_t
+  {
+    Ok = 0,
+    Error = -1,
+    ConnectionRefused = -2,
+    ConnectionTimeout = -3,
+    UnacceptableProtocolVersion = -4,
+    IdentifierRejected = -5,
+    ServerUnavailable = -6,
+    BadUserNameOrPassword = -7,
+    NotAuthorized = -8,
+    UnknownError = -9
+  };  
+
+  void setup() override;  
 
   void enable() override;
   void disable() override;
@@ -30,6 +44,8 @@ public:
   void getIPAddress(char* pc_buffer, size_t bufferSize) const override;
   int getSignalStrength() const override;
 
+  const char *disconnectReasonToString(uint8_t u8_Reason) const override;
+   
 private:
   static WifiHal *mp_thisInstance; // Static instance pointer for task access
   WifiActionInterface &m_actionListener; // Reference to the action listener

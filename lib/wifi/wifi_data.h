@@ -10,15 +10,17 @@
 class WifiData : public Data
 {
 public:
-  static const uint8_t MAX_WIFI_NETWORKS = 16; ///< Maximum number of Wi-Fi networks
-  static const uint8_t MAX_SSID_LENGTH = 32; ///< Maximum length of SSID (excluding null terminator)
-  static const uint8_t MAX_WPA2_PASSWORD_LENGTH = 63; ///< Maximum length of WPA2 password
-  static const uint8_t MAX_IP_ADDRESS_LENGTH = 15; ///< Maximum length of IP address string (excluding null terminator)
+  static const size_t MAX_WIFI_NETWORKS = 16; ///< Maximum number of Wi-Fi networks
+  static const size_t MAX_SSID_LENGTH = 32; ///< Maximum length of SSID (excluding null terminator)
+  static const size_t MAX_WPA2_PASSWORD_LENGTH = 63; ///< Maximum length of WPA2 password
+  static const size_t MAX_IP_ADDRESS_LENGTH = 15; ///< Maximum length of IP address string (excluding null terminator)
+  static const size_t MAX_ERROR_MESSAGE_LENGTH = 64; ///< Maximum length of the error message
 
   enum class EField : uint8_t 
   { 
     EnableState = 0,
     ConnectionState,
+    LastError,
     AvailableNetworks, 
     SelectedNetwork, 
     IPAddress
@@ -35,6 +37,10 @@ public:
 private:
   bool mb_Enabled; ///< Indicates whether Wi-Fi is enabled or disabled
   EState me_State; ///< Current state of the Wi-Fi connection
+
+  uint8_t mu8_LastErrorCode; ///< Last error code encountered
+  char mac_LastErrorMessage[MAX_ERROR_MESSAGE_LENGTH+1]; ///< Last error message encountered
+
 
   char mac_AvailableNetworks[MAX_WIFI_NETWORKS][MAX_SSID_LENGTH + 1]; ///< SSID of the Wi-Fi network
   uint8_t mu8_NumberOfAvaliableNetworks; ///< Number of available Wi-Fi networks
@@ -54,8 +60,10 @@ public:
   void setEnable(bool b_Enable);
   bool isEnabled() const;
 
-  void setState(EState e_State);
+  void setState(EState e_State, uint8_t u8_ErrorCode = 0, const char *pc_ErrorMessage = nullptr);
   EState getState(void) const;
+  uint8_t getLastErrorCode(void) const;
+  const char *getLastErrorMessage(void) const;
 
   void setAvaliableNetworks(const char **ppc_Networks, uint8_t u8_NetworkCount);
 
