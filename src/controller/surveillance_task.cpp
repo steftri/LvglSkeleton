@@ -21,6 +21,7 @@ SurveillanceTask::SurveillanceTask(SurveillanceData &data)
 void SurveillanceTask::begin()
 {
   Serial.println("Creating SurveillanceTask");
+  
   mp_TaskHandle = xTaskCreateStaticPinnedToCore(
      task,                     // Task function
      "Surveillance",           // Task name

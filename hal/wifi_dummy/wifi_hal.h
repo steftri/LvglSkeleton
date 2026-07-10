@@ -42,6 +42,9 @@ public:
   int getSignalStrength() const override;
 
   const char *disconnectReasonToString(uint8_t u8_Reason) const override;
+
+  void configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer) override;
+  int32_t getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs = 5000) const override;  
 };
 
 #endif // WIFI_H

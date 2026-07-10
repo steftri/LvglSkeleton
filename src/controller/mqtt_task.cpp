@@ -136,7 +136,6 @@ void MqttTask::loop(void)
     actionChangedWifiIPAddress();
   }
 
-
   if (m_WifiData.getState() == WifiData::EState::Connected && m_MqttData.getState() != MqttData::EState::Connected 
       && (currentTime - lastConnectionCheckTime >= MQTT_CONNECTION_RETRY_INTERVAL_MS)) 
   {
@@ -158,7 +157,7 @@ void MqttTask::loop(void)
   } 
 
   m_MqttHal.poll();  // handling of keepalive messages
-
+  
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
     lastUpdateTime = currentTime;

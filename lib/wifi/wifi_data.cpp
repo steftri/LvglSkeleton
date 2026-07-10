@@ -1,5 +1,6 @@
 #include "wifi_data.h"
 #include <cstring>
+#include <ctime>
 
 
 WifiData::WifiData()
@@ -366,5 +367,5 @@ void WifiData::getLocalTime(struct tm *p_Timeinfo)
 
   std::lock_guard<std::mutex> lock(m_DataMutex);
   time_t currentTime = time(nullptr) + m_UtcTimeOffset;
-  localtime_r(&currentTime, p_Timeinfo);
+  memcpy(p_Timeinfo, localtime(&currentTime), sizeof(struct tm)); // Convert to local time and copy to the provided structure
 }

@@ -30,8 +30,8 @@ void LvMain::setup(void)
   {
     lv_obj_remove_style_all(p_Grid);
 
-    lv_coord_t a_ColumnDesc[] = {lv_pct(100), LV_GRID_TEMPLATE_LAST}; 
-    lv_coord_t a_RowDesc[] = {SCREEN_BAR_HEIGHT, lv_pct(100)-SCREEN_BAR_HEIGHT, LV_GRID_TEMPLATE_LAST}; 
+    static const lv_coord_t a_ColumnDesc[] = {lv_pct(100), LV_GRID_TEMPLATE_LAST}; 
+    static const lv_coord_t a_RowDesc[] = {SCREEN_BAR_HEIGHT, lv_pct(100)-SCREEN_BAR_HEIGHT, LV_GRID_TEMPLATE_LAST}; 
     lv_obj_set_grid_dsc_array(p_Grid, a_ColumnDesc, a_RowDesc);
     lv_obj_set_size(p_Grid, lv_pct(100), lv_pct(100)); // Set the grid to fill the screen
     lv_obj_set_layout(p_Grid, LV_LAYOUT_GRID);

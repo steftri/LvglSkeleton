@@ -9,7 +9,7 @@
 static const uint8_t NUMBER_OF_NETWORKS = 3;
 
 
-static const TickType_t CONNECTION_TIME_TICKS = 3000 / portTICK_PERIOD_MS;
+static const TickType_t CONNECTION_TIME_TICKS = 2000 / portTICK_PERIOD_MS;
 static const TickType_t IP_FETCH_TIME_TICKS = 1000 / portTICK_PERIOD_MS;
 static const TickType_t NETWORK_SCAN_TIME_TICKS = 1000 / portTICK_PERIOD_MS;
 
@@ -141,3 +141,19 @@ const char *WifiHal::disconnectReasonToString(uint8_t u8_Reason) const
       return "Unknown error";
   }
 }  
+
+
+void WifiHal::configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer)
+{
+  (void)s32_GmtOffset;
+  (void)s32_DstOffset;
+  (void)pc_NtpServer;
+}
+
+
+int32_t WifiHal::getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs) const
+{
+  (void)p_Timeinfo;
+  (void)u32_TimeoutMs;
+  return 0; // Placeholder
+}

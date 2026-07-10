@@ -84,13 +84,21 @@ void LvTabInfo::updateFreeRTOSInfo()
   char ac_Uptime[64];
   char ac_StringBuffer[384];
   struct tm *p_Timeinfo;
-  char ac_TimeBuffer[64];
+  char ac_TimeBuffer[64]= {0};
 
+  
   time_t currentTime = g_controller.getModel().getData().getWifiData().getTime();
   p_Timeinfo = localtime(&currentTime);
-  snprintf(ac_TimeBuffer, sizeof(ac_TimeBuffer), "%04d-%02d-%02d %02d:%02d:%02d", 
-           p_Timeinfo->tm_year + 1900, p_Timeinfo->tm_mon + 1, p_Timeinfo->tm_mday,
-           p_Timeinfo->tm_hour, p_Timeinfo->tm_min, p_Timeinfo->tm_sec);
+  if(p_Timeinfo == nullptr)
+  {
+    snprintf(ac_TimeBuffer, sizeof(ac_TimeBuffer), "Error retrieving time (time_t: %ld)", currentTime);
+  }
+  else
+  {
+    snprintf(ac_TimeBuffer, sizeof(ac_TimeBuffer), "%04d-%02d-%02d %02d:%02d:%02d", 
+             p_Timeinfo->tm_year + 1900, p_Timeinfo->tm_mon + 1, p_Timeinfo->tm_mday,
+             p_Timeinfo->tm_hour, p_Timeinfo->tm_min, p_Timeinfo->tm_sec);
+  }
 
   snprintf(ac_Uptime, sizeof(ac_Uptime), "%uh %02um %02us", 
      r_SurveillanceData.getUptime() / 3600, (r_SurveillanceData.getUptime() % 3600) / 60, r_SurveillanceData.getUptime() % 60);
