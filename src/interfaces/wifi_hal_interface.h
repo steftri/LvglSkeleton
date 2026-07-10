@@ -3,6 +3,8 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+#include <time.h>
+
 
 class WifiHalInterface
 {
@@ -28,6 +30,9 @@ public:
   virtual int getSignalStrength() const = 0;
 
   virtual const char *disconnectReasonToString(uint8_t u8_Reason) const = 0;  
+
+  virtual void configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer) = 0;
+  virtual int32_t getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs = 5000) const = 0;
 };
 
 

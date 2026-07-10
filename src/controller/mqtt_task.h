@@ -69,6 +69,7 @@ private:
   void onWifiDataChanged(EDataField e_Field);  
   
   // Thread-internal methods to perform actions based on notifications
+  void actionConnect();
   void actionChangedWifiConnectionState();
   void actionChangedWifiIPAddress();
   void actionChangeBrokerSettings();

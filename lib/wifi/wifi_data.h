@@ -23,7 +23,8 @@ public:
     LastError,
     AvailableNetworks, 
     SelectedNetwork, 
-    IPAddress
+    IPAddress,
+    Time
   };
 
   enum class EState
@@ -53,6 +54,9 @@ private:
 
   char mac_IPAddress[MAX_IP_ADDRESS_LENGTH + 1]; ///< IP address of the device
 
+  time_t m_UtcTimeOffset; ///< Last time offset between the uptime and the UTC time in seconds
+  struct tm m_TimeInfo;
+
 public:
   WifiData();
   ~WifiData() = default;
@@ -77,6 +81,10 @@ public:
 
   void setIPAddress(const char *pc_IPAddress);
   void getIPAddress(char *pc_IPAddress, const size_t bufferSize);
+
+  void setLocalTime(const struct tm &r_Timeinfo);
+  time_t getTime();
+  void getLocalTime(struct tm *p_Timeinfo);
 };
 
 #endif // WIFI_DATA_H

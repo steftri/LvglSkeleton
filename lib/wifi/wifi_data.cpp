@@ -323,3 +323,48 @@ void WifiData::getIPAddress(char *pc_IPAddress, const size_t bufferSize)
   strncpy(pc_IPAddress, mac_IPAddress, bufferSize - 1);
   pc_IPAddress[bufferSize - 1] = '\0'; // Ensure null-termination
 }
+
+
+
+void WifiData::setLocalTime(const struct tm &r_Timeinfo)
+{
+  bool b_Changed = false;
+
+  {
+    std::lock_guard<std::mutex> lock(m_DataMutex);
+
+    if(memcmp(&m_TimeInfo, &r_Timeinfo, sizeof(struct tm)) != 0)
+    {
+      m_TimeInfo = r_Timeinfo;
+      m_UtcTimeOffset = mktime(&m_TimeInfo) - time(nullptr); // Calculate the UTC time offset
+      b_Changed = true;
+    }
+  }
+
+  if(b_Changed)
+  {
+    notifyObservers(static_cast<EDataField>(EField::Time));
+  }
+}
+
+
+
+time_t WifiData::getTime()
+{
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+  return time(nullptr) + m_UtcTimeOffset; // Return the current time adjusted by the UTC offset
+}
+
+
+
+void WifiData::getLocalTime(struct tm *p_Timeinfo)
+{
+  if(p_Timeinfo == nullptr)
+  {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(m_DataMutex);
+  time_t currentTime = time(nullptr) + m_UtcTimeOffset;
+  localtime_r(&currentTime, p_Timeinfo);
+}

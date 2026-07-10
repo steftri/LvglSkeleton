@@ -18,6 +18,8 @@ static const size_t MAX_MQTT_LAST_WILL_MESSAGE_LENGTH = 80;
 static const size_t MAX_MQTT_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 1 + 7 + 1 + MAX_NODE_ID_LENGTH + 1 + MAX_DEVICE_ID_LENGTH;
 static const size_t MAX_MQTT_SUBSCRIBE_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + 1 + 1;
 
+static const uint32_t MQTT_CONNECTION_RETRY_INTERVAL_MS = 5000; // Retry interval for MQTT connection attempts
+
 
 
 MqttTask *MqttTask::mp_thisInstance = nullptr; // Initialize static instance pointer
@@ -112,6 +114,7 @@ void MqttTask::setup(void)
 void MqttTask::loop(void)
 {
   static uint32_t lastUpdateTime = 0;
+  static uint32_t lastConnectionCheckTime = 0;
   uint32_t currentTime = millis();
   uint32_t u32_NotifiedValue = 0;
 
@@ -133,6 +136,13 @@ void MqttTask::loop(void)
     actionChangedWifiIPAddress();
   }
 
+
+  if (m_WifiData.getState() == WifiData::EState::Connected && m_MqttData.getState() != MqttData::EState::Connected 
+      && (currentTime - lastConnectionCheckTime >= MQTT_CONNECTION_RETRY_INTERVAL_MS)) 
+  {
+    lastConnectionCheckTime = currentTime;
+    actionConnect();
+  }
   
   // Check if there are any messages in the MQTT message queue
   if(uxQueueMessagesWaiting(m_MqttQueueHandle) > 0)
@@ -140,7 +150,10 @@ void MqttTask::loop(void)
     SMqttMessage MqttMessage;
     if (xQueueReceive(m_MqttQueueHandle, &MqttMessage, 0) == pdPASS)
     {
-      actionPublishNodeData(MqttMessage.au8_MessageBuffer, MqttMessage.MessageSize, MqttMessage.u8_QoS, MqttMessage.b_Retain);
+      if(m_MqttData.getState() == MqttData::EState::Connected)
+      {
+        actionPublishNodeData(MqttMessage.au8_MessageBuffer, MqttMessage.MessageSize, MqttMessage.u8_QoS, MqttMessage.b_Retain);
+      }
     }
   } 
 
@@ -289,6 +302,14 @@ void MqttTask::disconnect()
 {
   Serial.println("Disconnecting from MQTT broker");
   m_MqttHal.disconnect(); 
+}
+
+
+
+void MqttTask::actionConnect()
+{
+  Serial.println("MqttTask: Connecting to MQTT broker...");
+  connect();
 }
 
 

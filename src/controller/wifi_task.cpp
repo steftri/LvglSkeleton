@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+
 #include "wifi_task.h"
 
 #include "controller.h"
@@ -139,6 +140,7 @@ void WifiTask::loop(void)
 {
   static uint32_t lastScanTime = 0;
   static uint32_t lastUpdateTime = 0;
+  static uint32_t lastTimeSyncCheck = 0;
   uint32_t currentTime = millis();
   uint32_t u32_NotifiedValue = 0;
 
@@ -158,6 +160,21 @@ void WifiTask::loop(void)
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::Disconnect))
   {
     actionDisconnect();
+  }
+
+
+
+  if (currentTime - lastTimeSyncCheck >= 60*1000UL) // Check time sync every 60 seconds
+  {
+    if(m_WifiData.isEnabled() && m_WifiData.getState() == WifiData::EState::Connected) 
+    {
+      struct tm timeinfo;
+      if (m_WifiHal.getLocalTime(&timeinfo, 1000) == 0) // Timeout of 1000 ms
+      {
+        m_WifiData.setLocalTime(timeinfo); // Update the time in WifiData
+      }
+      lastTimeSyncCheck = currentTime;
+    }
   }
 
   if (currentTime - lastScanTime >= 10*1000UL) // Scan every 10 seconds
@@ -303,6 +320,8 @@ void WifiTask::onWifiGotIP()
 
   m_WifiData.setState(WifiData::EState::Connected);  
   m_WifiData.setIPAddress(ac_IPAddress);
+
+  m_WifiHal.configTime(60*60, 60*60, "pool.ntp.org"); // Set timezone offset and NTP servers
 }
 
 

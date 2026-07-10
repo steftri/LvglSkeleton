@@ -82,20 +82,34 @@ void LvTabInfo::updateFreeRTOSInfo()
   SurveillanceData &r_SurveillanceData = g_controller.getModel().getData().getSurveillanceData();
 
   char ac_Uptime[64];
-  char ac_StringBuffer[256];  
+  char ac_StringBuffer[384];
+  struct tm *p_Timeinfo;
+  char ac_TimeBuffer[64];
+
+  time_t currentTime = g_controller.getModel().getData().getWifiData().getTime();
+  p_Timeinfo = localtime(&currentTime);
+  snprintf(ac_TimeBuffer, sizeof(ac_TimeBuffer), "%04d-%02d-%02d %02d:%02d:%02d", 
+           p_Timeinfo->tm_year + 1900, p_Timeinfo->tm_mon + 1, p_Timeinfo->tm_mday,
+           p_Timeinfo->tm_hour, p_Timeinfo->tm_min, p_Timeinfo->tm_sec);
 
   snprintf(ac_Uptime, sizeof(ac_Uptime), "%uh %02um %02us", 
      r_SurveillanceData.getUptime() / 3600, (r_SurveillanceData.getUptime() % 3600) / 60, r_SurveillanceData.getUptime() % 60);
 
-  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "Uptime: %s\nTasks: %u\n"
+  snprintf(ac_StringBuffer, sizeof(ac_StringBuffer), "%s\nUptime: %s\nTasks: %u\n"
                                                      "Free heap total: %u bytes\n"
                                                      "Minimum ever: %u bytes\n"
                                                      "Free internal heap: %u bytes\n"
                                                      "Total PSRAM memory: %u bytes\n"
                                                      "Free PSRAM memory: %u bytes", 
-          ac_Uptime, r_SurveillanceData.getTasks(), 
+          ac_TimeBuffer, ac_Uptime, r_SurveillanceData.getTasks(), 
           r_SurveillanceData.getFreeHeapSizeTotal(), r_SurveillanceData.getMinimumEverFreeHeapSize(), 
-          r_SurveillanceData.getFreeHeapSizeInternal(), ESP.getPsramSize(), r_SurveillanceData.getFreePsramSize());      
+          r_SurveillanceData.getFreeHeapSizeInternal(), 
+#ifdef ESP32
+          ESP.getPsramSize(),
+#else          
+          0,
+#endif           
+          r_SurveillanceData.getFreePsramSize());      
 
   lv_label_set_text_fmt(mp_FreeRTOSInfoLabel, "%s", ac_StringBuffer);
 }

@@ -2,6 +2,7 @@
 #define WIFI_HAL_H
 
 #include <WiFi.h>
+#include <time.h>
 
 #include "interfaces/wifi_hal_interface.h"
 #include "interfaces/wifi_action_interface.h"
@@ -45,7 +46,10 @@ public:
   int getSignalStrength() const override;
 
   const char *disconnectReasonToString(uint8_t u8_Reason) const override;
-   
+
+  void configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer) override;
+  int32_t getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs = 5000) const override;
+
 private:
   static WifiHal *mp_thisInstance; // Static instance pointer for task access
   WifiActionInterface &m_actionListener; // Reference to the action listener

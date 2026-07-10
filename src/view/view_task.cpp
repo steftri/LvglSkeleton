@@ -239,6 +239,9 @@ void ViewTask::onWIFIDataChanged(EDataField e_Field)
       Serial.println("ViewTask: IP address updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::IPAddress), eSetBits);
       break;
+    case WifiData::EField::Time:
+      Serial.println("ViewTask: Wi-Fi time updated");
+      break;  
     case WifiData::EField::LastError:
       Serial.println("ViewTask: Wi-Fi last error updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::WIFIError), eSetBits);

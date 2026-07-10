@@ -269,3 +269,15 @@ const char *WifiHal::disconnectReasonToString(uint8_t u8_Reason) const
     default:                                   return "Unknown reason";
   }
 }
+
+
+
+void WifiHal::configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer)
+{
+  ::configTime(s32_GmtOffset, s32_DstOffset, pc_NtpServer);
+}
+
+int32_t WifiHal::getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs) const
+{
+  return ::getLocalTime(p_Timeinfo, u32_TimeoutMs);
+}

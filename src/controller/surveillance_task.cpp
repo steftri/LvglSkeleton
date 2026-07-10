@@ -64,7 +64,32 @@ void SurveillanceTask::setup()
 void SurveillanceTask::loop()
 {
   static uint32_t lastUpdateTime = 0;
+  static uint32_t lastPublishTime = 0;
   uint32_t currentTime = millis();
+
+
+
+  uint32_t u32_Uptime = xTaskGetTickCount() / configTICK_RATE_HZ;
+  uint32_t u32_NumberOfTasks = uxTaskGetNumberOfTasks();
+  uint32_t u32_FreeHeapTotal = xPortGetFreeHeapSize();
+  uint32_t u32_MinimumEverFreeHeap = xPortGetMinimumEverFreeHeapSize();
+#ifdef ESP32
+  uint32_t u32_FreeHeapInternal = esp_get_free_internal_heap_size();
+  uint32_t u32_FreePSRAM = ESP.getFreePsram();
+#else
+  uint32_t u32_FreeHeapInternal = 0;
+  uint32_t u32_FreePSRAM = 0;
+#endif
+
+  m_Data.setUptime(u32_Uptime);
+  m_Data.setTasks(u32_NumberOfTasks);
+  m_Data.setFreeHeapSize(u32_FreeHeapTotal, u32_MinimumEverFreeHeap, u32_FreeHeapInternal, u32_FreePSRAM);
+
+  if(currentTime - lastPublishTime >= 15*1000UL) // Publish every 15 seconds
+  { 
+    lastPublishTime = currentTime;
+    g_controller.getMqtt().publishNodeData(reinterpret_cast<uint8_t*>(&m_Data), sizeof(SurveillanceData)); 
+  }   
 
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
@@ -72,21 +97,7 @@ void SurveillanceTask::loop()
     Serial.printf("  Free SurveillanceTask stack: %u/%u (Usage: %u%%)\n",
                   uxTaskGetStackHighWaterMark(nullptr), SURVEILLANCE_TASK_STACK_SIZE,
                   ((SURVEILLANCE_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / SURVEILLANCE_TASK_STACK_SIZE); // nullptr = aktueller Task
-  } 
-
-  uint32_t u32_Uptime = xTaskGetTickCount() / configTICK_RATE_HZ;
-  uint32_t u32_NumberOfTasks = uxTaskGetNumberOfTasks();
-  uint32_t u32_FreeHeapTotal = xPortGetFreeHeapSize();
-  uint32_t u32_MinimumEverFreeHeap = xPortGetMinimumEverFreeHeapSize();
-  uint32_t u32_FreeHeapInternal = esp_get_free_internal_heap_size();
-  uint32_t u32_FreePSRAM = ESP.getFreePsram();
-  uint32_t u32_TotalPSRAM = ESP.getPsramSize();
-
-  m_Data.setUptime(u32_Uptime);
-  m_Data.setTasks(u32_NumberOfTasks);
-  m_Data.setFreeHeapSize(u32_FreeHeapTotal, u32_MinimumEverFreeHeap, u32_FreeHeapInternal, u32_FreePSRAM);
-
-  g_controller.getMqtt().publishNodeData(reinterpret_cast<uint8_t*>(&m_Data), sizeof(SurveillanceData)); 
+  }
 
   vTaskDelay(pdMS_TO_TICKS(1000UL)); // Alle 1 Sekunde aktualisieren
 }
