@@ -155,11 +155,8 @@ void Lightstripe::loop(uint32_t u32_CurrentTime)
   // Skip accumulation when speed is near zero (wave stands still) to avoid division by zero.
   uint32_t u32_DeltaTime = u32_CurrentTime - mu32_LastTime;
   mu32_LastTime = u32_CurrentTime;
-  if(fabsf(f32_WaveSpeed) > 0.0001f)
-  {
-    mf32_CurrentPhase += f32_WaveSpeed * static_cast<float>(u32_DeltaTime) / 1000.0f;
-    mf32_CurrentPhase = fmodf(mf32_CurrentPhase + 1.0f, 1.0f); // +1 keeps result in [0,1) for negative speeds too
-  }
+  mf32_CurrentPhase += f32_WaveSpeed * static_cast<float>(u32_DeltaTime) / 1000.0f;
+  mf32_CurrentPhase -= floorf(mf32_CurrentPhase); // Normalize to [0,1) — works for any speed magnitude and direction
 
   for(uint16_t u16_PixelIndex = 0; u16_PixelIndex < mu16_NumPixels; u16_PixelIndex++)
   {
