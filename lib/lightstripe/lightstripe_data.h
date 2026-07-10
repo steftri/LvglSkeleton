@@ -1,5 +1,5 @@
-#ifndef WORKER_DATA_H
-#define WORKER_DATA_H
+#ifndef LIGHTSTRIPE_DATA_H
+#define LIGHTSTRIPE_DATA_H
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -7,11 +7,11 @@
 #include "data.h"
 
 
-class WorkerData : public Data
+class LightstripeData : public Data
 {
 public:
-  WorkerData();
-  ~WorkerData() = default;
+  LightstripeData();
+  ~LightstripeData() = default;
 };
 
-#endif // WORKER_DATA_H
+#endif // LIGHTSTRIPE_DATA_H

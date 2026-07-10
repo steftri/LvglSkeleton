@@ -3,7 +3,7 @@
 #include "worker_task.h"
 
 
-static const size_t LIGHTSTRIPE_NUM_PIXELS = 30; // Number of pixels in the light stripe
+static const size_t LIGHTSTRIPE_NUM_PIXELS = 8; // Number of pixels in the light stripe
 static const uint8_t LIGHTSTRIPE_PIN = 38; // GPIO pin connected to the light stripe data line
 
 
@@ -11,11 +11,11 @@ static const uint8_t LIGHTSTRIPE_PIN = 38; // GPIO pin connected to the light st
 WorkerTask *WorkerTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
-WorkerTask::WorkerTask(WorkerSettings &settings, WorkerData &data)
+WorkerTask::WorkerTask(LightstripeSettings &settings, LightstripeData &data)
   : mp_TaskHandle(nullptr)
   , m_Settings(settings)
   , m_Data(data)
-  , m_LightstripeHal(LIGHTSTRIPE_NUM_PIXELS, LIGHTSTRIPE_PIN) 
+  , m_Lightstripe(LIGHTSTRIPE_PIN, LIGHTSTRIPE_NUM_PIXELS) 
 {
     mp_thisInstance = this;
 }
@@ -60,8 +60,18 @@ void WorkerTask::setup()
 {
   Serial.println("WorkerTask running.");
 
-  m_LightstripeHal.setup();
-  m_LightstripeHal.enable(); // Enable the light stripe hardware
+  m_Lightstripe.setup();
+  m_Lightstripe.enable(); // Enable the light stripe hardware
+
+  m_Lightstripe.setValueTarget(Lightstripe::EValueTarget::Hue);
+  m_Lightstripe.setWaveForm(Lightstripe::EWaveForm::Sine);
+  m_Lightstripe.setWaveInterval(static_cast<float>(LIGHTSTRIPE_NUM_PIXELS)/2.0f);
+  m_Lightstripe.setWaveMaxSpeed(1000.0f); // 1 second for a full wave cycle
+  m_Lightstripe.setMinRgbColor(0x000000); // Minimum color (black/off)
+  m_Lightstripe.setMaxRgbColor(0xFF0000); // Maximum color (red/full brightness)
+  m_Lightstripe.setValue(1.0f); 
+
+
 }
 
 
@@ -70,13 +80,7 @@ void WorkerTask::loop()
   static uint32_t lastUpdateTime = 0;
   uint32_t currentTime = millis();
 
-
-  m_LightstripeHal.setPixelColor(0, 0xff0000); // Set first pixel to red
-  m_LightstripeHal.setPixelColor(1, 0x00ff00); // Set second pixel to green
-  m_LightstripeHal.setPixelColor(2, 0x0000ff); // Set third pixel to blue
-
-  m_LightstripeHal.show(); // Update the light stripe to display the changes
-
+  m_Lightstripe.loop(currentTime); // Update the light stripe based on the current time
 
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
@@ -86,5 +90,5 @@ void WorkerTask::loop()
                   ((WORKER_TASK_STACK_SIZE - uxTaskGetStackHighWaterMark(nullptr)) * 100) / WORKER_TASK_STACK_SIZE); // nullptr = aktueller Task
   }
 
-  vTaskDelay(pdMS_TO_TICKS(100UL)); // Alle 100 Millisekunden aktualisieren
+  vTaskDelay(pdMS_TO_TICKS(20UL)); // Alle 20 Millisekunden aktualisieren
 }

@@ -59,7 +59,7 @@ SettingsContainer::ERc SettingsContainer::save(void)
   m_DataStorage.write(au8_MqttSettingBuffer, u16_MqttSettingSize);  
   crc.add(au8_MqttSettingBuffer, u16_MqttSettingSize);
 
-  // TODO: serialize and store Worker settings
+  // TODO: serialize and store Lightstripe settings
 
   u32_crc = crc.getResult();
   m_DataStorage.write(static_cast<uint8_t>(u32_crc>>24));
@@ -128,7 +128,7 @@ SettingsContainer::ERc SettingsContainer::load(void)
   m_DataStorage.read(au8_MqttSettingBuffer, MqttSettings::MQTT_SETTINGS_SIZE);
   crc.add(au8_MqttSettingBuffer, MqttSettings::MQTT_SETTINGS_SIZE);  
 
-  // TODO: load Worker settings to flat buffer
+  // TODO: load Lightstripe settings to flat buffer
 
   u32_crc  = static_cast<uint32_t>(m_DataStorage.read())<<24;
   u32_crc |= static_cast<uint32_t>(m_DataStorage.read())<<16;
@@ -151,7 +151,7 @@ SettingsContainer::ERc SettingsContainer::load(void)
   // unserialize MQTT settings
   m_MqttSettings.unserialize(au8_MqttSettingBuffer, sizeof(au8_MqttSettingBuffer));
 
-  // TODO: unserialize Worker settings
+  // TODO: unserialize Lightstripe settings
 
   mb_Valid = true;
   return ERc::Ok;
@@ -164,7 +164,7 @@ void SettingsContainer::clear(void)
   m_SystemSettings.init();
   m_WifiSettings.init();
   m_MqttSettings.init();
-  m_WorkerSettings.init();
+  m_LightstripeSettings.init();
   save();
 }
 
@@ -193,7 +193,7 @@ MqttSettings &SettingsContainer::getMqttSettings(void)
 }
 
 
-WorkerSettings &SettingsContainer::getWorkerSettings(void)
+LightstripeSettings &SettingsContainer::getLightstripeSettings(void)
 {
-  return m_WorkerSettings;
+  return m_LightstripeSettings;
 }

@@ -9,7 +9,7 @@
 #include "system_settings.h"
 #include "wifi_settings.h"
 #include "mqtt_settings.h"
-#include "worker_settings.h"
+#include "lightstripe_settings.h"
 
 
 class SettingsContainer
@@ -28,7 +28,7 @@ private:
   SystemSettings m_SystemSettings;
   WifiSettings m_WifiSettings;
   MqttSettings m_MqttSettings;
-  WorkerSettings m_WorkerSettings;
+  LightstripeSettings m_LightstripeSettings;
   bool mb_Valid;
 
 public:
@@ -43,7 +43,7 @@ public:
   SystemSettings &getSystemSettings(void);
   WifiSettings &getWifiSettings(void);
   MqttSettings &getMqttSettings(void);
-  WorkerSettings &getWorkerSettings(void);
+  LightstripeSettings &getLightstripeSettings(void);
 };
 
 

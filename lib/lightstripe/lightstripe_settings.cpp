@@ -1,18 +1,18 @@
-#include "worker_settings.h"
+#include "lightstripe_settings.h"
 
 
 /**
- * @brief Constructor for the WorkerSettings class.
+ * @brief Constructor for the LightstripeSettings class.
  * 
- * This constructor initializes the WorkerSettings object by calling the init() method.
+ * This constructor initializes the LightstripeSettings object by calling the init() method.
  */
-WorkerSettings::WorkerSettings(void)
+LightstripeSettings::LightstripeSettings(void)
 {
   init();
 }
 
 
-void WorkerSettings::init(void)
+void LightstripeSettings::init(void)
 {
   std::lock_guard<std::mutex> lock(m_DataMutex);
 
@@ -28,7 +28,7 @@ void WorkerSettings::init(void)
  * 
  * @param b_Enable The new enable state.
  */
-void WorkerSettings::setEnable(bool b_Enable)
+void LightstripeSettings::setEnable(bool b_Enable)
 {
   bool b_Changed = false;
 
@@ -56,7 +56,7 @@ void WorkerSettings::setEnable(bool b_Enable)
  * 
  * @return The current enable state.
  */
-bool WorkerSettings::getEnable(void) const
+bool LightstripeSettings::getEnable(void) const
 {
   return mb_EnableState;
 }
@@ -65,11 +65,11 @@ bool WorkerSettings::getEnable(void) const
 
 
 
-uint16_t WorkerSettings::serialize(uint8_t *pu8_Buffer, const uint16_t u16_BufferSize)
+uint16_t LightstripeSettings::serialize(uint8_t *pu8_Buffer, const uint16_t u16_BufferSize)
 {
   uint16_t u16_BufferPos = 0;
 
-  if((!pu8_Buffer) || (u16_BufferSize<WORKER_SETTINGS_SIZE))
+  if((!pu8_Buffer) || (u16_BufferSize<LIGHTSTRIPE_SETTINGS_SIZE))
     return 0;
 
   std::lock_guard<std::mutex> lock(m_DataMutex);
@@ -81,13 +81,13 @@ uint16_t WorkerSettings::serialize(uint8_t *pu8_Buffer, const uint16_t u16_Buffe
 
 
 
-void WorkerSettings::unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_Size)
+void LightstripeSettings::unserialize(const uint8_t *pu8_Buffer, const uint16_t u16_Size)
 {
   uint16_t u16_BufferPos = 0;
 
   std::lock_guard<std::mutex> lock(m_DataMutex);
 
-  if((!pu8_Buffer) || (u16_Size<WORKER_SETTINGS_SIZE))
+  if((!pu8_Buffer) || (u16_Size<LIGHTSTRIPE_SETTINGS_SIZE))
     return;
 
   mb_EnableState = pu8_Buffer[u16_BufferPos++] ? true : false;

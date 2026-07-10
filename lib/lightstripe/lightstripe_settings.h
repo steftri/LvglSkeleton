@@ -1,22 +1,22 @@
-#ifndef WORKER_SETTINGS_H
-#define WORKER_SETTINGS_H
+#ifndef LIGHTSTRIPE_SETTINGS_H
+#define LIGHTSTRIPE_SETTINGS_H
 
 #include <inttypes.h>
 
 #include "data.h"
 
-class WorkerSettings : public Data
+class LightstripeSettings : public Data
 {
   bool mb_EnableState; ///< Indicates whether the Wi-Fi station mode is enabled
   
 public:
-  static const uint16_t WORKER_SETTINGS_SIZE = 1UL; 
+  static const uint16_t LIGHTSTRIPE_SETTINGS_SIZE = 1UL; 
   enum class EField : uint8_t 
   { 
     EnableState = 0
   };
 
-  WorkerSettings(void);
+  LightstripeSettings(void);
 
 
   void init(void);

@@ -1,8 +1,8 @@
-#include "worker_data.h"
+#include "lightstripe_data.h"
 
 
 
-WorkerData::WorkerData()
+LightstripeData::LightstripeData()
 {
 }
 
