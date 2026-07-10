@@ -12,8 +12,7 @@ public:
   enum class EValueTarget
   {
     Brightness = 0,
-    Speed,
-    Hue
+    Speed
   };
 
   enum class EWaveForm
@@ -48,6 +47,7 @@ private:
   uint8_t mu8_BlueMax;
 
   float mf32_Value;
+  float mf32_CurrentPhase;
 
 public:
   Lightstripe(uint8_t u8_Pin, uint16_t u16_NumPixels);
@@ -73,7 +73,7 @@ public:
   void setMaxHue(float f32_Hue);
 
 private:
-  uint32_t convertHueToRgb(float f32_Hue);  
+  uint32_t convertHueToRgb(float f32_Hue, float f32_Saturation = 1.0f, float f32_Value = 1.0f);  
   uint8_t colorToLedValue(float f32_BrightnessInFraction);
 };
 

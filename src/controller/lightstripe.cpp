@@ -101,11 +101,27 @@ void Lightstripe::setMaxRgbColor(uint32_t u32_Color)
 
 void Lightstripe::setMinHue(float f32_Hue)
 {
+  if(f32_Hue < 0.0f)
+  {
+    f32_Hue = 0.0f;
+  }
+  else if(f32_Hue > 360.0f)
+  {
+    f32_Hue = 360.0f;
+  }
   mf32_HueMin = f32_Hue;
 }
 
 void Lightstripe::setMaxHue(float f32_Hue)
 {
+  if(f32_Hue < 0.0f)
+  {
+    f32_Hue = 0.0f;
+  }
+  else if(f32_Hue > 360.0f)
+  {
+    f32_Hue = 360.0f;
+  }
   mf32_HueMax = f32_Hue;
 }
 
@@ -115,19 +131,43 @@ void Lightstripe::loop(uint32_t u32_CurrentTime)
 {
   for(uint16_t u16_PixelIndex = 0; u16_PixelIndex < mu16_NumPixels; u16_PixelIndex++)
   {
-    float f32_Value = mf32_Value;
+    float f32_WaveformValue = 1.0f;
+    float f32_WaveSpeed;
+    float f32_Brightness;
 
-    // first step: apply wave form if any
+    // first, in case the value target is speed, we need to adjust the wave speed
+    if(me_ValueTarget == EValueTarget::Speed)
+    {
+      f32_WaveSpeed = mf32_WaveMaxSpeed * mf32_Value;
+      f32_Brightness = 1.0f; 
+    }
+    else
+    {
+      f32_WaveSpeed = mf32_WaveMaxSpeed;
+      f32_Brightness = mf32_Value;
+    }
+
+    // Prevent division by zero or extremely small values
+    if(f32_WaveSpeed < 0.0001f)
+    {
+      f32_WaveSpeed = 0.0001f; 
+    }
+    else if (f32_WaveSpeed < -0.0001f)
+    {
+      f32_WaveSpeed = -0.0001f; 
+    }
+
+    // Apply wave form if any
     if(me_WaveForm != EWaveForm::None)
     {
-      float f32_Phase = (static_cast<float>(u16_PixelIndex) / mf32_WaveInterval) + (static_cast<float>(u32_CurrentTime) / mf32_WaveMaxSpeed);
+      float f32_Phase = (static_cast<float>(u16_PixelIndex) / mf32_WaveInterval) + (static_cast<float>(u32_CurrentTime) / (f32_WaveSpeed*1000.0));
       switch(me_WaveForm)
       {
         case EWaveForm::Sine:
-          f32_Value *= (sinf(f32_Phase * 2.0f * 3.14159265f) + 1.0f) / 2.0f; // Normalize sine wave to [0,1]
+          f32_WaveformValue = (sinf(f32_Phase * 2.0f * 3.14159265f) + 1.0f) / 2.0f; // Normalize sine wave to [0,1]
           break;
         case EWaveForm::Sawtooth:
-          f32_Value *= fmod(f32_Phase, 1.0f); // Sawtooth wave
+          f32_WaveformValue = fmod(f32_Phase, 1.0f); // Sawtooth wave
           break;
         default:
           break;
@@ -139,18 +179,18 @@ void Lightstripe::loop(uint32_t u32_CurrentTime)
     if(me_ColorMode == EColorMode::RGB)
     {
       // Interpolate between min and max RGB colors based on the value
+      f32_Brightness *= f32_WaveformValue;
 
-      uint8_t u8_Red = colorToLedValue((mu8_RedMin + (mu8_RedMax - mu8_RedMin) * f32_Value) / 255.0f);
-      uint8_t u8_Green = colorToLedValue((mu8_GreenMin + (mu8_GreenMax - mu8_GreenMin) * f32_Value) / 255.0f);
-      uint8_t u8_Blue = colorToLedValue((mu8_BlueMin + (mu8_BlueMax - mu8_BlueMin) * f32_Value) / 255.0f);
+      uint8_t u8_Red = colorToLedValue((mu8_RedMin + (mu8_RedMax - mu8_RedMin) * f32_Brightness) / 255.0f);
+      uint8_t u8_Green = colorToLedValue((mu8_GreenMin + (mu8_GreenMax - mu8_GreenMin) * f32_Brightness) / 255.0f);
+      uint8_t u8_Blue = colorToLedValue((mu8_BlueMin + (mu8_BlueMax - mu8_BlueMin) * f32_Brightness) / 255.0f);
       u32_Color = (u8_Red << 16) | (u8_Green << 8) | u8_Blue;
     }
     else if(me_ColorMode == EColorMode::HSV)
     {
       // Interpolate between min and max hue based on the value
-      float f32_Hue = mf32_HueMin + (mf32_HueMax - mf32_HueMin) * f32_Value;
-      
-      u32_Color = convertHueToRgb(f32_Hue);
+      float f32_Hue = mf32_HueMin + (mf32_HueMax - mf32_HueMin) * f32_WaveformValue;
+      u32_Color = convertHueToRgb(f32_Hue, 1.0f, f32_Brightness);
     }
   
     m_LightstripeHal.setPixelColor(u16_PixelIndex, u32_Color);
@@ -160,11 +200,11 @@ void Lightstripe::loop(uint32_t u32_CurrentTime)
 
 
 
-uint32_t Lightstripe::convertHueToRgb(float f32_Hue)
+uint32_t Lightstripe::convertHueToRgb(float f32_Hue, float f32_Saturation, float f32_Value)
 {
-  float f32_C = 1.0f; // Chroma
+  float f32_C = f32_Value * f32_Saturation; // Chroma
   float f32_X = f32_C * (1.0f - fabs(fmod(f32_Hue / 60.0f, 2) - 1.0f));
-  float f32_M = 0.0f; // Assuming value is 1 for full brightness  
+  float f32_M = f32_Value - f32_C;
   float f32_R = 0.0f;
   float f32_G = 0.0f;
   float f32_B = 0.0f;
