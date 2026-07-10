@@ -19,6 +19,8 @@ Lightstripe::Lightstripe(uint8_t u8_Pin, uint16_t u16_NumPixels)
   , mu8_GreenMax(255)
   , mu8_BlueMax(255)
   , mf32_Value(0.0f)
+  , mf32_CurrentPhase(0.0f)
+  , mu32_LastTime(0)
 {
 }
 
@@ -149,14 +151,14 @@ void Lightstripe::loop(uint32_t u32_CurrentTime)
     f32_Brightness = mf32_Value;
   }
 
-  // Prevent division by zero or extremely small values
-  if(f32_WaveSpeed >= 0.0f && f32_WaveSpeed < 0.0001f)
+  // Accumulate phase based on delta time — avoids jumps when speed changes.
+  // Skip accumulation when speed is near zero (wave stands still) to avoid division by zero.
+  uint32_t u32_DeltaTime = u32_CurrentTime - mu32_LastTime;
+  mu32_LastTime = u32_CurrentTime;
+  if(fabsf(f32_WaveSpeed) > 0.0001f)
   {
-    f32_WaveSpeed = 0.0001f; 
-  }
-  else if (f32_WaveSpeed <= 0.0f && f32_WaveSpeed > -0.0001f)
-  {
-    f32_WaveSpeed = -0.0001f; 
+    mf32_CurrentPhase += f32_WaveSpeed * static_cast<float>(u32_DeltaTime) / 1000.0f;
+    mf32_CurrentPhase = fmodf(mf32_CurrentPhase + 1.0f, 1.0f); // +1 keeps result in [0,1) for negative speeds too
   }
 
   for(uint16_t u16_PixelIndex = 0; u16_PixelIndex < mu16_NumPixels; u16_PixelIndex++)
@@ -164,7 +166,7 @@ void Lightstripe::loop(uint32_t u32_CurrentTime)
     // Apply wave form if any
     if(me_WaveForm != EWaveForm::None)
     {
-      float f32_Phase = (static_cast<float>(u16_PixelIndex) / mf32_WaveInterval) + (static_cast<float>(u32_CurrentTime) / (f32_WaveSpeed*1000.0f));
+      float f32_Phase = (static_cast<float>(u16_PixelIndex) / mf32_WaveInterval) + mf32_CurrentPhase;
       switch(me_WaveForm)
       {
         case EWaveForm::Sine:

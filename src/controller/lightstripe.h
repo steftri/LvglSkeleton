@@ -48,6 +48,7 @@ private:
 
   float mf32_Value;
   float mf32_CurrentPhase;
+  uint32_t mu32_LastTime;
 
 public:
   Lightstripe(uint8_t u8_Pin, uint16_t u16_NumPixels);
