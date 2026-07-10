@@ -63,10 +63,10 @@ void WorkerTask::setup()
   m_Lightstripe.setup();
   m_Lightstripe.enable(); // Enable the light stripe hardware
 
-  m_Lightstripe.setValueTarget(Lightstripe::EValueTarget::Hue);
+  m_Lightstripe.setValueTarget(Lightstripe::EValueTarget::Speed);
   m_Lightstripe.setWaveForm(Lightstripe::EWaveForm::Sine);
-  m_Lightstripe.setWaveInterval(static_cast<float>(LIGHTSTRIPE_NUM_PIXELS)/2.0f);
-  m_Lightstripe.setWaveMaxSpeed(1000.0f); // 1 second for a full wave cycle
+  m_Lightstripe.setWaveInterval(static_cast<float>(LIGHTSTRIPE_NUM_PIXELS));
+  m_Lightstripe.setWaveMaxSpeed(1.0f); // 1 second for a full wave cycle
   m_Lightstripe.setMinRgbColor(0x000000); // Minimum color (black/off)
   m_Lightstripe.setMaxRgbColor(0xFF0000); // Maximum color (red/full brightness)
   m_Lightstripe.setValue(1.0f); 

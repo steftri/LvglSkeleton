@@ -67,6 +67,10 @@ void Lightstripe::setWaveForm(EWaveForm e_WaveForm)
 
 void Lightstripe::setWaveInterval(float f32_Pixels)
 {
+  if(f32_Pixels < 2.0f)
+  {
+    f32_Pixels = 2.0f;
+  }
   mf32_WaveInterval = f32_Pixels;
 }
 
@@ -129,38 +133,38 @@ void Lightstripe::setMaxHue(float f32_Hue)
 
 void Lightstripe::loop(uint32_t u32_CurrentTime)
 {
+  float f32_WaveformValue = 1.0f;
+  float f32_WaveSpeed;
+  float f32_Brightness;
+
+  // first, in case the value target is speed, we need to adjust the wave speed
+  if(me_ValueTarget == EValueTarget::Speed)
+  {
+    f32_WaveSpeed = mf32_WaveMaxSpeed * mf32_Value;
+    f32_Brightness = 1.0f; 
+  }
+  else
+  {
+    f32_WaveSpeed = mf32_WaveMaxSpeed;
+    f32_Brightness = mf32_Value;
+  }
+
+  // Prevent division by zero or extremely small values
+  if(f32_WaveSpeed >= 0.0f && f32_WaveSpeed < 0.0001f)
+  {
+    f32_WaveSpeed = 0.0001f; 
+  }
+  else if (f32_WaveSpeed <= 0.0f && f32_WaveSpeed > -0.0001f)
+  {
+    f32_WaveSpeed = -0.0001f; 
+  }
+
   for(uint16_t u16_PixelIndex = 0; u16_PixelIndex < mu16_NumPixels; u16_PixelIndex++)
   {
-    float f32_WaveformValue = 1.0f;
-    float f32_WaveSpeed;
-    float f32_Brightness;
-
-    // first, in case the value target is speed, we need to adjust the wave speed
-    if(me_ValueTarget == EValueTarget::Speed)
-    {
-      f32_WaveSpeed = mf32_WaveMaxSpeed * mf32_Value;
-      f32_Brightness = 1.0f; 
-    }
-    else
-    {
-      f32_WaveSpeed = mf32_WaveMaxSpeed;
-      f32_Brightness = mf32_Value;
-    }
-
-    // Prevent division by zero or extremely small values
-    if(f32_WaveSpeed < 0.0001f)
-    {
-      f32_WaveSpeed = 0.0001f; 
-    }
-    else if (f32_WaveSpeed < -0.0001f)
-    {
-      f32_WaveSpeed = -0.0001f; 
-    }
-
     // Apply wave form if any
     if(me_WaveForm != EWaveForm::None)
     {
-      float f32_Phase = (static_cast<float>(u16_PixelIndex) / mf32_WaveInterval) + (static_cast<float>(u32_CurrentTime) / (f32_WaveSpeed*1000.0));
+      float f32_Phase = (static_cast<float>(u16_PixelIndex) / mf32_WaveInterval) + (static_cast<float>(u32_CurrentTime) / (f32_WaveSpeed*1000.0f));
       switch(me_WaveForm)
       {
         case EWaveForm::Sine:
@@ -179,17 +183,27 @@ void Lightstripe::loop(uint32_t u32_CurrentTime)
     if(me_ColorMode == EColorMode::RGB)
     {
       // Interpolate between min and max RGB colors based on the value
-      f32_Brightness *= f32_WaveformValue;
+      float f32_PixelBrightness = f32_Brightness * f32_WaveformValue;
 
-      uint8_t u8_Red = colorToLedValue((mu8_RedMin + (mu8_RedMax - mu8_RedMin) * f32_Brightness) / 255.0f);
-      uint8_t u8_Green = colorToLedValue((mu8_GreenMin + (mu8_GreenMax - mu8_GreenMin) * f32_Brightness) / 255.0f);
-      uint8_t u8_Blue = colorToLedValue((mu8_BlueMin + (mu8_BlueMax - mu8_BlueMin) * f32_Brightness) / 255.0f);
+      uint8_t u8_Red = colorToLedValue((mu8_RedMin + (mu8_RedMax - mu8_RedMin) * f32_PixelBrightness) / 255.0f);
+      uint8_t u8_Green = colorToLedValue((mu8_GreenMin + (mu8_GreenMax - mu8_GreenMin) * f32_PixelBrightness) / 255.0f);
+      uint8_t u8_Blue = colorToLedValue((mu8_BlueMin + (mu8_BlueMax - mu8_BlueMin) * f32_PixelBrightness) / 255.0f);
       u32_Color = (u8_Red << 16) | (u8_Green << 8) | u8_Blue;
     }
-    else if(me_ColorMode == EColorMode::HSV)
+    else 
     {
-      // Interpolate between min and max hue based on the value
-      float f32_Hue = mf32_HueMin + (mf32_HueMax - mf32_HueMin) * f32_WaveformValue;
+      float f32_Hue;
+
+      if( me_WaveForm == EWaveForm::None )
+      {
+        // Interpolate between min and max hue based on the value
+        f32_Hue = mf32_HueMin + (mf32_HueMax - mf32_HueMin) * mf32_Value;
+      }
+      else
+      {
+        // Interpolate between min and max hue based on the waveform value
+        f32_Hue = mf32_HueMin + (mf32_HueMax - mf32_HueMin) * f32_WaveformValue;
+      }
       u32_Color = convertHueToRgb(f32_Hue, 1.0f, f32_Brightness);
     }
   
