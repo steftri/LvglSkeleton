@@ -38,3 +38,6 @@
 /lib/build-*
 /build
 /.cache/
+
+# data files
+datafile.bin
