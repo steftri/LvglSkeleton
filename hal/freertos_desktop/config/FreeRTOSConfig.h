@@ -76,4 +76,9 @@ void vAssertCalled( unsigned long ulLine, const char * const pcFileName );
 #endif
 #define configASSERT( x ) if( ( x ) == 0 ) vAssertCalled( __LINE__, __FILE__ )
 
+/* Disable backward-compat aliases (e.g. #define xTaskHandle TaskHandle_t)
+ * to avoid -Wchanges-meaning errors when LVGL uses xTaskHandle as a struct
+ * member name. */
+#define configENABLE_BACKWARD_COMPATIBILITY    0
+
 #endif /* FREERTOS_CONFIG_H */

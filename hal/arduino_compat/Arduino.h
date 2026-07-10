@@ -5,6 +5,7 @@
  * Provides Serial, millis(), delay(), and ESP32-specific FreeRTOS wrappers.
  */
 
+#include <cstdarg>
 #include <cstdio>
 #include <cstdint>
 #include <cstring>

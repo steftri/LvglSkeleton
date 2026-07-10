@@ -30,7 +30,7 @@ void WorkerTask::begin()
      "WorkerTask",             // Task name
      WORKER_TASK_STACK_SIZE,   // Stack size
      nullptr,                  // Parameters
-     10,                       // Priority
+     1,                        // Priority
      &mp_TaskHandle,           // Task handle
      0                         // Core 0 (PRO_CPU, more WiFi interference but better for background tasks)
   );
