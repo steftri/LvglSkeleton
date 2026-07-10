@@ -59,14 +59,13 @@ void MqttTask::begin()
     &m_MqttStaticQueue
   );
 
-  mp_TaskHandle = xTaskCreateStaticPinnedToCore(
+  xTaskCreatePinnedToCore(
      task,                     // Task function
      "Mqtt",                   // Task name
      MQTT_TASK_STACK_SIZE,     // Stack size
      nullptr,                  // Parameters
      1,                        // Priority
-     m_TaskStack,              // Task handle
-     &m_TaskBuffer,            // Static task buffer
+     &mp_TaskHandle,           // Task handle
      0                         // Core 0 
   );
 }

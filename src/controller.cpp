@@ -9,6 +9,7 @@ Controller::Controller(Model &model, View &view)
   , m_surveillanceTask(model.getData().getSurveillanceData())
   , m_wifiTask(model.getSettings().getSystemSettings(), model.getSettings().getWifiSettings(), model.getData().getWifiData())
   , m_mqttTask(model.getSettings().getSystemSettings(), model.getSettings().getMqttSettings(), model.getData().getMqttData(), model.getData().getWifiData())
+  , m_workerTask(model.getSettings().getWorkerSettings(), model.getData().getWorkerData())
 {
 }
 
@@ -26,6 +27,7 @@ void Controller::begin(void)
   m_surveillanceTask.begin(); // Start the surveillance task
   m_wifiTask.begin(); // Start the Wi-Fi task
   m_mqttTask.begin(); // Start the MQTT task
+  m_workerTask.begin(); // Start the worker task
   m_model.begin(); // Start any model-related threads
   m_view.begin(); // Start any view-related threads
 }
@@ -60,4 +62,10 @@ WifiTask &Controller::getWifi(void)
 MqttTask &Controller::getMqtt(void)
 {
   return m_mqttTask;
+}
+
+
+WorkerTask &Controller::getWorker(void)
+{
+  return m_workerTask;
 }

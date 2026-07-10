@@ -22,10 +22,7 @@ class MqttTask : public MqttActionInterface, public DataObserverInterface
 {
 private:
   TaskHandle_t mp_TaskHandle;
-  StaticTask_t m_TaskBuffer;
-
   static const size_t MQTT_TASK_STACK_SIZE = 4096;
-  StackType_t m_TaskStack[ MQTT_TASK_STACK_SIZE ];
 
   static void task(void *pvParameters);  
   static MqttTask *mp_thisInstance; 

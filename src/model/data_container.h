@@ -5,6 +5,7 @@
 
 #include "wifi_data.h"
 #include "mqtt_data.h"
+#include "worker_data.h"
 #include "surveillance_data.h"
 
 
@@ -12,6 +13,7 @@ class DataContainer
 {
   WifiData m_WifiData; ///< Holds the Wi-Fi data
   MqttData m_MqttData; ///< Holds the MQTT data
+  WorkerData m_WorkerData; ///< Holds the Worker data
   SurveillanceData m_SurveillanceData; ///< Holds the surveillance data
     
   // Add other data members as needed, e.g., for MQTT settings, etc.
@@ -22,6 +24,7 @@ public:
 
   WifiData &getWifiData(void);
   MqttData &getMqttData(void);
+  WorkerData &getWorkerData(void);
   SurveillanceData &getSurveillanceData(void);
 };
 

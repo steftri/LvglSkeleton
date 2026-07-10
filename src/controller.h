@@ -7,6 +7,7 @@
 #include "controller/surveillance_task.h"
 #include "controller/wifi_task.h"
 #include "controller/mqtt_task.h"
+#include "controller/worker_task.h"
 
 #include "wifi_hal.h"
 
@@ -20,6 +21,7 @@ class Controller
   SurveillanceTask m_surveillanceTask; // Surveillance task
   WifiTask m_wifiTask; // Wi-Fi task
   MqttTask m_mqttTask; // MQTT task
+  WorkerTask m_workerTask; // Worker task
 
 public:
   // Constructor
@@ -43,6 +45,7 @@ public:
 
   WifiTask &getWifi(void);
   MqttTask &getMqtt(void);
+  WorkerTask &getWorker(void);
 };
 
 #endif

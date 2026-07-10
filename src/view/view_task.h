@@ -29,8 +29,6 @@ class ViewTask : public DataObserverInterface
 {
 private:
   TaskHandle_t mp_TaskHandle;
-  StaticTask_t m_TaskBuffer;
-  StackType_t m_TaskStack[ VIEW_TASK_STACK_SIZE ];
 
   bool mb_BlinkState;
 

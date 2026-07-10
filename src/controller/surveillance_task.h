@@ -14,8 +14,6 @@ class SurveillanceTask
 {
 private:
   TaskHandle_t mp_TaskHandle;
-  StaticTask_t m_TaskBuffer;
-  StackType_t m_TaskStack[ SURVEILLANCE_TASK_STACK_SIZE ];
 
   static void task(void *pvParameters);  
   static SurveillanceTask *mp_thisInstance; // Static instance pointer for task access

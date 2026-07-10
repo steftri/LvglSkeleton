@@ -42,14 +42,13 @@ void ViewTask::begin(void)
   m_xQueueHandle = xQueueCreateStatic(VIEW_TASK_MESSAGE_QUEUE_SIZE, sizeof(SMessage),
                                       reinterpret_cast<uint8_t*>(ma_MessageQueueStorage), &m_xStaticQueue);
 
-  mp_TaskHandle = xTaskCreateStaticPinnedToCore(
+  xTaskCreatePinnedToCore(
      task,                     // Task function
      "View",                   // Task name
      VIEW_TASK_STACK_SIZE,       // Stack size
      nullptr,                  // Parameters
      1,                        // Priority
-     m_TaskStack,              // Task stack
-     &m_TaskBuffer,            // Static task buffer
+     &mp_TaskHandle,           // Task handle
      1                         // Core 1 (APP_CPU, less WiFi interference)
   );
 }

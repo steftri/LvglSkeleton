@@ -22,14 +22,13 @@ void SurveillanceTask::begin()
 {
   Serial.println("Creating SurveillanceTask");
   
-  mp_TaskHandle = xTaskCreateStaticPinnedToCore(
+  xTaskCreatePinnedToCore(
      task,                     // Task function
      "Surveillance",           // Task name
      SURVEILLANCE_TASK_STACK_SIZE, // Stack size
      nullptr,                  // Parameters
      1,                        // Priority
-     m_TaskStack,              // Task handle
-     &m_TaskBuffer,            // Static task buffer
+     &mp_TaskHandle,           // Task handle
      0                         // Core 0 (PRO_CPU, more WiFi interference but better for background tasks)
   );
 }

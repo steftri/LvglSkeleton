@@ -117,6 +117,24 @@ extern HardwareSerial Serial;
 #endif
 
 
+#ifndef xTaskCreatePinnedToCore
+#define xTaskCreatePinnedToCore(pvTaskCode,        \
+                                pcName,           \
+                                usStackDepth,     \
+                                pvParameters,     \
+                                uxPriority,       \
+                                pxCreatedTask,    \
+                                xCoreID)          \
+    xTaskCreate((pvTaskCode),                      \
+                      (pcName),                          \
+                      (usStackDepth),                    \
+                      (pvParameters),                    \
+                      (uxPriority),                      \
+                      (pxCreatedTask))
+#endif
+
+
+
 /* ------------------------------------------------------------------ */
 /* String type stub (if needed by libraries)                           */
 /* ------------------------------------------------------------------ */

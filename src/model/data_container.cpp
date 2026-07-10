@@ -17,6 +17,12 @@ MqttData &DataContainer::getMqttData(void)
 }
 
 
+WorkerData &DataContainer::getWorkerData(void)
+{
+  return m_WorkerData;
+}
+
+
 SurveillanceData &DataContainer::getSurveillanceData(void)
 {
   return m_SurveillanceData;

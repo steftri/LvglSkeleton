@@ -44,14 +44,13 @@ void WifiTask::begin(void)
 {
   Serial.println("Creating WifiTask");
 
-  mp_TaskHandle = xTaskCreateStaticPinnedToCore(
+  xTaskCreatePinnedToCore(
      task,                     // Task function
      "Wifi",                   // Task name
      WIFI_TASK_STACK_SIZE,     // Stack size
      nullptr,                  // Parameters
      1,                        // Priority
-     m_TaskStack,              // Task handle
-     &m_TaskBuffer,            // Static task buffer
+     &mp_TaskHandle,           // Task handle
      0                         // Core 0 
   );
 }
