@@ -6,6 +6,19 @@
 
 class WifiHal : public WifiHalInterface
 {
+  WifiActionInterface &mr_ActionListener;
+  bool mb_Enabled;
+  bool mb_Connected;
+  bool mb_NetworksFound;
+
+  enum class EWifiConnectionError : uint8_t
+  {
+    None = 0,
+    WrongPassword,
+    NetworkNotFound,
+    Timeout
+  };
+
 public:
   WifiHal(WifiActionInterface &actionListener);
   ~WifiHal() = default;
@@ -14,6 +27,8 @@ public:
 
   void enable() override;
   void disable() override;
+
+  void setHostname(const char *pc_Hostname) override;
 
   void scanNetworks() override;
   uint8_t getAvailableNetworkCount() const override;
@@ -25,6 +40,11 @@ public:
   bool isConnected() const override;
   void getIPAddress(char* buffer, size_t bufferSize) const override;
   int getSignalStrength() const override;
+
+  const char *disconnectReasonToString(uint8_t u8_Reason) const override;
+
+  void configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer) override;
+  int32_t getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs = 5000) const override;  
 };
 
 #endif // WIFI_H

@@ -1,6 +1,12 @@
 #include <Arduino.h>
 
+
 #include "wifi_task.h"
+
+#include "controller.h"
+
+extern Controller g_controller; // Declare the external Controller instance
+
 
 
 static const size_t MAX_NETWORK_COUNT = 16; // Maximum number of networks to handle in the buffer
@@ -22,9 +28,10 @@ enum class ENotificationBits : uint32_t
 
 
 
-WifiTask::WifiTask(WifiSettings &wifiSettings, WifiData &wifiData)
+WifiTask::WifiTask(SystemSettings &systemSettings, WifiSettings &wifiSettings, WifiData &wifiData)
   : mp_TaskHandle(nullptr)
   , m_WifiHal(*this) // Pass the WifiActionInterface reference to the WifiHal
+  , m_SystemSettings(systemSettings) // Initialize the reference to the system settings
   , m_WifiSettings(wifiSettings) // Initialize the reference to the Wi-Fi settings
   , m_WifiData(wifiData) // Initialize the reference to the Wi-Fi data
 {
@@ -101,13 +108,14 @@ void WifiTask::setup(void)
 {
   Serial.println("WifiTask running.");
 
-  m_WifiHal.setup(); // Initialize the Wi-Fi hardware and start scanning for networks
+  m_WifiHal.setup(); 
+  m_WifiHal.setHostname(m_SystemSettings.getHostName()); 
 
   if(m_WifiSettings.getEnable())
   {
     Serial.println("Wi-Fi is enabled in settings, enabling Wi-Fi hardware...");
     m_WifiData.setEnable(true); 
-    m_WifiHal.enable(); // Enable the Wi-Fi hardware if it is enabled in the settings
+    m_WifiHal.enable(); 
     
     if(m_WifiSettings.getConnect() && m_WifiSettings.getNetworkCount() > 0) 
     {
@@ -132,6 +140,7 @@ void WifiTask::loop(void)
 {
   static uint32_t lastScanTime = 0;
   static uint32_t lastUpdateTime = 0;
+  static uint32_t lastTimeSyncCheck = 0;
   uint32_t currentTime = millis();
   uint32_t u32_NotifiedValue = 0;
 
@@ -153,12 +162,27 @@ void WifiTask::loop(void)
     actionDisconnect();
   }
 
-  if(m_WifiData.isEnabled()) // enabled
+
+
+  if (currentTime - lastTimeSyncCheck >= 60*1000UL) // Check time sync every 60 seconds
   {
-    if (currentTime - lastScanTime >= 10*1000UL) // Scan every 10 seconds
+    if(m_WifiData.isEnabled() && m_WifiData.getState() == WifiData::EState::Connected) 
     {
-      lastScanTime = currentTime;
+      struct tm timeinfo;
+      if (m_WifiHal.getLocalTime(&timeinfo, 1000) == 0) // Timeout of 1000 ms
+      {
+        m_WifiData.setLocalTime(timeinfo); // Update the time in WifiData
+      }
+      lastTimeSyncCheck = currentTime;
+    }
+  }
+
+  if (currentTime - lastScanTime >= 10*1000UL) // Scan every 10 seconds
+  {
+    if(m_WifiData.isEnabled() && m_WifiData.getState() == WifiData::EState::Disconnected) 
+    {
       m_WifiHal.scanNetworks(); // Periodically scan for Wi-Fi networks to update the list in the view
+      lastScanTime = currentTime;
     }
   }
 
@@ -213,14 +237,6 @@ void WifiTask::actionDisconnect()
 
 
 
-
-
-
-
-
-
-
-
 // WifiActionInterface implementation
 void WifiTask::onWifiNetworksUpdated()
 {
@@ -267,41 +283,57 @@ void WifiTask::onWifiNetworksUpdated()
 
 
 
+void WifiTask::onWifiConnecting()
+{
+  m_WifiData.setState(WifiData::EState::Connecting); // Update the Wi-Fi connection state in the data
+}
+
+
+
 void WifiTask::onWifiConnected()
 {
   char ac_SSID[MAX_SSID_LENGTH + 1];
   char ac_Password[MAX_WPA2_PASSWORD_LENGTH + 1];
 
-  m_WifiData.setState(WifiData::EState::Connected); // Update the Wi-Fi connection state in the data
-  m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); // Get the selected network's SSID and password from the data
+  m_WifiData.getSelectedNetwork(ac_SSID, sizeof(ac_SSID), ac_Password, sizeof(ac_Password)); 
 
   Serial.printf("Connected to Wi-Fi network \"%s\"\n", ac_SSID);
 
-  m_WifiSettings.setNetwork(ac_SSID, ac_Password); // Store the last connected SSID in the settings for future reference
-  m_WifiSettings.setConnect(true); // Update the connect state in the settings
+  m_WifiSettings.setNetwork(ac_SSID, ac_Password); 
+  m_WifiSettings.setConnect(true); // Update the connect state in the settings to trigger saving the network
 }
 
 
 void WifiTask::onWifiDisconnected()
 {
   Serial.println("Wi-Fi disconnected");
+  m_WifiData.setState(WifiData::EState::Disconnected);
 }
 
 
 void WifiTask::onWifiGotIP()
 {
-  char ac_IPAddress[MAX_IP_ADDRESS_LENGTH+1]; // Buffer to hold IP address as string
-  m_WifiHal.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress)); // Get the IP address as a string
+  char ac_IPAddress[MAX_IP_ADDRESS_LENGTH+1]; 
 
-  m_WifiData.setIPAddress(ac_IPAddress); // Update the Wi-Fi data with the obtained IP address
+  m_WifiHal.getIPAddress(ac_IPAddress, sizeof(ac_IPAddress)); 
+  Serial.printf("Got IP address %s\n", ac_IPAddress);
+
+  m_WifiData.setState(WifiData::EState::Connected);  
+  m_WifiData.setIPAddress(ac_IPAddress);
+
+  m_WifiHal.configTime(60*60, 60*60, "pool.ntp.org"); // Set timezone offset and NTP servers
 }
 
 
-void WifiTask::onWifiConnectionFailed(EWifiConnectionError error)
-{
-  Serial.printf("Wi-Fi connection failed with error: %d\n", static_cast<int>(error));
 
-  // TODO: Notify the view to update the Wi-Fi connection status and show an error message if needed
+void WifiTask::onWifiConnectionFailed(uint8_t u8_Reason)
+{
+  const char *pc_ReasonString = m_WifiHal.disconnectReasonToString(u8_Reason);
+
+  Serial.printf("Wi-Fi connection failed with error: %d (%s)\n", static_cast<int>(u8_Reason), pc_ReasonString);
+
+  m_WifiData.setState(WifiData::EState::Error, u8_Reason, pc_ReasonString); // Update the Wi-Fi connection state in the data with error details
+  m_WifiSettings.setConnect(false); // Update the connect state in the settings to reflect
 }
 
 

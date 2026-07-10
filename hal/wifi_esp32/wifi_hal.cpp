@@ -7,6 +7,12 @@
 WifiHal *WifiHal::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
+
+
+
+
+
+
 WifiHal::WifiHal(WifiActionInterface &actionListener)
   : m_actionListener(actionListener)
 {
@@ -39,6 +45,15 @@ void WifiHal::disable()
 {
   Serial.println("HAL: Disabling Wi-Fi");
   WiFi.disconnect(true); // Disconnect and erase credentials
+}
+
+
+void WifiHal::setHostname(const char *pc_Hostname)
+{
+  if(pc_Hostname != nullptr)
+  {
+    WiFi.setHostname(pc_Hostname);
+  }
 }
 
 
@@ -108,7 +123,7 @@ int WifiHal::getSignalStrength() const
 }
 
 
-void WifiHal::onEvent(WiFiEvent_t event) 
+void WifiHal::onEvent(arduino_event_id_t event, arduino_event_info_t info)
 {
   if(mp_thisInstance == nullptr) 
     return; // No instance to handle the event
@@ -132,9 +147,17 @@ void WifiHal::onEvent(WiFiEvent_t event)
       Serial.println("Connected to access point"); 
       mp_thisInstance->m_actionListener.onWifiConnected();
       break;
-    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:    
-      Serial.println("Disconnected from WiFi access point"); 
-      mp_thisInstance->m_actionListener.onWifiDisconnected();
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+      Serial.println("Disconnected from WiFi access point");
+      if(info.wifi_sta_disconnected.reason == WIFI_REASON_ASSOC_LEAVE)
+      {
+        // this is no error, but a normal disconnect, e.g. when calling WiFi.disconnect()
+        mp_thisInstance->m_actionListener.onWifiDisconnected();
+      }
+      else
+      {
+        mp_thisInstance->m_actionListener.onWifiConnectionFailed(info.wifi_sta_disconnected.reason);
+      }
       break;
     case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE: 
       Serial.println("Authentication mode of access point has changed"); 
@@ -203,4 +226,58 @@ void WifiHal::onEvent(WiFiEvent_t event)
     default:                                    
       break;
   }
+}
+
+
+const char *WifiHal::disconnectReasonToString(uint8_t u8_Reason) const
+{
+  switch (u8_Reason)
+  {
+    case WIFI_REASON_UNSPECIFIED:              return "Unspecified reason";
+    case WIFI_REASON_AUTH_EXPIRE:              return "Authentication expired";
+    case WIFI_REASON_AUTH_LEAVE:               return "Authentication leave";
+    case WIFI_REASON_ASSOC_EXPIRE:             return "Association expired";
+    case WIFI_REASON_ASSOC_TOOMANY:            return "Association too many";
+    case WIFI_REASON_NOT_AUTHED:               return "Not authenticated";
+    case WIFI_REASON_NOT_ASSOCED:              return "Not associated";
+    case WIFI_REASON_ASSOC_LEAVE:              return "Association leave";
+    case WIFI_REASON_ASSOC_NOT_AUTHED:         return "Association not authenticated";
+    case WIFI_REASON_DISASSOC_PWRCAP_BAD:      return "Disassociation due to bad power capability";
+    case WIFI_REASON_DISASSOC_SUPCHAN_BAD:     return "Disassociation due to unsupported channel";
+    case WIFI_REASON_BSS_TRANSITION_DISASSOC:  return "BSS transition disassociation";
+    case WIFI_REASON_IE_INVALID:               return "Invalid IE";
+    case WIFI_REASON_MIC_FAILURE:              return "MIC failure";
+    case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:   return "4-way handshake timeout";
+    case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT: return "Group key update timeout";
+    case WIFI_REASON_IE_IN_4WAY_DIFFERS:       return "IE in 4-way differs";
+    case WIFI_REASON_GROUP_CIPHER_INVALID:     return "Group cipher invalid";
+    case WIFI_REASON_PAIRWISE_CIPHER_INVALID:  return "Pairwise cipher invalid";
+    case WIFI_REASON_AKMP_INVALID:             return "AKMP invalid";
+    case WIFI_REASON_UNSUPP_RSN_IE_VERSION:    return "Unsupported RSN IE version";
+    case WIFI_REASON_INVALID_RSN_IE_CAP:       return "Invalid RSN IE capabilities";
+    case WIFI_REASON_802_1X_AUTH_FAILED:       return "802.1X authentication failed";
+    case WIFI_REASON_CIPHER_SUITE_REJECTED:    return "Cipher suite rejected";
+    case WIFI_REASON_INVALID_PMKID:            return "Invalid PMKID";
+    case WIFI_REASON_BEACON_TIMEOUT:           return "Beacon timeout";
+    case WIFI_REASON_NO_AP_FOUND:              return "No AP found";
+    case WIFI_REASON_AUTH_FAIL:                return "Authentication failed";
+    case WIFI_REASON_ASSOC_FAIL:               return "Association failed";
+    case WIFI_REASON_HANDSHAKE_TIMEOUT:        return "Handshake timeout";
+    case WIFI_REASON_CONNECTION_FAIL:          return "Connection failed";
+    case WIFI_REASON_AP_TSF_RESET:             return "AP TSF reset";
+    case WIFI_REASON_ROAMING:                  return "Roaming";
+    default:                                   return "Unknown reason";
+  }
+}
+
+
+
+void WifiHal::configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer)
+{
+  ::configTime(s32_GmtOffset, s32_DstOffset, pc_NtpServer);
+}
+
+int32_t WifiHal::getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs) const
+{
+  return ::getLocalTime(p_Timeinfo, u32_TimeoutMs);
 }

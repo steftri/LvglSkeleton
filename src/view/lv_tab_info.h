@@ -9,6 +9,7 @@ class LvTabInfo
 private:
   lv_obj_t *mp_FreeRTOSInfoLabel;
   lv_obj_t *mp_LVGLInfoLabel;
+  lv_obj_t *mp_MQTTInfoLabel;
 
 public:
   LvTabInfo();

@@ -22,6 +22,8 @@ public:
 
   // Start the view's threads (if any)
   void begin(void);
+
+  void showMessageBox(const char *pc_Title, const char *pc_Message);
 };
 
 #endif // VIEW_H

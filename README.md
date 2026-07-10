@@ -91,6 +91,15 @@ The following PINs of ESP-Prog and ESP32 device has to be connected:
 
 **Attention:** On Windows, OpenOCD cannot use the FTDI driver for communication with the JTAG port of ESP-Prog. To address this issue, it is necessary to substitute the FTDI driver associated with Interface 0 of the FT2232HL (VID 0403, PID 6010) with the WinUSB driver. This task can be accomplished using a utility named Zadig. For comprehensive instructions, please refer to the tutorial above. 
 
+
+# Images
+
+Images with 16 colors can be generated as follows:
+
+```bash
+python3 tools/LVGLImage.py --ofmt C --cf I4 --name <target name> -o src/view/assets images/<source image in PNG format>
+```
+
 ## Known Anomalies
 
 * Debugging via ESP-Prog does not work with ESP8266

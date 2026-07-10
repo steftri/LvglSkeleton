@@ -10,7 +10,6 @@ extern Controller g_controller;
 
 
 LvMain::LvMain(void)
- : m_WlanPasswdDialog(*this) 
 {
 }
 
@@ -31,8 +30,8 @@ void LvMain::setup(void)
   {
     lv_obj_remove_style_all(p_Grid);
 
-    lv_coord_t a_ColumnDesc[] = {lv_pct(100), LV_GRID_TEMPLATE_LAST}; 
-    lv_coord_t a_RowDesc[] = {SCREEN_BAR_HEIGHT, lv_pct(100)-SCREEN_BAR_HEIGHT, LV_GRID_TEMPLATE_LAST}; 
+    static const lv_coord_t a_ColumnDesc[] = {lv_pct(100), LV_GRID_TEMPLATE_LAST}; 
+    static const lv_coord_t a_RowDesc[] = {SCREEN_BAR_HEIGHT, lv_pct(100)-SCREEN_BAR_HEIGHT, LV_GRID_TEMPLATE_LAST}; 
     lv_obj_set_grid_dsc_array(p_Grid, a_ColumnDesc, a_RowDesc);
     lv_obj_set_size(p_Grid, lv_pct(100), lv_pct(100)); // Set the grid to fill the screen
     lv_obj_set_layout(p_Grid, LV_LAYOUT_GRID);
@@ -48,15 +47,22 @@ void LvMain::setup(void)
       lv_obj_set_style_pad_right(p_TitleBar, 10, LV_PART_MAIN);
       lv_obj_set_style_pad_top(p_TitleBar, 6, LV_PART_MAIN);
       lv_obj_set_style_pad_bottom(p_TitleBar, 6, LV_PART_MAIN);
-      lv_obj_set_flex_flow(p_TitleBar, LV_FLEX_FLOW_ROW);
+      lv_obj_set_flex_align(p_TitleBar, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
       lv_obj_t *p_Title = lv_label_create(p_TitleBar);
       lv_label_set_text(p_Title, APPLICATION_NAME);
       lv_obj_set_flex_grow(p_Title, 1); 
 
-      mp_WifiSymbol = lv_label_create(p_TitleBar);
-      lv_obj_align(mp_WifiSymbol, LV_ALIGN_RIGHT_MID, 0, 0);
-      lv_label_set_text(mp_WifiSymbol, LV_SYMBOL_WIFI);
+      LV_IMAGE_DECLARE(cloud_22x17);
+      mp_CloudSymbol = lv_image_create(p_TitleBar);
+      lv_image_set_src(mp_CloudSymbol, &cloud_22x17);
+      lv_obj_set_style_image_recolor(mp_CloudSymbol, lv_color_black(), LV_PART_MAIN);
+      lv_obj_add_flag(mp_CloudSymbol, LV_OBJ_FLAG_HIDDEN);
+
+      LV_IMAGE_DECLARE(wifi_23x17);
+      mp_WifiSymbol = lv_image_create(p_TitleBar);
+      lv_image_set_src(mp_WifiSymbol, &wifi_23x17);
+      lv_obj_set_style_margin_left(mp_WifiSymbol, 8, 0);
       lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
     }
 
@@ -84,7 +90,6 @@ void LvMain::setup(void)
       m_TabInfo.setup(p_TabInfo);
       m_TabHistory.setup(p_TabHistory);
       m_TabSettings.setup(p_TabSettings);
-      m_WlanPasswdDialog.setup(p_TabSettings);
     }
   }
 
@@ -92,6 +97,20 @@ void LvMain::setup(void)
 
 //  Serial.println("LvMain setup completed");
 }
+
+
+void LvMain::showMessageBox(const char *pc_Title, const char *pc_Message)
+{
+  lv_obj_t *p_MsgBox = lv_msgbox_create(lv_screen_active());
+  lv_msgbox_add_title(p_MsgBox, pc_Title);
+  lv_msgbox_add_text(p_MsgBox, pc_Message);
+  lv_msgbox_add_close_button(p_MsgBox);
+  lv_obj_set_size(p_MsgBox, lv_pct(80), LV_SIZE_CONTENT);
+  lv_obj_set_style_pad_all(p_MsgBox, 8, LV_PART_MAIN);
+  lv_obj_center(p_MsgBox);
+}
+
+
 
 LvKeyboard *LvMain::getKeyboard(void)
 {
@@ -116,11 +135,6 @@ LvTabSettings *LvMain::getTabSettings(void)
 }
 
 
-LvWlanPasswdDialog *LvMain::getWlanPasswdDialog(void)
-{
-  return &m_WlanPasswdDialog;
-}
-
 
 void LvMain::setWlanSymbol(bool b_Visible)
 {
@@ -130,11 +144,25 @@ void LvMain::setWlanSymbol(bool b_Visible)
   if(b_Visible)
   {
     lv_obj_clear_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-    LV_LOG_USER("Wifi visible");
   }
   else
   {
     lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
-    LV_LOG_USER("Wifi hidden");
+  }
+}
+
+
+void LvMain::setCloudSymbol(bool b_Visible)
+{
+  if(mp_CloudSymbol == nullptr)
+    return;
+
+  if(b_Visible)
+  {
+    lv_obj_clear_flag(mp_CloudSymbol, LV_OBJ_FLAG_HIDDEN);
+  }
+  else
+  {
+    lv_obj_add_flag(mp_CloudSymbol, LV_OBJ_FLAG_HIDDEN);
   }
 }

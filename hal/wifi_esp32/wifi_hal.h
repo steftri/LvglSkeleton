@@ -2,6 +2,7 @@
 #define WIFI_HAL_H
 
 #include <WiFi.h>
+#include <time.h>
 
 #include "interfaces/wifi_hal_interface.h"
 #include "interfaces/wifi_action_interface.h"
@@ -12,10 +13,26 @@ public:
   WifiHal(WifiActionInterface &actionListener);
   ~WifiHal() = default;
 
-  void setup() override;
+  enum class ERc : int32_t
+  {
+    Ok = 0,
+    Error = -1,
+    ConnectionRefused = -2,
+    ConnectionTimeout = -3,
+    UnacceptableProtocolVersion = -4,
+    IdentifierRejected = -5,
+    ServerUnavailable = -6,
+    BadUserNameOrPassword = -7,
+    NotAuthorized = -8,
+    UnknownError = -9
+  };  
+
+  void setup() override;  
 
   void enable() override;
   void disable() override;
+
+  void setHostname(const char *pc_Hostname) override;
 
   void scanNetworks() override;
   uint8_t getAvailableNetworkCount() const override;
@@ -28,10 +45,15 @@ public:
   void getIPAddress(char* pc_buffer, size_t bufferSize) const override;
   int getSignalStrength() const override;
 
+  const char *disconnectReasonToString(uint8_t u8_Reason) const override;
+
+  void configTime(int32_t s32_GmtOffset, int32_t s32_DstOffset, const char *pc_NtpServer) override;
+  int32_t getLocalTime(struct tm *p_Timeinfo, uint32_t u32_TimeoutMs = 5000) const override;
+
 private:
   static WifiHal *mp_thisInstance; // Static instance pointer for task access
   WifiActionInterface &m_actionListener; // Reference to the action listener
-  static void onEvent(WiFiEvent_t event);
+  static void onEvent(arduino_event_id_t event, arduino_event_info_t info);
 };
 
 #endif  // WIFI_HAL_H

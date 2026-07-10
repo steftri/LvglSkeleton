@@ -18,3 +18,8 @@ void View::begin(void)
   m_Task.begin();
 }
 
+
+void View::showMessageBox(const char *pc_Title, const char *pc_Message)
+{
+  m_Task.showMessageBox(pc_Title, pc_Message);
+}
