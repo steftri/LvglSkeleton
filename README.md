@@ -1,8 +1,9 @@
 # LvglSkeleton
 
-[![Native Unit Tests](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Native%20Unit%20Tests)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
-[![Crowpanel Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Crowpanel%20Binary%20Build)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
-[![Posix Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Posix%20Binary%20Build)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
+[![Native Unit Tests](https://github.com/steftri/LvglSkeleton/actions/workflows/native-unit-tests.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/native-unit-tests.yml)
+[![Crowpanel Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/crowpanel-binary-build.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/crowpanel-binary-build.yml)
+[![Posix Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/posix-binary-build.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/posix-binary-build.yml)
+[![CMake Unit Tests](https://github.com/steftri/LvglSkeleton/actions/workflows/cmake-unit-tests.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/cmake-unit-tests.yml)
 
 LvglSkeleton is a cross-platform LVGL application skeleton with a shared application core and platform-specific hardware abstraction layers for desktop and ESP32 targets.
 
@@ -55,6 +56,8 @@ Install the following tools locally:
 * PlatformIO
 * Python 3
 * CMake 3.14 or newer
+* a C++ toolchain such as GCC or Clang
+* GoogleTest development files for the CMake unit tests
 * SDL2 development files for desktop builds
 * Doxygen if API documentation should be generated
 
@@ -63,6 +66,29 @@ On macOS, SDL2 can for example be installed via Homebrew:
 ```bash
 brew install sdl2
 ```
+
+On Ubuntu, the CMake unit tests can be prepared with:
+
+```bash
+sudo apt-get update
+sudo apt-get install --yes build-essential cmake libgtest-dev
+```
+
+### Run the CMake unit tests
+
+The GoogleTest-based CMake unit tests run directly on the host system and do not require Docker.
+
+Configure and execute them with:
+
+```bash
+cmake -S . -B build-ci -DBUILD_TESTING=ON
+cmake --build build-ci --target UnitTests --parallel
+```
+
+This builds and runs the current CMake unit test executables:
+
+* `UnitTestCrc32`
+* `UnitTestData`
 
 ### Build the desktop simulator
 
