@@ -1,100 +1,72 @@
-# ArduinoLibrarySkeleton_dev
+# LvglSkeleton
 
-Development repository for Arduino library skeleton
+[![Native Unit Tests](https://github.com/steftri/LvglSkeleton/actions/workflows/native-unit-tests.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/native-unit-tests.yml)
+[![Crowpanel Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/crowpanel-binary-build.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/crowpanel-binary-build.yml)
+[![Posix Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/posix-binary-build.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/posix-binary-build.yml)
 
+LvglSkeleton is a cross-platform LVGL application skeleton with a shared application core and platform-specific hardware abstraction layers for desktop and ESP32 targets.
 
-## General
+## Overview
 
-The skeleton serves as a template for an arduino library.  
+The project combines:
 
+* a shared C++ application core in `src/`
+* an MVC-style structure with `Model`, `View`, and `Controller`
+* FreeRTOS-based execution for the desktop SDL2 simulator and the ESP32 target
+* hardware abstraction layers in `hal/` for display, storage, Wi-Fi, MQTT, and lightstrip integration
+* unit tests for reusable libraries under `lib/`
 
-## Features
+The current setup is intended for developing and validating an LVGL UI on the desktop first and then deploying the same application logic to a CrowPanel ESP32 5 inch V2 device.
 
-* Basic arduino library file structure
-* Basic arduino class methods ('begin' and 'end' as well as an example getter and setter) 
-* platformIO development respository with 
-  * 'unity' unit tests
-  * support of native platform, Arduino Uno, Arduino Mega2560, ESP8266 and ESP32 
-  * support of debugging on Arduinos with ATmega CPU using the serial interface
-  * support of debugging on devices with ESP32 using ESP-Prog JTAG interface
+## Supported Targets
 
+### PlatformIO environments
 
-## Development Environment
+* `desktop_sdl2_posix`: desktop build for macOS/Linux using SDL2 and the POSIX FreeRTOS port
+* `desktop_sdl2_windows`: desktop build for Windows using SDL2
+* `crowpanel_esp32_5inch_v2`: ESP32 build for the CrowPanel 5 inch V2 hardware
+* `native`: native test-oriented environment without the SDL2 UI stack
 
-For library development using Visual Studio Code, the following tools and frameworks are used:
+### Toolchains and frameworks
 
-| Type | Software | Version | Manufacturer/Maintainer |
-| ---- | -------- | ------- | ------------------------| 
-| OS | Windows 11 | latest | Microsoft |
-| Driver | CP210x Universal Windws Driver | 11.2.0 | Silicon Labs | 
-| Interpreter | Python | 3.10 | Python Software Foundation |
-| Runtime Environment | Java 8 | Update 371 | Oracle
-| IDE | Visual Studio Code | 1.77.3 | Microsoft |
-| IDE Extension | C/C++ | 1.18.3 | Microsoft |
-| IDE Extension | PlatformIO IDE | 3.1.1 | PlatformIO |
-| IDE Extension | PlantUML | 2.17.5 | yebbs |
-| Code Analyzer | Cppcheck | 2.12 | Daniel Marjamäki | 
-| RCS | git | 2.40.0 | Junio Hamano |
-| RCS | Git Extensions | 4.0.2 | Henk Mesthuis |
-| Merge Tool | P4Merge | 2023.1/2419860 | Perforce |
-| Linter | SonarCube for IDE | 4.19.0 | SonarSource |
+* C++17
+* PlatformIO
+* LVGL 9.3
+* FreeRTOS
+* SDL2 for the desktop simulator
+* Arduino framework for ESP32
+* GoogleTest and Unity for unit tests
 
-### Arduino UNO/MEGA2560:
+## Project Layout
 
-Additionally, for ATmega testing the following tools are used:
+* `src/`: shared application code
+* `lib/`: reusable modules such as CRC, data handling, MQTT, Wi-Fi, worker, and surveillance logic
+* `hal/`: target-specific implementations for desktop and ESP32
+* `test/`: Unity and GoogleTest based unit and integration tests
+* `images/`: source images used for LVGL asset generation
+* `tools/`: helper scripts such as the LVGL image converter
 
-| Type | Software | Version | Manufacturer/Maintainer |
-| ---- | -------- | ------- | ------------------------| 
-| SOUP | avr-debugger | 1.5 | Jan Dolinay |
+## Getting Started
 
+### Prerequisites
 
-### ESP32
- 
-Additionally, for ESP32 testing the following tools are used:
+Install the following tools locally:
 
-#### Hardware
+* PlatformIO
+* Python 3
+* CMake 3.14 or newer
+* SDL2 development files for desktop builds
+* Doxygen if API documentation should be generated
 
-* ESP-Prog by Espressif
+On macOS, SDL2 can for example be installed via Homebrew:
 
-#### Software
+```bash
+brew install sdl2
+```
 
-| Type | Software | Version | Manufacturer/Maintainer |
-| ---- | -------- | ------- | ------------------------| 
-| Driver | CDM | v2.12.36.4 | FTDI Chip |
-| Tool | Zadig | 2.8 | Pete Batard |
+### Build the desktop simulator
 
-# Debugging
-
-## ATmega
-
-On Arduino UNO/MEGA2560, debugging is supported via a software solution by Jan Dolinay. To enable debugging, the function `debug_init()` provided by `avr8-stub.h` must be called.
-
-## ESP8266
-
-Debugging on ESP8266 is currently not supported by PlatformIO. There are other solutions which are not checked out yet.
-
-## ESP32
-
-For ESP32 based devices, the ESP-Prog can be used. In this case, only the ESP-Prog is connected to the computer via USB. 
-
-A good description how to debug can be found here: [Debugging ESP32 Arduino & ESP-IDF Projects using ESP-Prog and PlatformIO](https://www.circuitstate.com/tutorials/debugging-esp32-arduino-esp-idf-projects-using-esp-prog-and-platformio) 
-
-The following PINs of ESP-Prog and ESP32 device has to be connected: 
-| Signal   | ESP-Prog | ESP32       |
-| -------- | -------- | ----------- |
-| VDD (3,3V) | DC3-10P, pin 1 | 3V3 |
-| GND | DC3-10P, pin 3  | GND |
-| ESP_TMS | DC3-10P, pin 2 | GPIO14 |
-| ESP_TCK | DC3-10P, pin 4 | GPIO13 |
-| ESP_TDO | DC3-10P, pin 6 | GPIO15 |
-| ESP_TDI | DC3-10P, pin 8 | GPIO12 |
-
-**Attention:** On Windows, OpenOCD cannot use the FTDI driver for communication with the JTAG port of ESP-Prog. To address this issue, it is necessary to substitute the FTDI driver associated with Interface 0 of the FT2232HL (VID 0403, PID 6010) with the WinUSB driver. This task can be accomplished using a utility named Zadig. For comprehensive instructions, please refer to the tutorial above. 
-
-
-# Images
-
-Images with 16 colors can be generated as follows:
+Build the POSIX SDL2 target:
 
 ```bash
 python3 tools/LVGLImage.py --ofmt C --cf I4 --name <target name> -o src/view/assets images/<source image in PNG format>
