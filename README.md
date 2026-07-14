@@ -1,4 +1,8 @@
-# ArduinoLibrarySkeleton_dev
+# LvglSkeleton
+
+[![Native Unit Tests](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Native%20Unit%20Tests)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
+[![Crowpanel Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Crowpanel%20Binary%20Build)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
+[![Posix Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Posix%20Binary%20Build)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
 
 Development repository for Arduino library skeleton
 
