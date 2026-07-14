@@ -1,0 +1,9 @@
+{
+  "name": "SDL Development Ubuntu-24.04",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "remoteUser": "vscode"
+}
