@@ -9,7 +9,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "platformio.platformio-ide"
+        "platformio.platformio-ide",
+        "ms-vscode.cmake-tools"
       ]
     }
   }

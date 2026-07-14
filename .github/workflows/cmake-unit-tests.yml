@@ -1,0 +1,25 @@
+name: CMake Unit Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  cmake-unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes build-essential cmake libgtest-dev
+
+      - name: Build and run unit tests
+        run: |
+          cmake -S . -B build-ci -DBUILD_TESTING=ON
+          cmake --build build-ci --target UnitTests --parallel
