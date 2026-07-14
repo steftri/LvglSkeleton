@@ -188,7 +188,7 @@ void observer_receives_all_fields_when_no_field_given(void)
   data.notifyObserversPublic();
 
   TEST_ASSERT_EQUAL_INT(
-    static_cast<uint8_t>(EDataField::ALL_FIELDS),
+    static_cast<uint8_t>(EDataField::AllData),
     static_cast<uint8_t>(obs.e_lastField)
   );
 }
@@ -220,3 +220,12 @@ void setup()
 }
 
 void loop() {}
+
+#ifndef ARDUINO
+int main(int argc, char *argv[])
+{
+  setup();
+  loop();
+  return 0;
+}
+#endif
