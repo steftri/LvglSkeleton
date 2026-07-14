@@ -1,0 +1,47 @@
+name: PlatformIO Build and Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  platformio:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - job_name: Native Unit Tests
+            needs_sdl2: false
+            command: platformio test --environment native
+
+          - job_name: Crowpanel Binary Build
+            needs_sdl2: false
+            command: platformio run --environment crowpanel_esp32_5inch_v2
+
+          - job_name: Posix Binary Build
+            needs_sdl2: true
+            command: platformio run --environment desktop_sdl2_posix
+
+    name: ${{ matrix.job_name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install SDL2 dependencies
+        if: matrix.needs_sdl2
+        run: sudo apt-get install -y libsdl2-dev
+
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade pip platformio
+
+      - name: Run PlatformIO command
+        run: ${{ matrix.command }}
