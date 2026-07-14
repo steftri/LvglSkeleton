@@ -5,5 +5,12 @@
     "context": ".."
   },
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  "remoteUser": "vscode"
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "platformio.platformio-ide"
+      ]
+    }
+  }
 }
