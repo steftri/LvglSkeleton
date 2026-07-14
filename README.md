@@ -4,188 +4,159 @@
 [![Crowpanel Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Crowpanel%20Binary%20Build)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
 [![Posix Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml/badge.svg?event=push&job=Posix%20Binary%20Build)](https://github.com/steftri/LvglSkeleton/actions/workflows/platformio.yml)
 
-Development repository for Arduino library skeleton
+LvglSkeleton is a cross-platform LVGL application skeleton with a shared application core and platform-specific hardware abstraction layers for desktop and ESP32 targets.
 
+## Overview
 
-## General
+The project combines:
 
-The skeleton serves as a template for an arduino library.  
+* a shared C++ application core in `src/`
+* an MVC-style structure with `Model`, `View`, and `Controller`
+* FreeRTOS-based execution for the desktop SDL2 simulator and the ESP32 target
+* hardware abstraction layers in `hal/` for display, storage, Wi-Fi, MQTT, and lightstrip integration
+* unit tests for reusable libraries under `lib/`
 
+The current setup is intended for developing and validating an LVGL UI on the desktop first and then deploying the same application logic to a CrowPanel ESP32 5 inch V2 device.
 
-## Features
+## Supported Targets
 
-* Basic arduino library file structure
-* Basic arduino class methods ('begin' and 'end' as well as an example getter and setter) 
-* platformIO development respository with 
-  * 'unity' unit tests
-  * support of native platform, Arduino Uno, Arduino Mega2560, ESP8266 and ESP32 
-  * support of debugging on Arduinos with ATmega CPU using the serial interface
-  * support of debugging on devices with ESP32 using ESP-Prog JTAG interface
+### PlatformIO environments
 
+* `desktop_sdl2_posix`: desktop build for macOS/Linux using SDL2 and the POSIX FreeRTOS port
+* `desktop_sdl2_windows`: desktop build for Windows using SDL2
+* `crowpanel_esp32_5inch_v2`: ESP32 build for the CrowPanel 5 inch V2 hardware
+* `native`: native test-oriented environment without the SDL2 UI stack
 
-## Development Environment
+### Toolchains and frameworks
 
-For library development using Visual Studio Code, the following tools and frameworks are used:
+* C++17
+* PlatformIO
+* LVGL 9.3
+* FreeRTOS
+* SDL2 for the desktop simulator
+* Arduino framework for ESP32
+* GoogleTest and Unity for unit tests
 
-| Type | Software | Version | Manufacturer/Maintainer |
-| ---- | -------- | ------- | ------------------------| 
-| OS | Windows 11 | latest | Microsoft |
-| Driver | CP210x Universal Windws Driver | 11.2.0 | Silicon Labs | 
-| Interpreter | Python | 3.10 | Python Software Foundation |
-| Runtime Environment | Java 8 | Update 371 | Oracle
-| IDE | Visual Studio Code | 1.77.3 | Microsoft |
-| IDE Extension | C/C++ | 1.18.3 | Microsoft |
-| IDE Extension | PlatformIO IDE | 3.1.1 | PlatformIO |
-| IDE Extension | PlantUML | 2.17.5 | yebbs |
-| Code Analyzer | Cppcheck | 2.12 | Daniel Marjamäki | 
-| RCS | git | 2.40.0 | Junio Hamano |
-| RCS | Git Extensions | 4.0.2 | Henk Mesthuis |
-| Merge Tool | P4Merge | 2023.1/2419860 | Perforce |
-| Linter | SonarCube for IDE | 4.19.0 | SonarSource |
+## Project Layout
 
-### Arduino UNO/MEGA2560:
+* `src/`: shared application code
+* `lib/`: reusable modules such as CRC, data handling, MQTT, Wi-Fi, worker, and surveillance logic
+* `hal/`: target-specific implementations for desktop and ESP32
+* `test/`: Unity and GoogleTest based unit and integration tests
+* `images/`: source images used for LVGL asset generation
+* `tools/`: helper scripts such as the LVGL image converter
 
-Additionally, for ATmega testing the following tools are used:
+## Getting Started
 
-| Type | Software | Version | Manufacturer/Maintainer |
-| ---- | -------- | ------- | ------------------------| 
-| SOUP | avr-debugger | 1.5 | Jan Dolinay |
+### Prerequisites
 
+Install the following tools locally:
 
-### ESP32
- 
-Additionally, for ESP32 testing the following tools are used:
+* PlatformIO
+* Python 3
+* CMake 3.14 or newer
+* SDL2 development files for desktop builds
+* Doxygen if API documentation should be generated
 
-#### Hardware
-
-* ESP-Prog by Espressif
-
-#### Software
-
-| Type | Software | Version | Manufacturer/Maintainer |
-| ---- | -------- | ------- | ------------------------| 
-| Driver | CDM | v2.12.36.4 | FTDI Chip |
-| Tool | Zadig | 2.8 | Pete Batard |
-
-# Debugging
-
-## ATmega
-
-On Arduino UNO/MEGA2560, debugging is supported via a software solution by Jan Dolinay. To enable debugging, the function `debug_init()` provided by `avr8-stub.h` must be called.
-
-## ESP8266
-
-Debugging on ESP8266 is currently not supported by PlatformIO. There are other solutions which are not checked out yet.
-
-## ESP32
-
-For ESP32 based devices, the ESP-Prog can be used. In this case, only the ESP-Prog is connected to the computer via USB. 
-
-A good description how to debug can be found here: [Debugging ESP32 Arduino & ESP-IDF Projects using ESP-Prog and PlatformIO](https://www.circuitstate.com/tutorials/debugging-esp32-arduino-esp-idf-projects-using-esp-prog-and-platformio) 
-
-The following PINs of ESP-Prog and ESP32 device has to be connected: 
-| Signal   | ESP-Prog | ESP32       |
-| -------- | -------- | ----------- |
-| VDD (3,3V) | DC3-10P, pin 1 | 3V3 |
-| GND | DC3-10P, pin 3  | GND |
-| ESP_TMS | DC3-10P, pin 2 | GPIO14 |
-| ESP_TCK | DC3-10P, pin 4 | GPIO13 |
-| ESP_TDO | DC3-10P, pin 6 | GPIO15 |
-| ESP_TDI | DC3-10P, pin 8 | GPIO12 |
-
-**Attention:** On Windows, OpenOCD cannot use the FTDI driver for communication with the JTAG port of ESP-Prog. To address this issue, it is necessary to substitute the FTDI driver associated with Interface 0 of the FT2232HL (VID 0403, PID 6010) with the WinUSB driver. This task can be accomplished using a utility named Zadig. For comprehensive instructions, please refer to the tutorial above. 
-
-
-# Images
-
-Images with 16 colors can be generated as follows:
+On macOS, SDL2 can for example be installed via Homebrew:
 
 ```bash
-python3 tools/LVGLImage.py --ofmt C --cf I4 --name <target name> -o src/view/assets images/<source image in PNG format>
+brew install sdl2
 ```
 
-## Known Anomalies
+### Build the desktop simulator
 
-* Debugging via ESP-Prog does not work with ESP8266
-* Debugging via ESP-Prog does not work with Lolin32 (ESP32-D0WDQ6 rev 1.1)
+Build the POSIX SDL2 target:
 
-## Changelog
+```bash
+pio run -e desktop_sdl2_posix
+```
 
-### 1.1.0
+Build and execute it directly:
 
-* Linting with SonarCube added
-* platformio.ini cleaned up
-* Integration test added, which is only executed on real targets
-* Debugging option for Arduino UNO/MEGA2560 added
-* Debugging option for ESP32 added
+```bash
+pio run -e desktop_sdl2_posix -t execute
+```
 
-### 1.0.0
+### Build and upload the ESP32 target
 
-* Initial release
+```bash
+pio run -e crowpanel_esp32_5inch_v2
+pio run -e crowpanel_esp32_5inch_v2 -t upload
+```
 
-# Additional information
+### CMake build
 
-## Create a new project based on this Arduino library skeleton
+The repository also contains a CMake-based build for selected native targets and GoogleTest-based unit tests:
 
-To use *ArduinoLibrarySkeleton_dev* as a template for a new project, it has to be forked locally.
+```bash
+cmake -S . -B build
+cmake --build build
+```
 
-Two repositories need to be created. One is the repository which is referenced in the projects which uses the library. The other one contains the environment which is usefull for development and debugging as well as the unit tests. It references the real library repository as a GIT submodule. 
+## Testing
 
+### PlatformIO tests
 
-### On **GitHub:**
+Run the native Unity-based tests:
 
-1. Create a new library repository, i.e. *my-arduino-library*
+```bash
+pio test -e native
+```
 
-2. Create a new development repository, i.e. *my-arduino-library_dev*
+### CMake and GoogleTest
 
-### Locally within a **Git Bash:**
+Configure and run the GoogleTest-based unit tests:
 
-1. Clone the *ArduinoLibrarySkeleton* and *ArduinoLibrarySkeleton_dev* skeleton as a **bare repository**:
-   ```bash
-      git clone --bare https://github.com/steftri/ArduinoLibrarySkeleton.git
-      git clone --bare https://github.com/steftri/ArduinoLibrarySkeleton_dev.git
-   ```
-2. Replace origin with the one for your new project (i.e. project *my-arduino-library*, with *your-name* as GitHub user name):
-   ```bash
-      cd ./ArduinoLibrarySkeleton.git
-      git remote rm origin
-      git remote add origin https://github.com/your-name/my-arduino-library.git
-      cd ..
+```bash
+cmake -S . -B build
+cmake --build build --target UnitTests
+ctest --test-dir build --output-on-failure
+```
 
-      cd ./ArduinoLibrarySkeleton_dev.git
-      git remote rm origin
-      git remote add origin https://github.com/your-name/my-arduino-library_dev.git
-      cd ..
-   ```
-3. Push both bare repos as a **mirror** to your new origins:
-   ```bash
-      git -C ArduinoLibrarySkeleton.git push --mirror
-      git -C ArduinoLibrarySkeleton_dev.git push --mirror
-   ```
-4. Clone the new project (i.e. project *my-arduino-library*, with *your-name* as GitHub user name):
-   ```bash
-      git clone -b develop https://github.com/your-name/my-arduino-library_dev.git
-   ```
-5. Remove the bare -*ArduinoLibrarySkeleton* and *ArduinoLibrarySkeleton_dev* template projects:
-   ```bash
-      rm -rf ./ArduinoLibrarySkeleton.git
-      rm -rf ./ArduinoLibrarySkeleton_dev.git
-   ```
-6. In the new *my-arduino-library_dev.git* repository, replace the submodule by target one
-   ```bash
-      cd ./my-arduino-library_dev
-      git rm lib/ArduinoLibrarySkeleton
-      git submodule add -b develop https://github.com/your-name/my-arduino-library.git lib/my-arduino-library
-      git commit -m "Skeleton submodule replaced by target one"
-      git push
-   ```   
+The repository currently contains unit tests for at least the CRC and data modules, plus integration tests for target-oriented flows.
 
-7. Checkout new submodule
-   ```bash
-      git submodule update --init --recursive
-   ```    
+## Debugging
 
-   
-## Website
+### ESP32
 
-Further information can be found on [GitHub](https://github.com/steftri/ArduinoLibrarySkeleton_dev).
+For the `crowpanel_esp32_5inch_v2` environment, debugging is configured for `esp-prog`.
+
+Relevant `platformio.ini` settings:
+
+* `debug_tool = esp-prog`
+* `debug_init_break = tbreak setup`
+
+The usual JTAG wiring between ESP-Prog and the target ESP32 board is required.
+
+### Desktop
+
+The desktop target is useful for iterating on UI logic and task behavior without flashing hardware. On macOS, SDL2 window creation and event handling must run on the main thread.
+
+## Images
+
+LVGL image assets can be generated from PNG files with:
+
+```bash
+python3 tools/LVGLImage.py --ofmt C --cf I4 --name <target_name> -o src/view/assets images/<source.png>
+```
+
+## Documentation
+
+If Doxygen is installed, the CMake target can be used to generate API documentation:
+
+```bash
+cmake --build build --target Doxygen
+```
+
+## Notes
+
+* The desktop build uses SDL2 together with the POSIX FreeRTOS port.
+* The ESP32 build pulls in additional hardware-specific libraries such as LovyanGFX, ArduinoMqttClient, Adafruit NeoPixel, and 8BitFonts.
+* The shared application flow is initialized in the platform-specific `main.cpp` entry points and then handed over to `Controller`, `Model`, and `View`.
+
+## Repository
+
+Further information and CI runs are available on GitHub:
+
+https://github.com/steftri/LvglSkeleton
