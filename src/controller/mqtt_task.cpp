@@ -489,6 +489,7 @@ void MqttTask::onMessageReceived(const char *pc_Topic, const uint8_t *pu8_Messag
       break;
     case Mqtt::EMessageType::NCMD:
       Serial.printf("NCMD message for node \"%s\" received with size %d\n", pc_NodeID, static_cast<int>(MessageSize));
+      onNodeCommandReceived(pu8_MessageBuffer, MessageSize); // Call the handler for node commands
       break;
     case Mqtt::EMessageType::DBIRTH:
       Serial.printf("DBIRTH message from device \"%s/%s\" received with size %d\n", pc_NodeID, pc_DeviceID, static_cast<int>(MessageSize));
@@ -505,5 +506,90 @@ void MqttTask::onMessageReceived(const char *pc_Topic, const uint8_t *pu8_Messag
     default:
       Serial.printf("Unknown MQTT message type received; NodeID: %s, DeviceID: %s, Size: %d\n", pc_NodeID, pc_DeviceID, static_cast<int>(MessageSize));
       break;
+  }
+}
+
+
+
+void MqttTask::onNodeCommandReceived(const uint8_t *pu8_MessageBuffer, const size_t MessageSize)
+{
+  if (!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "RESET", MessageSize))
+  {
+    Serial.println("Received RESET command via MQTT. Restarting the device...");
+    //ESP.restart(); // Restart the ESP32
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.enable ", 10))
+  {
+    // Extract the enable state from the message
+    const char* pc_EnableState = reinterpret_cast<const char*>(pu8_MessageBuffer) + 10; // Skip "ls.enable "
+    bool b_Enable = (strcmp(pc_EnableState, "1") == 0 || strcasecmp(pc_EnableState, "true") == 0);
+    g_controller.getModel().getSettings().getLightstripeSettings().setEnable(0, b_Enable); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.valuetarget ", 15))
+  {
+    // Extract the brightness value from the message
+    const char* pc_ValueTarget = reinterpret_cast<const char*>(pu8_MessageBuffer) + 15; // Skip "ls.valuetarget "
+    uint8_t u8_ValueTarget = static_cast<uint8_t>(atoi(pc_ValueTarget)); // Convert to uint8_t
+    g_controller.getModel().getSettings().getLightstripeSettings().setValueTarget(0, static_cast<LightstripeSettings::EValueTarget>(u8_ValueTarget)); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.waveform ", 12))
+  {
+    // Extract the waveform value from the message
+    const char* pc_WaveformValue = reinterpret_cast<const char*>(pu8_MessageBuffer) + 12; // Skip "ls.waveform "
+    uint8_t u8_Waveform = static_cast<uint8_t>(atoi(pc_WaveformValue)); // Convert to uint8_t
+    g_controller.getModel().getSettings().getLightstripeSettings().setWaveForm(0, static_cast<LightstripeSettings::EWaveForm>(u8_Waveform)); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.colormode ", 13))
+  {
+    // Extract the color mode from the message
+    const char* pc_ColorMode = reinterpret_cast<const char*>(pu8_MessageBuffer) + 13; // Skip "ls.colormode "
+    uint8_t u8_ColorMode = static_cast<uint8_t>(atoi(pc_ColorMode)); // Convert to uint8_t
+    g_controller.getModel().getSettings().getLightstripeSettings().setColorMode(0, static_cast<LightstripeSettings::EColorMode>(u8_ColorMode)); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.maxspeed ", 12))
+  {
+    // Extract the speed value from the message
+    const char* pc_SpeedValue = reinterpret_cast<const char*>(pu8_MessageBuffer) + 12; // Skip "ls.maxspeed "
+    float f32_Speed = atof(pc_SpeedValue); // Convert to float
+    g_controller.getModel().getSettings().getLightstripeSettings().setWaveMaxSpeed(0, f32_Speed); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.waveinterval ", 16))
+  {
+    // Extract the wave interval value from the message
+    const char* pc_IntervalValue = reinterpret_cast<const char*>(pu8_MessageBuffer) + 16; // Skip "ls.waveinterval "
+    float f32_Interval = atof(pc_IntervalValue); // Convert to float
+    g_controller.getModel().getSettings().getLightstripeSettings().setWaveInterval(0, f32_Interval); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.minrgb ", 10))
+  {
+    // Extract the min RGB color value from the message
+    const char* pc_MinColorValue = reinterpret_cast<const char*>(pu8_MessageBuffer) + 10; // Skip "ls.minrgb "
+    uint32_t u32_MinColor = strtoul(pc_MinColorValue, nullptr, 16); // Convert to uint32_t (hex)
+    g_controller.getModel().getSettings().getLightstripeSettings().setMinRgbColor(0, u32_MinColor); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.maxrgb ", 10))
+  {
+    // Extract the max RGB color value from the message
+    const char* pc_MaxColorValue = reinterpret_cast<const char*>(pu8_MessageBuffer) + 10; // Skip "ls.maxrgb "
+    uint32_t u32_MaxColor = strtoul(pc_MaxColorValue, nullptr, 16); // Convert to uint32_t (hex)
+    g_controller.getModel().getSettings().getLightstripeSettings().setMaxRgbColor(0, u32_MaxColor); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.minhue ", 10))
+  {
+    // Extract the min hue value from the message
+    const char* pc_MinHueValue = reinterpret_cast<const char*>(pu8_MessageBuffer) + 10; // Skip "ls.minhue "
+    float f32_MinHue = atof(pc_MinHueValue); // Convert to float
+    g_controller.getModel().getSettings().getLightstripeSettings().setMinHue(0, f32_MinHue); // Update the LightstripeSettings
+  }
+  else if(!strncmp(reinterpret_cast<const char*>(pu8_MessageBuffer), "ls.maxhue ", 10))
+  {
+    // Extract the max hue value from the message
+    const char* pc_MaxHueValue = reinterpret_cast<const char*>(pu8_MessageBuffer) + 10; // Skip "ls.maxhue "
+    float f32_MaxHue = atof(pc_MaxHueValue); // Convert to float
+    g_controller.getModel().getSettings().getLightstripeSettings().setMaxHue(0, f32_MaxHue); // Update the LightstripeSettings
+  }
+  else
+  {
+    Serial.printf("Received unknown NCMD command: \"%.*s\"\n", static_cast<int>(MessageSize), pu8_MessageBuffer);
   }
 }

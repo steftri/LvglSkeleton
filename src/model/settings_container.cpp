@@ -1,3 +1,6 @@
+#include <Arduino.h>
+
+
 #include "crc32.h"
 
 #include "settings_container.h"
@@ -29,6 +32,9 @@ SettingsContainer::ERc SettingsContainer::save(void)
 
   uint8_t au8_MqttSettingBuffer[MqttSettings::MQTT_SETTINGS_SIZE];
   uint16_t u16_MqttSettingSize = 0; 
+
+  uint8_t au8_LightstripeSettingBuffer[LightstripeSettings::LIGHTSTRIPE_SETTINGS_SIZE];
+  uint16_t u16_LightstripeSettingSize = 0;
   
   CRC32 crc;
   uint32_t u32_crc;
@@ -59,7 +65,10 @@ SettingsContainer::ERc SettingsContainer::save(void)
   m_DataStorage.write(au8_MqttSettingBuffer, u16_MqttSettingSize);  
   crc.add(au8_MqttSettingBuffer, u16_MqttSettingSize);
 
-  // TODO: serialize and store Lightstripe settings
+  // serialize and store Lightstripe settings
+  u16_LightstripeSettingSize = m_LightstripeSettings.serialize(au8_LightstripeSettingBuffer, sizeof(au8_LightstripeSettingBuffer));
+  m_DataStorage.write(au8_LightstripeSettingBuffer, u16_LightstripeSettingSize);
+  crc.add(au8_LightstripeSettingBuffer, u16_LightstripeSettingSize);
 
   u32_crc = crc.getResult();
   m_DataStorage.write(static_cast<uint8_t>(u32_crc>>24));
@@ -68,6 +77,13 @@ SettingsContainer::ERc SettingsContainer::save(void)
   m_DataStorage.write(static_cast<uint8_t>(u32_crc));  
   
   m_DataStorage.close();
+
+  Serial.printf("Settings saved.\n");
+  Serial.printf("System settings size: %d bytes (expected: %d bytes)\n", u16_SystemSettingsSize, SystemSettings::SYSTEM_SETTINGS_SIZE);
+  Serial.printf("WIFI settings size: %d bytes (expected: %d bytes)\n", u16_WifiSettingSize, WifiSettings::WIFI_SETTINGS_SIZE);
+  Serial.printf("MQTT settings size: %d bytes (expected: %d bytes)\n", u16_MqttSettingSize, MqttSettings::MQTT_SETTINGS_SIZE);
+  Serial.printf("Lightstripe settings size: %d bytes (expected: %d bytes)\n", u16_LightstripeSettingSize, LightstripeSettings::LIGHTSTRIPE_SETTINGS_SIZE);
+  Serial.printf("CRC32: 0x%08X\n", u32_crc);
 
   mb_Valid = true;
   return ERc::Ok;     
@@ -86,6 +102,8 @@ SettingsContainer::ERc SettingsContainer::load(void)
   uint8_t au8_WifiSettingBuffer[WifiSettings::WIFI_SETTINGS_SIZE];
 
   uint8_t au8_MqttSettingBuffer[MqttSettings::MQTT_SETTINGS_SIZE];
+
+  uint8_t au8_LightstripeSettingBuffer[LightstripeSettings::LIGHTSTRIPE_SETTINGS_SIZE];
 
   CRC32 crc;
   uint32_t u32_crc;
@@ -128,7 +146,9 @@ SettingsContainer::ERc SettingsContainer::load(void)
   m_DataStorage.read(au8_MqttSettingBuffer, MqttSettings::MQTT_SETTINGS_SIZE);
   crc.add(au8_MqttSettingBuffer, MqttSettings::MQTT_SETTINGS_SIZE);  
 
-  // TODO: load Lightstripe settings to flat buffer
+  // load Lightstripe settings to flat buffer
+  m_DataStorage.read(au8_LightstripeSettingBuffer, LightstripeSettings::LIGHTSTRIPE_SETTINGS_SIZE);
+  crc.add(au8_LightstripeSettingBuffer, LightstripeSettings::LIGHTSTRIPE_SETTINGS_SIZE);
 
   u32_crc  = static_cast<uint32_t>(m_DataStorage.read())<<24;
   u32_crc |= static_cast<uint32_t>(m_DataStorage.read())<<16;
@@ -151,7 +171,8 @@ SettingsContainer::ERc SettingsContainer::load(void)
   // unserialize MQTT settings
   m_MqttSettings.unserialize(au8_MqttSettingBuffer, sizeof(au8_MqttSettingBuffer));
 
-  // TODO: unserialize Lightstripe settings
+  // unserialize Lightstripe settings
+  m_LightstripeSettings.unserialize(au8_LightstripeSettingBuffer, sizeof(au8_LightstripeSettingBuffer));
 
   mb_Valid = true;
   return ERc::Ok;

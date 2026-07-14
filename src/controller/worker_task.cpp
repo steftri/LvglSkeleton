@@ -6,6 +6,12 @@
 static const size_t LIGHTSTRIPE_NUM_PIXELS = 8; // Number of pixels in the light stripe
 static const uint8_t LIGHTSTRIPE_PIN = 38; // GPIO pin connected to the light stripe data line
 
+enum class ENotificationBits : uint32_t
+{
+  ChangedLightstripeEnableState = (1UL << 0),
+  ChangedLightstripeColorSettings = (1UL << 1)
+};
+
 
 
 WorkerTask *WorkerTask::mp_thisInstance = nullptr; // Initialize static instance pointer
@@ -60,16 +66,18 @@ void WorkerTask::setup()
 {
   Serial.println("WorkerTask running.");
 
+  m_Settings.registerObserver(this); 
+
   m_Lightstripe.setup();
   m_Lightstripe.enable(); // Enable the light stripe hardware
 
   m_Lightstripe.setValueTarget(Lightstripe::EValueTarget::Speed);
   m_Lightstripe.setWaveForm(Lightstripe::EWaveForm::Sine);
   m_Lightstripe.setWaveInterval(static_cast<float>(LIGHTSTRIPE_NUM_PIXELS));
-  m_Lightstripe.setWaveMaxSpeed(1.0f); // 1 second for a full wave cycle
+  m_Lightstripe.setWaveMaxSpeed(2.0f); // 1 cycle per second at setValue(1.0)
   m_Lightstripe.setMinRgbColor(0x000000); // Minimum color (black/off)
   m_Lightstripe.setMaxRgbColor(0xFF0000); // Maximum color (red/full brightness)
-  m_Lightstripe.setValue(1.0f); 
+  m_Lightstripe.setValue(1.0f);  // 5 seconds for a full wave cycle (1.0 / 0.2 = 5 seconds)
 
 
 }
@@ -79,7 +87,31 @@ void WorkerTask::loop()
 {
   static uint32_t lastUpdateTime = 0;
   uint32_t currentTime = millis();
+  uint32_t u32_NotifiedValue = 0;
 
+  xTaskNotifyWait(0, 0xffff, &u32_NotifiedValue, pdMS_TO_TICKS(20UL)); // Wait for notifications with a timeout
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ChangedLightstripeEnableState))
+  {
+    if (m_Settings.getEnable(0))
+    {
+      m_Lightstripe.enable();
+    }
+    else
+    {
+      m_Lightstripe.disable();
+    }
+  }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ChangedLightstripeColorSettings))
+  {
+    m_Lightstripe.setValueTarget(static_cast<Lightstripe::EValueTarget>(m_Settings.getValueTarget(0)));
+    m_Lightstripe.setWaveForm(static_cast<Lightstripe::EWaveForm>(m_Settings.getWaveForm(0)));
+    m_Lightstripe.setWaveInterval(m_Settings.getWaveInterval(0));
+    m_Lightstripe.setWaveMaxSpeed(m_Settings.getWaveMaxSpeed(0));
+    m_Lightstripe.setMinRgbColor(m_Settings.getMinRgbColor(0));
+    m_Lightstripe.setMaxRgbColor(m_Settings.getMaxRgbColor(0));
+  }
+
+  m_Lightstripe.setValue((currentTime % 10000) / 10000.0f); // Update the value based on time for demonstration
   m_Lightstripe.loop(currentTime); // Update the light stripe based on the current time
 
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
@@ -92,3 +124,43 @@ void WorkerTask::loop()
 
   vTaskDelay(pdMS_TO_TICKS(20UL)); // Alle 20 Millisekunden aktualisieren
 }
+
+
+
+void WorkerTask::onDataChanged(Data &r_Data, EDataField e_Field)
+{
+  if(&r_Data == &m_Settings)
+  {
+    onSettingsChanged(e_Field);
+  }
+  else
+  {
+    Serial.println("WorkerTask: Unknown data source changed");
+  }
+}
+
+
+void WorkerTask::onSettingsChanged(EDataField e_Field)
+{
+  switch (static_cast<LightstripeSettings::EField>(e_Field))
+  {
+    case LightstripeSettings::EField::EnableState:
+      Serial.println("WorkerTask: Enable state updated");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangedLightstripeEnableState), eSetBits);
+      break;
+    case LightstripeSettings::EField::ColorSettings:
+      Serial.println("WorkerTask: Color settings updated");
+      xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangedLightstripeColorSettings), eSetBits);
+      break;
+    default:
+      Serial.println("WorkerTask: Unknown Lightstripe settings field changed");
+      break;
+  }
+}
+
+
+void WorkerTask::onDataChanged(EDataField e_Field)
+{
+  // Handle data changes if needed
+}
+
