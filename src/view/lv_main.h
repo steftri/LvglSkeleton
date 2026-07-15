@@ -21,6 +21,8 @@ class LvMain
   lv_obj_t *mp_WifiSymbol; 
   lv_obj_t *mp_CloudSymbol;
 
+  lv_obj_t *mp_MenuTabImage; 
+
 public:
   LvMain();
 

@@ -5,11 +5,7 @@
 #include <freertos/task.h>
 #include <freertos/queue.h>
 
-#ifdef ARDUINO
-#include "ui_c64.h"
-#else
 #include "ui.h"
-#endif
 
 #include "model/data_container.h"
 #include "model/settings_container.h"
@@ -45,11 +41,7 @@ private:
   static StaticQueue_t m_xStaticQueue;
   QueueHandle_t m_xQueueHandle;
 
-#ifdef ARDUINO
-  UiC64 m_ui;
-#else
   Ui m_ui;
-#endif
 
 public:
   ViewTask();

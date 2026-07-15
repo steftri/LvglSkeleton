@@ -3,7 +3,7 @@
 #include "controller.h"
 
 
-static const uint8_t SCREEN_BAR_HEIGHT = 32;
+static const uint8_t SCREEN_BAR_HEIGHT = 40;
 
 
 extern Controller g_controller;
@@ -19,7 +19,7 @@ void LvMain::setup(void)
 {
   lv_theme_t *p_Theme = lv_theme_default_init(nullptr,  /*Use the DPI, size, etc from this display*/
                                         lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_CYAN),   /*Primary and secondary palette*/
-                                        false,    /* false = Light or true = dark mode*/
+                                        true,    /* false = Light or true = dark mode*/
                                         &lv_font_montserrat_18); 
 
   lv_disp_set_theme(nullptr, p_Theme); /*Assign the theme to the display*/
@@ -49,21 +49,20 @@ void LvMain::setup(void)
       lv_obj_set_style_pad_bottom(p_TitleBar, 6, LV_PART_MAIN);
       lv_obj_set_flex_align(p_TitleBar, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-      lv_obj_t *p_Title = lv_label_create(p_TitleBar);
-      lv_label_set_text(p_Title, APPLICATION_NAME);
-      lv_obj_set_flex_grow(p_Title, 1); 
+      LV_IMAGE_DECLARE(wifi_icon);
+      mp_WifiSymbol = lv_image_create(p_TitleBar);
+      lv_image_set_src(mp_WifiSymbol, &wifi_icon);
+      lv_obj_set_style_margin_left(mp_WifiSymbol, 8, 0);
+      lv_obj_set_style_margin_right(mp_WifiSymbol, 8, 0);
+      lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
 
-      LV_IMAGE_DECLARE(cloud_22x17);
+      LV_IMAGE_DECLARE(cloud_icon);
       mp_CloudSymbol = lv_image_create(p_TitleBar);
-      lv_image_set_src(mp_CloudSymbol, &cloud_22x17);
-      lv_obj_set_style_image_recolor(mp_CloudSymbol, lv_color_black(), LV_PART_MAIN);
+      lv_image_set_src(mp_CloudSymbol, &cloud_icon);
+      lv_obj_set_style_margin_left(mp_CloudSymbol, 8, 0);
+      lv_obj_set_style_margin_right(mp_CloudSymbol, 8, 0);
       lv_obj_add_flag(mp_CloudSymbol, LV_OBJ_FLAG_HIDDEN);
 
-      LV_IMAGE_DECLARE(wifi_23x17);
-      mp_WifiSymbol = lv_image_create(p_TitleBar);
-      lv_image_set_src(mp_WifiSymbol, &wifi_23x17);
-      lv_obj_set_style_margin_left(mp_WifiSymbol, 8, 0);
-      lv_obj_add_flag(mp_WifiSymbol, LV_OBJ_FLAG_HIDDEN);
     }
 
 
@@ -74,13 +73,24 @@ void LvMain::setup(void)
 
       lv_obj_set_size(mp_TabView, lv_pct(100), lv_pct(100));
 
-      lv_obj_t *p_TabInfo = lv_tabview_add_tab(mp_TabView, "Info");
-      lv_obj_t *p_TabHistory = lv_tabview_add_tab(mp_TabView, "History");
-      lv_obj_t *p_TabSettings = lv_tabview_add_tab(mp_TabView, "Settings");                           
+      static lv_style_t menuTabStyle;
+      lv_style_init(&menuTabStyle);
+
+      lv_obj_t *p_TabInfo = lv_tabview_add_tab(mp_TabView, "");
+      lv_obj_t *p_TabHistory = lv_tabview_add_tab(mp_TabView, "");
+      lv_obj_t *p_TabSettings = lv_tabview_add_tab(mp_TabView, "");                           
 
       // change the tab bar position to bottom, change the border style of the buttons
       lv_tabview_set_tab_bar_position(mp_TabView, LV_DIR_BOTTOM);
       lv_obj_t *p_TabButtons = lv_tabview_get_tab_btns(mp_TabView);
+
+      // Porsche background image for the tab bar, more height
+      lv_obj_set_size(p_TabButtons, lv_pct(100), 96);
+      LV_IMAGE_DECLARE(menu_bar_normal);
+      lv_style_set_bg_img_src(&menuTabStyle, &menu_bar_normal);
+      lv_style_set_bg_color(&menuTabStyle, lv_color_black());
+      lv_obj_add_style(p_TabButtons, &menuTabStyle, LV_PART_MAIN);
+
       for(uint32_t i = 0; i < lv_tabview_get_tab_count(mp_TabView); i++) 
       {
         lv_obj_t *p_Button = lv_obj_get_child(p_TabButtons, i);
