@@ -88,7 +88,9 @@ void SurveillanceTask::loop()
   if(currentTime - lastPublishTime >= 15*1000UL) // Publish every 15 seconds
   { 
     lastPublishTime = currentTime;
-    g_controller.getMqtt().publishNodeData(reinterpret_cast<uint8_t*>(&m_Data), sizeof(SurveillanceData)); 
+    // TODO: publish something usefull
+    uint8_t au8_Data[]={0x01, 0x02, 0x03, 0x04}; // Example data
+    g_controller.getMqtt().publishNodeData(au8_Data, sizeof(au8_Data)); 
   }   
 
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
