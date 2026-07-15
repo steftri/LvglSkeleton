@@ -27,3 +27,9 @@ SurveillanceData &DataContainer::getSurveillanceData(void)
 {
   return m_SurveillanceData;
 }
+
+
+SystemData &DataContainer::getSystemData(void)
+{
+  return m_SystemData;
+}

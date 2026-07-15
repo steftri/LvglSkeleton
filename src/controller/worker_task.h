@@ -8,6 +8,7 @@
 
 #include "lightstripe_settings.h"
 #include "lightstripe_data.h"
+#include "system_data.h"
 
 #include "lightstripe.h"
 
@@ -25,11 +26,17 @@ private:
 
   LightstripeSettings &m_Settings;
   LightstripeData &m_Data;
+  SystemData &m_SystemData;
 
   Lightstripe m_Lightstripe; // Instance of the Lightstripe HAL
 
+  // Simulation state
+  float mf32_SimSoc;               ///< Simulated state of charge (0–100 %)
+  float mf32_SimCurrentA;          ///< Simulated charging current in A
+  uint16_t mu16_SimRemainingMin;   ///< Simulated remaining charging time in min
+
 public:
-  WorkerTask(LightstripeSettings &settings, LightstripeData &data);
+  WorkerTask(LightstripeSettings &settings, LightstripeData &data, SystemData &systemData);
   void begin(void);
 
   // DataObserver implementation
@@ -40,6 +47,7 @@ public:
 private:  
   void setup();
   void loop();
+  void updateSimulation(uint32_t u32_CurrentTimeMs);
 };
 
 

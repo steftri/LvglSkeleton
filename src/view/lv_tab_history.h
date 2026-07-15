@@ -18,9 +18,9 @@ public:
 
   void setup(lv_obj_t *p_ParentTab);
 
-  void updateChargingState(int i_SocPercent);
-  void updateChargingCurrent(float f_CurrentAmpere);
-  void updateRemainingTime(int i_RemainingMinutes);
+  void updateChargingState(float f32_SocPercent);
+  void updateChargingCurrent(float f32_CurrentAmpere);
+  void updateRemainingTime(int32_t s32_RemainingMinutes);
 };
 
 

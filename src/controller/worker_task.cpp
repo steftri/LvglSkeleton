@@ -6,6 +6,9 @@
 static const size_t LIGHTSTRIPE_NUM_PIXELS = 8; // Number of pixels in the light stripe
 static const uint8_t LIGHTSTRIPE_PIN = 38; // GPIO pin connected to the light stripe data line
 
+
+static const float MAX_CHARGING_CURRENT_A = 8.0f; // Maximum charging current in amperes
+
 enum class ENotificationBits : uint32_t
 {
   ChangedLightstripeEnableState = (1UL << 0),
@@ -17,11 +20,15 @@ enum class ENotificationBits : uint32_t
 WorkerTask *WorkerTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
-WorkerTask::WorkerTask(LightstripeSettings &settings, LightstripeData &data)
+WorkerTask::WorkerTask(LightstripeSettings &settings, LightstripeData &data, SystemData &systemData)
   : mp_TaskHandle(nullptr)
   , m_Settings(settings)
   , m_Data(data)
-  , m_Lightstripe(LIGHTSTRIPE_PIN, LIGHTSTRIPE_NUM_PIXELS) 
+  , m_SystemData(systemData)
+  , m_Lightstripe(LIGHTSTRIPE_PIN, LIGHTSTRIPE_NUM_PIXELS)
+  , mf32_SimSoc(20.0f)
+  , mf32_SimCurrentA(11.0f)
+  , mu16_SimRemainingMin(160)
 {
     mp_thisInstance = this;
 }
@@ -114,6 +121,8 @@ void WorkerTask::loop()
   m_Lightstripe.setValue((currentTime % 10000) / 10000.0f); // Update the value based on time for demonstration
   m_Lightstripe.loop(currentTime); // Update the light stripe based on the current time
 
+  updateSimulation(currentTime);
+
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
     lastUpdateTime = currentTime;
@@ -123,6 +132,33 @@ void WorkerTask::loop()
   }
 
   vTaskDelay(pdMS_TO_TICKS(20UL)); // Alle 20 Millisekunden aktualisieren
+}
+
+
+void WorkerTask::updateSimulation(uint32_t u32_CurrentTimeMs)
+{
+  // Advance SoC by 1 % every second (demo speed)
+  static uint32_t u32_LastSimUpdateMs = 0;
+  static const uint32_t SIM_INTERVAL_MS = 1000UL;
+
+  if (u32_CurrentTimeMs - u32_LastSimUpdateMs < SIM_INTERVAL_MS)
+    return;
+
+  u32_LastSimUpdateMs = u32_CurrentTimeMs;
+
+  mf32_SimSoc += 1.0f; // Increase simulated SoC by 1% every second
+  if (mf32_SimSoc > 100)
+    mf32_SimSoc = 0; // Wrap around for continuous demo
+
+  // Current tapers from ~8 A (empty) down to ~2 A (full)
+  mf32_SimCurrentA = 2.0f + (MAX_CHARGING_CURRENT_A - 2.0f) * (1.0f - mf32_SimSoc / 100.0f);
+
+  // Remaining time: linear estimate (~2 min per percent remaining)
+  mu16_SimRemainingMin = static_cast<uint16_t>((100 - mf32_SimSoc) * 2);
+
+  m_SystemData.setSocPercent(static_cast<uint8_t>(mf32_SimSoc));
+  m_SystemData.setChargingCurrentA(mf32_SimCurrentA);
+  m_SystemData.setRemainingTimeMin(mu16_SimRemainingMin);
 }
 
 

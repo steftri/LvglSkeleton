@@ -60,6 +60,7 @@ private:
   void onWIFIDataChanged(EDataField e_Field);
   void onMQTTDataChanged(EDataField e_Field);
   void onSurveillanceDataChanged(EDataField e_Field);
+  void onChargingDataChanged(EDataField e_Field);
 
   // Thread-internal methods to update the UI based on notifications
   void onUpdateEnableState();

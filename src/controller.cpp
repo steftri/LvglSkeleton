@@ -9,7 +9,7 @@ Controller::Controller(Model &model, View &view)
   , m_surveillanceTask(model.getData().getSurveillanceData())
   , m_wifiTask(model.getSettings().getSystemSettings(), model.getSettings().getWifiSettings(), model.getData().getWifiData())
   , m_mqttTask(model.getSettings().getSystemSettings(), model.getSettings().getMqttSettings(), model.getData().getMqttData(), model.getData().getWifiData())
-  , m_workerTask(model.getSettings().getLightstripeSettings(), model.getData().getLightstripeData())
+  , m_workerTask(model.getSettings().getLightstripeSettings(), model.getData().getLightstripeData(), model.getData().getSystemData())
 {
 }
 

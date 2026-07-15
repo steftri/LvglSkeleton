@@ -23,7 +23,8 @@ enum class ENotificationBits : uint32_t
   LVGLStats = (1UL << 6),
   MQTTConnectionState = (1UL << 7),
   MQTTStats = (1UL << 8),
-  MQTTError = (1UL << 9)
+  MQTTError = (1UL << 9),
+  ChargingData = (1UL << 10)
 };
 
 
@@ -94,7 +95,8 @@ void ViewTask::setup()
 
   r_DataContainer.getWifiData().registerObserver(this); 
   r_DataContainer.getMqttData().registerObserver(this); 
-  r_DataContainer.getSurveillanceData().registerObserver(this); 
+  r_DataContainer.getSurveillanceData().registerObserver(this);
+  r_DataContainer.getSystemData().registerObserver(this);
   Serial.println("Observer registered for data changes");
 }
 
@@ -174,6 +176,14 @@ void ViewTask::loop()
     DataContainer &r_DataContainer = g_controller.getModel().getData();
     onShowMessageBox("MQTT Error", r_DataContainer.getMqttData().getLastErrorMessage());
   }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ChargingData))
+  {
+    DataContainer &r_DataContainer = g_controller.getModel().getData();
+    SystemData &r_SystemData = r_DataContainer.getSystemData();
+    g_ViewLvMain.getTabHistory()->updateChargingState(r_SystemData.getSocPercent());
+    g_ViewLvMain.getTabHistory()->updateChargingCurrent(r_SystemData.getChargingCurrentA());
+    g_ViewLvMain.getTabHistory()->updateRemainingTime(r_SystemData.getRemainingTimeMin());
+  }
 
   if(uxQueueMessagesWaiting(m_xQueueHandle) > 0)
   {
@@ -210,6 +220,10 @@ void ViewTask::onDataChanged(Data &r_Data, EDataField e_Field)
   else if(&r_Data == &r_DataContainer.getSurveillanceData())
   {
     onSurveillanceDataChanged(e_Field);
+  }
+  else if(&r_Data == &r_DataContainer.getSystemData())
+  {
+    onChargingDataChanged(e_Field);
   }
   else
   {
@@ -292,6 +306,13 @@ void ViewTask::onSurveillanceDataChanged(EDataField e_Field)
       Serial.println("ViewTask: Unknown surveillance data field changed");
       break;
   }
+}
+
+
+void ViewTask::onChargingDataChanged(EDataField /*e_Field*/)
+{
+  // Coalesce all three fields into a single notification to avoid redundant redraws
+  xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChargingData), eSetBits);
 }
 
 

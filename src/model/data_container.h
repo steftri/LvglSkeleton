@@ -7,6 +7,7 @@
 #include "mqtt_data.h"
 #include "lightstripe_data.h"
 #include "surveillance_data.h"
+#include "system_data.h"
 
 
 class DataContainer
@@ -15,8 +16,7 @@ class DataContainer
   MqttData m_MqttData; ///< Holds the MQTT data
   LightstripeData m_LightstripeData; ///< Holds the Lightstripe data
   SurveillanceData m_SurveillanceData; ///< Holds the surveillance data
-    
-  // Add other data members as needed, e.g., for MQTT settings, etc.
+  SystemData m_SystemData; ///< Holds the system/charging data
 
 public:
   DataContainer(void);
@@ -26,6 +26,7 @@ public:
   MqttData &getMqttData(void);
   LightstripeData &getLightstripeData(void);
   SurveillanceData &getSurveillanceData(void);
+  SystemData &getSystemData(void);
 };
 
 
