@@ -6,13 +6,21 @@
 
 class LvTabHistory
 {
+private:
+  lv_obj_t *mp_BatteryArc;
+  lv_obj_t *mp_SocLabel;
+  lv_obj_t *mp_CurrentValueLabel;
+  lv_obj_t *mp_RemainingTimeLabel;
+
 public:
   LvTabHistory();
   ~LvTabHistory() = default;
 
   void setup(lv_obj_t *p_ParentTab);
 
-  void updateHistory(const char *pc_History);
+  void updateChargingState(int i_SocPercent);
+  void updateChargingCurrent(float f_CurrentAmpere);
+  void updateRemainingTime(int i_RemainingMinutes);
 };
 
 
