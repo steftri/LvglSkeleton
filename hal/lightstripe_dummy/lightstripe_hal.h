@@ -10,7 +10,7 @@ class LightstripeHal : public LightstripeHalInterface
   uint8_t mu8_Pin;
 
 public:
-  LightstripeHal(uint16_t u16_NumPixels, uint8_t u8_Pin);
+  LightstripeHal(uint8_t u8_Pin, uint16_t u16_NumPixels);
   ~LightstripeHal() = default;
 
   void setup() override;  

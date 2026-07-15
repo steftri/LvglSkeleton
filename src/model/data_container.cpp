@@ -17,9 +17,9 @@ MqttData &DataContainer::getMqttData(void)
 }
 
 
-WorkerData &DataContainer::getWorkerData(void)
+LightstripeData &DataContainer::getLightstripeData(void)
 {
-  return m_WorkerData;
+  return m_LightstripeData;
 }
 
 

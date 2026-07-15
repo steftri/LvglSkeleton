@@ -80,6 +80,7 @@ private:
   void onConnectionFailed(int32_t s32_Error) override;
 
   void onMessageReceived(const char *pc_Topic, const uint8_t *pu8_MessageBuffer, const size_t MessageSize) override;
+  void onNodeCommandReceived(const uint8_t *pu8_MessageBuffer, const size_t MessageSize);
 };
 
 

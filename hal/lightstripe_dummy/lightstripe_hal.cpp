@@ -1,7 +1,7 @@
 #include "lightstripe_hal.h"
 
 
-LightstripeHal::LightstripeHal(uint16_t u16_NumPixels, uint8_t u8_Pin)
+LightstripeHal::LightstripeHal(uint8_t u8_Pin, uint16_t u16_NumPixels)
     : mu16_NumPixels(u16_NumPixels)
     , mu8_Pin(u8_Pin)
 {
