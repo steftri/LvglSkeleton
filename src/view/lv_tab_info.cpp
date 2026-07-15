@@ -20,6 +20,21 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
   lv_obj_set_flex_flow(p_ParentTab, LV_FLEX_FLOW_COLUMN);
 
   // Create a label to display information
+  lv_obj_t *p_PorschePanel = lv_obj_create(p_ParentTab);
+  {     
+    lv_obj_remove_style_all(p_PorschePanel);
+    lv_obj_set_size(p_PorschePanel, lv_pct(100), LV_SIZE_CONTENT);
+
+    //lv_obj_t *p_FreeRTOSHead = lv_label_create(p_FreeRTOSPanel);
+    //lv_label_set_text(p_FreeRTOSHead, "FreeRTOS");
+    LV_IMAGE_DECLARE(porsche_logo_i4);
+    lv_obj_t * img1 = lv_image_create(p_PorschePanel);
+    lv_image_set_src(img1, &porsche_logo_i4);
+    lv_obj_align(img1, LV_ALIGN_CENTER, 0, 0);
+  }
+
+
+  // Create a label to display information
   lv_obj_t *p_FreeRTOSPanel = lv_obj_create(p_ParentTab);
   {
     lv_obj_set_size(p_FreeRTOSPanel, lv_pct(100), LV_SIZE_CONTENT);
@@ -31,7 +46,6 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
     LV_IMAGE_DECLARE(freertos);
     lv_obj_t * img1 = lv_image_create(p_FreeRTOSPanel);
     lv_image_set_src(img1, &freertos);
-    lv_obj_align(img1, LV_ALIGN_CENTER, 0, 0);
 
     mp_FreeRTOSInfoLabel = lv_label_create(p_FreeRTOSPanel);
     lv_label_set_text(mp_FreeRTOSInfoLabel, "FreeRTOS information will be displayed here.");
@@ -48,9 +62,7 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
     LV_IMAGE_DECLARE(lvgl);
     //lv_label_set_text(p_LVGLHead, "LVGL");
     lv_obj_t * img1 = lv_image_create(p_LVGLPanel);
-    lv_image_set_src(img1, &lvgl);
-    lv_obj_align(img1, LV_ALIGN_CENTER, 0, 0);
-    
+    lv_image_set_src(img1, &lvgl);    
 
     mp_LVGLInfoLabel = lv_label_create(p_LVGLPanel);
     lv_label_set_text(mp_LVGLInfoLabel, "LVGL information will be displayed here.");    

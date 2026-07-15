@@ -10,7 +10,6 @@ class LvTabSettings
   struct 
   {
     lv_obj_t *mp_HostName;
-    lv_obj_t *mp_SplashScreen;
   } m_System;
 
   struct  
@@ -36,11 +35,9 @@ class LvTabSettings
   } m_Mqtt;
 
 private:
-  static void onInputEventSplashScreen(lv_event_t *p_Event);
   static void onInputEvent(lv_event_t *p_Event);
 
   void onInputSystemHostName(const char *pc_HostName);
-  void onInputSystemSplashScreen(uint8_t u8_SplashScreen);
 
   void onInputMqttBrokerCallback(const char *pc_Broker);
   void onInputMqttPortCallback(uint16_t u16_Port);

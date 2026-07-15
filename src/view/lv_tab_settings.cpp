@@ -52,18 +52,6 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
                                                LV_GRID_ALIGN_CENTER, 0, 1); //row
     lv_obj_set_width(m_System.mp_HostName, lv_pct(100));
     lv_obj_add_event_cb(m_System.mp_HostName, onInputEvent, LV_EVENT_ALL, this);
-
-    // Splash screen
-    lv_obj_t *p_SplashScreenLabel = lv_label_create(p_SystemPanel);
-    lv_label_set_text(p_SplashScreenLabel, "Splash Screen");
-    lv_obj_set_grid_cell(p_SplashScreenLabel, LV_GRID_ALIGN_START, 0, 1, //column
-                                          LV_GRID_ALIGN_CENTER, 1, 1); //row
-
-    m_System.mp_SplashScreen = lv_dropdown_create(p_SystemPanel);
-    lv_obj_set_grid_cell(m_System.mp_SplashScreen, LV_GRID_ALIGN_STRETCH, 1, 1, //column
-                                               LV_GRID_ALIGN_CENTER, 1, 1); //row
-    lv_obj_set_width(m_System.mp_SplashScreen, lv_pct(100));
-    lv_dropdown_set_options_static(m_System.mp_SplashScreen, "None\n8-bit");
   }
 
 
@@ -143,7 +131,6 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
 
     updateWlanStatePanel();
     updateWlanSelectList(); 
-      
   }
 
   lv_obj_t *p_MqttPanel = lv_obj_create(p_ParentTab);
@@ -264,7 +251,6 @@ void LvTabSettings::updateSystemSettingsPanel(void)
   SystemSettings &r_SystemSettings = g_controller.getModel().getSettings().getSystemSettings();
 
   lv_textarea_set_text(m_System.mp_HostName, r_SystemSettings.getHostName());
-  lv_dropdown_set_selected(m_System.mp_SplashScreen, static_cast<uint8_t>(r_SystemSettings.getSplashScreen()));
 }
 
 
@@ -357,19 +343,6 @@ void LvTabSettings::onInputEvent(lv_event_t *p_Event)
 }
 
 
-void LvTabSettings::onInputEventSplashScreen(lv_event_t *p_Event)
-{
-  lv_event_code_t code = lv_event_get_code(p_Event);
-  LvTabSettings *p_This = static_cast<LvTabSettings*>(lv_event_get_user_data(p_Event));
-
-  if(code == LV_EVENT_VALUE_CHANGED)
-  {
-    uint8_t u8_SelectedIndex = lv_dropdown_get_selected(p_This->m_System.mp_SplashScreen);
-    p_This->onInputSystemSplashScreen(u8_SelectedIndex);
-  }
-}
-
-
 
 void LvTabSettings::onInputSystemHostName(const char *pc_HostName)
 {
@@ -379,16 +352,6 @@ void LvTabSettings::onInputSystemHostName(const char *pc_HostName)
   r_SystemSettings.setHostName(pc_HostName); // Update the hostname in the settings
 }
 
-
-
-
-void LvTabSettings::onInputSystemSplashScreen(uint8_t u8_SplashScreen)
-{
-  SystemSettings &r_SystemSettings = g_controller.getModel().getSettings().getSystemSettings();
-
-  LV_LOG_USER("new SplashScreen: %d\n", u8_SplashScreen);
-  r_SystemSettings.setSplashScreen(static_cast<SystemSettings::ESplashScreen>(u8_SplashScreen)); // Update the splash screen in the settings
-}
 
 
 
