@@ -182,7 +182,9 @@ void ViewTask::loop()
     SystemData &r_SystemData = r_DataContainer.getSystemData();
     g_ViewLvMain.getTabHistory()->updateChargingState(r_SystemData.getSocPercent());
     g_ViewLvMain.getTabHistory()->updateChargingCurrent(r_SystemData.getChargingCurrentA());
-    g_ViewLvMain.getTabHistory()->updateRemainingTime(r_SystemData.getRemainingTimeMin());
+    g_ViewLvMain.getTabHistory()->updateDuration(r_SystemData.getDurationMin());
+    g_ViewLvMain.getTabHistory()->updatePowerConsumption(r_SystemData.getPowerConsumptionKWh());
+    g_ViewLvMain.getTabHistory()->updateChargingSpeed(r_SystemData.getChargingSpeedKW());
   }
 
   if(uxQueueMessagesWaiting(m_xQueueHandle) > 0)

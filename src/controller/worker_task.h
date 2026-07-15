@@ -31,9 +31,11 @@ private:
   Lightstripe m_Lightstripe; // Instance of the Lightstripe HAL
 
   // Simulation state
-  float mf32_SimSoc;               ///< Simulated state of charge (0–100 %)
-  float mf32_SimCurrentA;          ///< Simulated charging current in A
-  uint16_t mu16_SimRemainingMin;   ///< Simulated remaining charging time in min
+  float    mf32_SimSoc;            ///< Simulated state of charge (0–100 %)
+  float    mf32_SimCurrentA;       ///< Simulated charging current in A
+  uint16_t mu16_SimDurationMin;    ///< Simulated charging duration in min
+  float    mf32_SimPowerKWh;       ///< Simulated power consumption in kWh
+  float    mf32_SimChargingSpeedKW; ///< Simulated charging speed in kW
 
 public:
   WorkerTask(LightstripeSettings &settings, LightstripeData &data, SystemData &systemData);

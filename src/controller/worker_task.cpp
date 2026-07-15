@@ -28,7 +28,9 @@ WorkerTask::WorkerTask(LightstripeSettings &settings, LightstripeData &data, Sys
   , m_Lightstripe(LIGHTSTRIPE_PIN, LIGHTSTRIPE_NUM_PIXELS)
   , mf32_SimSoc(20.0f)
   , mf32_SimCurrentA(11.0f)
-  , mu16_SimRemainingMin(160)
+  , mu16_SimDurationMin(0)
+  , mf32_SimPowerKWh(0.0f)
+  , mf32_SimChargingSpeedKW(0.0f)
 {
     mp_thisInstance = this;
 }
@@ -148,17 +150,25 @@ void WorkerTask::updateSimulation(uint32_t u32_CurrentTimeMs)
 
   mf32_SimSoc += 1.0f; // Increase simulated SoC by 1% every second
   if (mf32_SimSoc > 100)
+  {
     mf32_SimSoc = 0; // Wrap around for continuous demo
+    mf32_SimPowerKWh = 0.0f; // Reset energy counter on wrap
+  }
 
   // Current tapers from ~8 A (empty) down to ~2 A (full)
   mf32_SimCurrentA = 2.0f + (MAX_CHARGING_CURRENT_A - 2.0f) * (1.0f - mf32_SimSoc / 100.0f);
 
-  // Remaining time: linear estimate (~2 min per percent remaining)
-  mu16_SimRemainingMin = static_cast<uint16_t>((100 - mf32_SimSoc) * 2);
+  // Each simulation step advances 2 simulated minutes (SoC increases 1% per step, ~2 min per %)
+  static const float SIM_STEP_H = 2.0f / 60.0f; // 2 simulated minutes in hours
+  mu16_SimDurationMin    = static_cast<uint16_t>(mf32_SimSoc * 2);
+  mf32_SimChargingSpeedKW = mf32_SimCurrentA * 0.230f;
+  mf32_SimPowerKWh       += mf32_SimChargingSpeedKW * SIM_STEP_H; // Integrate P·dt
 
   m_SystemData.setSocPercent(static_cast<uint8_t>(mf32_SimSoc));
   m_SystemData.setChargingCurrentA(mf32_SimCurrentA);
-  m_SystemData.setRemainingTimeMin(mu16_SimRemainingMin);
+  m_SystemData.setDurationMin(mu16_SimDurationMin);
+  m_SystemData.setPowerConsumptionKWh(mf32_SimPowerKWh);
+  m_SystemData.setChargingSpeedKW(mf32_SimChargingSpeedKW);
 }
 
 

@@ -6,7 +6,9 @@ LvTabHistory::LvTabHistory()
     : mp_BatteryArc(nullptr)
     , mp_SocLabel(nullptr)
     , mp_CurrentValueLabel(nullptr)
-    , mp_RemainingTimeLabel(nullptr)
+    , mp_DurationLabel(nullptr)
+    , mp_PowerConsumptionLabel(nullptr)
+    , mp_ChargingSpeedLabel(nullptr)
 {
 }
 
@@ -19,7 +21,7 @@ void LvTabHistory::setup(lv_obj_t *p_ParentTab)
   // === WRAPPER: Arc + cards tightly grouped and centered on the screen ===
   lv_obj_t *p_ContentWrapper = lv_obj_create(p_ParentTab);
   lv_obj_remove_style_all(p_ContentWrapper);
-  lv_obj_set_size(p_ContentWrapper, lv_pct(90), LV_SIZE_CONTENT);
+  lv_obj_set_size(p_ContentWrapper, lv_pct(95), LV_SIZE_CONTENT);
   lv_obj_center(p_ContentWrapper);
   lv_obj_set_flex_flow(p_ContentWrapper, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(p_ContentWrapper, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -64,11 +66,6 @@ void LvTabHistory::setup(lv_obj_t *p_ParentTab)
   lv_obj_t *p_CurrentCard = lv_obj_create(p_BottomRow);
   lv_obj_set_style_flex_grow(p_CurrentCard, 1, 0);
   lv_obj_set_height(p_CurrentCard, LV_SIZE_CONTENT);
-  lv_obj_set_style_bg_color(p_CurrentCard, lv_color_hex(0x0D231A), 0);
-  lv_obj_set_style_border_color(p_CurrentCard, lv_color_hex(0x2ECC71), 0);
-  lv_obj_set_style_border_width(p_CurrentCard, 2, 0);
-  lv_obj_set_style_radius(p_CurrentCard, 12, 0);
-  lv_obj_set_style_pad_all(p_CurrentCard, 14, 0);
   lv_obj_set_flex_flow(p_CurrentCard, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(p_CurrentCard, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
@@ -79,28 +76,63 @@ void LvTabHistory::setup(lv_obj_t *p_ParentTab)
   mp_CurrentValueLabel = lv_label_create(p_CurrentCard);
   lv_label_set_text(mp_CurrentValueLabel, "-- A");
   lv_obj_set_style_text_font(mp_CurrentValueLabel, &lv_font_montserrat_24, 0);
-  lv_obj_set_style_text_color(mp_CurrentValueLabel, lv_color_hex(0x2ECC71), 0);
+  lv_obj_set_style_text_color(mp_CurrentValueLabel, lv_color_white(), 0);
 
-  // --- Remaining time card (right) ---
-  lv_obj_t *p_TimeCard = lv_obj_create(p_BottomRow);
-  lv_obj_set_style_flex_grow(p_TimeCard, 1, 0);
-  lv_obj_set_height(p_TimeCard, LV_SIZE_CONTENT);
-  lv_obj_set_style_bg_color(p_TimeCard, lv_color_hex(0x0D1523), 0);
-  lv_obj_set_style_border_color(p_TimeCard, lv_color_hex(0x3498DB), 0);
-  lv_obj_set_style_border_width(p_TimeCard, 2, 0);
-  lv_obj_set_style_radius(p_TimeCard, 12, 0);
-  lv_obj_set_style_pad_all(p_TimeCard, 14, 0);
-  lv_obj_set_flex_flow(p_TimeCard, LV_FLEX_FLOW_COLUMN);
-  lv_obj_set_flex_align(p_TimeCard, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  // --- Charging speed card (right) ---
+  lv_obj_t *p_SpeedCard = lv_obj_create(p_BottomRow);
+  lv_obj_set_style_flex_grow(p_SpeedCard, 1, 0);
+  lv_obj_set_height(p_SpeedCard, LV_SIZE_CONTENT);
+  lv_obj_set_flex_flow(p_SpeedCard, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(p_SpeedCard, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-  lv_obj_t *p_TimeTitle = lv_label_create(p_TimeCard);
-  lv_label_set_text(p_TimeTitle, "Remaining time");
-  lv_obj_set_style_text_color(p_TimeTitle, lv_color_hex(0x95A5A6), 0);
+  lv_obj_t *p_SpeedTitle = lv_label_create(p_SpeedCard);
+  lv_label_set_text(p_SpeedTitle, "Charging speed");
+  lv_obj_set_style_text_color(p_SpeedTitle, lv_color_hex(0x95A5A6), 0);
 
-  mp_RemainingTimeLabel = lv_label_create(p_TimeCard);
-  lv_label_set_text(mp_RemainingTimeLabel, "-- min");
-  lv_obj_set_style_text_font(mp_RemainingTimeLabel, &lv_font_montserrat_24, 0);
-  lv_obj_set_style_text_color(mp_RemainingTimeLabel, lv_color_hex(0x3498DB), 0);
+  mp_ChargingSpeedLabel = lv_label_create(p_SpeedCard);
+  lv_label_set_text(mp_ChargingSpeedLabel, "-- kW");
+  lv_obj_set_style_text_font(mp_ChargingSpeedLabel, &lv_font_montserrat_24, 0);
+  lv_obj_set_style_text_color(mp_ChargingSpeedLabel, lv_color_white(), 0);
+
+  // === SECOND ROW: Power consumption and Charging speed ===
+  lv_obj_t *p_BottomRow2 = lv_obj_create(p_ContentWrapper);
+  lv_obj_remove_style_all(p_BottomRow2);
+  lv_obj_set_size(p_BottomRow2, lv_pct(100), LV_SIZE_CONTENT);
+  lv_obj_set_flex_flow(p_BottomRow2, LV_FLEX_FLOW_ROW);
+  lv_obj_set_flex_align(p_BottomRow2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER);
+  lv_obj_set_style_pad_column(p_BottomRow2, 12, 0);
+
+  // --- Power consumption card (left) ---
+  lv_obj_t *p_PowerCard = lv_obj_create(p_BottomRow2);
+  lv_obj_set_style_flex_grow(p_PowerCard, 1, 0);
+  lv_obj_set_height(p_PowerCard, LV_SIZE_CONTENT);
+  lv_obj_set_flex_flow(p_PowerCard, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(p_PowerCard, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+  lv_obj_t *p_PowerTitle = lv_label_create(p_PowerCard);
+  lv_label_set_text(p_PowerTitle, "Power consumption");
+  lv_obj_set_style_text_color(p_PowerTitle, lv_color_hex(0x95A5A6), 0);
+
+  mp_PowerConsumptionLabel = lv_label_create(p_PowerCard);
+  lv_label_set_text(mp_PowerConsumptionLabel, "-- kWh");
+  lv_obj_set_style_text_font(mp_PowerConsumptionLabel, &lv_font_montserrat_24, 0);
+  lv_obj_set_style_text_color(mp_PowerConsumptionLabel, lv_color_white(), 0);
+
+  // --- Duration card (right) ---
+  lv_obj_t *p_DurationCard = lv_obj_create(p_BottomRow2);
+  lv_obj_set_style_flex_grow(p_DurationCard, 1, 0);
+  lv_obj_set_height(p_DurationCard, LV_SIZE_CONTENT);
+  lv_obj_set_flex_flow(p_DurationCard, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(p_DurationCard, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);  
+
+  lv_obj_t *p_DurationTitle = lv_label_create(p_DurationCard);
+  lv_label_set_text(p_DurationTitle, "Duration");
+  lv_obj_set_style_text_color(p_DurationTitle, lv_color_hex(0x95A5A6), 0);
+
+  mp_DurationLabel = lv_label_create(p_DurationCard);
+  lv_label_set_text(mp_DurationLabel, "-- min");
+  lv_obj_set_style_text_font(mp_DurationLabel, &lv_font_montserrat_24, 0);
+  lv_obj_set_style_text_color(mp_DurationLabel, lv_color_white(), 0);
 }
 
 void LvTabHistory::updateChargingState(float f32_SocPercent)
@@ -139,26 +171,41 @@ void LvTabHistory::updateChargingCurrent(float f32_ChargingCurrentA)
   lv_label_set_text(mp_CurrentValueLabel, ac_Buf);
 }
 
-void LvTabHistory::updateRemainingTime(int32_t s32_RemainingMinutes)
+void LvTabHistory::updateDuration(uint16_t u16_DurationMin)
 {
-  if (mp_RemainingTimeLabel == nullptr)
+  if (mp_DurationLabel == nullptr)
     return;
 
   char ac_Buf[16];
-  if (s32_RemainingMinutes == -1)
+  if (u16_DurationMin >= 60)
   {
-    lv_label_set_text(mp_RemainingTimeLabel, "-- min");
-  }
-  else if (s32_RemainingMinutes >= 60)
-  {
-    int i_Hours = s32_RemainingMinutes / 60;
-    int i_Mins  = s32_RemainingMinutes % 60;
+    int i_Hours = u16_DurationMin / 60;
+    int i_Mins  = u16_DurationMin % 60;
     snprintf(ac_Buf, sizeof(ac_Buf), "%d:%02d h", i_Hours, i_Mins);
-    lv_label_set_text(mp_RemainingTimeLabel, ac_Buf);
   }
   else
   {
-    snprintf(ac_Buf, sizeof(ac_Buf), "%d min", s32_RemainingMinutes);
-    lv_label_set_text(mp_RemainingTimeLabel, ac_Buf);
+    snprintf(ac_Buf, sizeof(ac_Buf), "%d min", u16_DurationMin);
   }
+  lv_label_set_text(mp_DurationLabel, ac_Buf);
+}
+
+void LvTabHistory::updatePowerConsumption(float f32_PowerConsumptionKWh)
+{
+  if (mp_PowerConsumptionLabel == nullptr)
+    return;
+
+  char ac_Buf[16];
+  snprintf(ac_Buf, sizeof(ac_Buf), "%.2f kWh", f32_PowerConsumptionKWh);
+  lv_label_set_text(mp_PowerConsumptionLabel, ac_Buf);
+}
+
+void LvTabHistory::updateChargingSpeed(float f32_ChargingSpeedKW)
+{
+  if (mp_ChargingSpeedLabel == nullptr)
+    return;
+
+  char ac_Buf[16];
+  snprintf(ac_Buf, sizeof(ac_Buf), "%.2f kW", f32_ChargingSpeedKW);
+  lv_label_set_text(mp_ChargingSpeedLabel, ac_Buf);
 }
