@@ -1,4 +1,5 @@
 #include <math.h>
+#include "Arduino.h"
 
 #include "lightstripe.h"
 
@@ -7,6 +8,7 @@
 Lightstripe::Lightstripe(uint8_t u8_Pin, uint16_t u16_NumPixels)
   : m_LightstripeHal(u8_Pin, u16_NumPixels)
   , mu16_NumPixels(u16_NumPixels)
+  , mb_Enabled(false)
   , me_ValueTarget(EValueTarget::Brightness)
   , me_WaveForm(EWaveForm::None)
   , me_ColorMode(EColorMode::RGB)
@@ -37,13 +39,23 @@ void Lightstripe::setup(void)
 
 void Lightstripe::enable(void)
 {
-  m_LightstripeHal.enable();
+  if(!mb_Enabled)
+  {
+    Serial.println("LightStripe ON");
+    mb_Enabled = true;
+    m_LightstripeHal.enable();
+  }
 }
 
 
 void Lightstripe::disable(void)
 {
-  m_LightstripeHal.disable();
+  if(mb_Enabled)
+  {
+    Serial.println("LightStripe OFF");
+    mb_Enabled = false;
+    m_LightstripeHal.disable();
+  }
 }
 
 

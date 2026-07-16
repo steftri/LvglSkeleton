@@ -57,7 +57,8 @@ static float taycanPowerKW(float soc)
 enum class ENotificationBits : uint32_t
 {
   ChangedLightstripeEnableState = (1UL << 0),
-  ChangedLightstripeColorSettings = (1UL << 1)
+  ChangedLightstripeColorSettings = (1UL << 1),
+  ChangedChargingData = (1UL << 2)
 };
 
 
@@ -121,6 +122,7 @@ void WorkerTask::setup()
   Serial.println("WorkerTask running.");
 
   m_Settings.registerObserver(this); 
+  m_SystemData.registerObserver(this);
 
   m_Lightstripe.setup();
   m_Lightstripe.enable(); // Enable the light stripe hardware
@@ -132,8 +134,6 @@ void WorkerTask::setup()
   m_Lightstripe.setMinRgbColor(0x000000); // Minimum color (black/off)
   m_Lightstripe.setMaxRgbColor(0xFF0000); // Maximum color (red/full brightness)
   m_Lightstripe.setValue(1.0f);  // 5 seconds for a full wave cycle (1.0 / 0.2 = 5 seconds)
-
-
 }
 
 
@@ -146,7 +146,7 @@ void WorkerTask::loop()
   xTaskNotifyWait(0, 0xffff, &u32_NotifiedValue, pdMS_TO_TICKS(20UL)); // Wait for notifications with a timeout
   if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ChangedLightstripeEnableState))
   {
-    if (m_Settings.getEnable(0))
+    if (m_Settings.getEnable(0) && m_SystemData.getChargingCurrentA() > 0)
     {
       m_Lightstripe.enable();
     }
@@ -164,9 +164,19 @@ void WorkerTask::loop()
     m_Lightstripe.setMinRgbColor(m_Settings.getMinRgbColor(0));
     m_Lightstripe.setMaxRgbColor(m_Settings.getMaxRgbColor(0));
   }
+  if (u32_NotifiedValue & static_cast<uint32_t>(ENotificationBits::ChangedChargingData))
+  {
+    if (m_SystemData.getChargingCurrentA() > 0)
+    {
+      m_Lightstripe.enable();
+    }
+    else
+    {
+      m_Lightstripe.disable();
+    }
+  }
 
-  m_Lightstripe.setValue((currentTime % 10000) / 10000.0f); // Update the value based on time for demonstration
-  m_Lightstripe.loop(currentTime); // Update the light stripe based on the current time
+//  m_Lightstripe.loop(currentTime); // Update the light stripe based on the current time
 
   updateSimulation(currentTime);
 
@@ -188,12 +198,32 @@ void WorkerTask::updateSimulation(uint32_t u32_CurrentTimeMs)
   // 1 real second ≙ SIM_STEP_MIN simulated minutes (demo speed)
   static uint32_t u32_LastSimUpdateMs = 0;
   static float    f32_DurationAccMin  = 0.0f; // fractional minute accumulator
-  static const uint32_t SIM_INTERVAL_MS = 250UL;
+  static bool     b_IsPausing         = false;
+  static uint32_t u32_PauseStartMs    = 0;
+  static const uint32_t SIM_INTERVAL_MS   = 250UL;
+  static const uint32_t PAUSE_DURATION_MS = 10000UL; // 10 s pause between cycles
 
   if (u32_CurrentTimeMs - u32_LastSimUpdateMs < SIM_INTERVAL_MS)
     return;
 
   u32_LastSimUpdateMs = u32_CurrentTimeMs;
+
+  // --- Inter-cycle pause ---
+  if (b_IsPausing)
+  {
+    if (u32_CurrentTimeMs - u32_PauseStartMs >= PAUSE_DURATION_MS)
+    {
+      // Pause over: reset state and begin new cycle
+      b_IsPausing         = false;
+      mf32_SimSoc         = 5.0f;
+      mf32_SimPowerKWh    = 0.0f;
+      f32_DurationAccMin  = 0.0f;
+    }
+    else
+    {
+      return; // hold display values until pause expires
+    }
+  }
 
   // Determine charging power from SoC-dependent profile
   mf32_SimChargingSpeedKW = taycanPowerKW(mf32_SimSoc);
@@ -206,12 +236,20 @@ void WorkerTask::updateSimulation(uint32_t u32_CurrentTimeMs)
   float f32_DeltaSoc = (mf32_SimChargingSpeedKW / TAYCAN_BATTERY_KWH) * SIM_STEP_H * 100.0f;
   mf32_SimSoc += f32_DeltaSoc;
 
-  if (mf32_SimSoc > 100.0f)
+  if (mf32_SimSoc >= 100.0f)
   {
-    // Restart from 5 % for a continuous demo loop
-    mf32_SimSoc         = 5.0f;
-    mf32_SimPowerKWh    = 0.0f;
-    f32_DurationAccMin  = 0.0f;
+    // Charge complete – hold 100 % display, start inter-cycle pause
+    mf32_SimSoc             = 100.0f;
+    mf32_SimChargingSpeedKW = 0.0f;
+    mf32_SimCurrentA        = 0.0f;
+    b_IsPausing             = true;
+    u32_PauseStartMs        = u32_CurrentTimeMs;
+    m_SystemData.setSocPercent(100.0f);
+    m_SystemData.setChargingCurrentA(0.0f);
+    m_SystemData.setDurationMin(mu16_SimDurationMin);
+    m_SystemData.setPowerConsumptionKWh(mf32_SimPowerKWh);
+    m_SystemData.setChargingSpeedKW(0.0f);
+    return;
   }
 
   // DC current at 800 V HV bus
@@ -239,6 +277,10 @@ void WorkerTask::onDataChanged(Data &r_Data, EDataField e_Field)
   {
     onSettingsChanged(e_Field);
   }
+  else if(&r_Data == &m_SystemData)
+  {
+    onChargingDataChanged(e_Field);
+  }
   else
   {
     Serial.println("WorkerTask: Unknown data source changed");
@@ -265,8 +307,8 @@ void WorkerTask::onSettingsChanged(EDataField e_Field)
 }
 
 
-void WorkerTask::onDataChanged(EDataField e_Field)
+void WorkerTask::onChargingDataChanged(EDataField e_Field)
 {
-  // Handle data changes if needed
+  xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::ChangedChargingData), eSetBits);
 }
 

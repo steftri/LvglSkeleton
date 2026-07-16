@@ -35,6 +35,8 @@ void LightstripeSettings::init(void)
     m_Insance[i].mu8_GreenMax = 255;
     m_Insance[i].mu8_BlueMax = 255;
   }
+  m_Insance[0].mb_EnableState = true;
+  m_Insance[0].mu16_NumPixels = 1;
 }
 
 
