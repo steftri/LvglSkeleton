@@ -7,7 +7,52 @@ static const size_t LIGHTSTRIPE_NUM_PIXELS = 8; // Number of pixels in the light
 static const uint8_t LIGHTSTRIPE_PIN = 38; // GPIO pin connected to the light stripe data line
 
 
-static const float MAX_CHARGING_CURRENT_A = 8.0f; // Maximum charging current in amperes
+// Porsche Taycan (Gen 1, 2019) DC fast-charging profile
+// Source: real-world measurements (ADAC, Bjørn Nyland et al.)
+// 800 V architecture, 93.4 kWh gross / 83.7 kWh usable battery
+static const float TAYCAN_BUS_VOLTAGE_V = 800.0f;   ///< Nominal HV bus voltage in V
+static const float TAYCAN_BATTERY_KWH   = 83.7f;    ///< Usable battery capacity in kWh
+
+struct TaycanProfilePoint { float soc; float powerKW; };
+
+/// Piecewise-linear DC fast-charging power curve (SoC % → kW)
+static const TaycanProfilePoint TAYCAN_PROFILE[] =
+{
+  {  0.0f, 250.0f },
+  {  5.0f, 270.0f },
+  { 28.0f, 270.0f },
+  { 35.0f, 220.0f },
+  { 50.0f, 170.0f },
+  { 65.0f, 120.0f },
+  { 75.0f,  80.0f },
+  { 80.0f,  50.0f },
+  { 85.0f,  32.0f },
+  { 90.0f,  20.0f },
+  { 95.0f,  13.0f },
+  {100.0f,   7.0f },
+};
+static const size_t TAYCAN_PROFILE_LEN = sizeof(TAYCAN_PROFILE) / sizeof(TAYCAN_PROFILE[0]);
+
+/// Linearly interpolates charging power [kW] for a given SoC [%].
+static float taycanPowerKW(float soc)
+{
+  if (soc <= TAYCAN_PROFILE[0].soc)
+    return TAYCAN_PROFILE[0].powerKW;
+  if (soc >= TAYCAN_PROFILE[TAYCAN_PROFILE_LEN - 1].soc)
+    return TAYCAN_PROFILE[TAYCAN_PROFILE_LEN - 1].powerKW;
+
+  for (size_t i = 0; i < TAYCAN_PROFILE_LEN - 1; ++i)
+  {
+    if (soc >= TAYCAN_PROFILE[i].soc && soc < TAYCAN_PROFILE[i + 1].soc)
+    {
+      float t = (soc - TAYCAN_PROFILE[i].soc)
+                / (TAYCAN_PROFILE[i + 1].soc - TAYCAN_PROFILE[i].soc);
+      return TAYCAN_PROFILE[i].powerKW
+             + t * (TAYCAN_PROFILE[i + 1].powerKW - TAYCAN_PROFILE[i].powerKW);
+    }
+  }
+  return TAYCAN_PROFILE[TAYCAN_PROFILE_LEN - 1].powerKW;
+}
 
 enum class ENotificationBits : uint32_t
 {
@@ -26,8 +71,8 @@ WorkerTask::WorkerTask(LightstripeSettings &settings, LightstripeData &data, Sys
   , m_Data(data)
   , m_SystemData(systemData)
   , m_Lightstripe(LIGHTSTRIPE_PIN, LIGHTSTRIPE_NUM_PIXELS)
-  , mf32_SimSoc(20.0f)
-  , mf32_SimCurrentA(11.0f)
+  , mf32_SimSoc(5.0f)
+  , mf32_SimCurrentA(0.0f)
   , mu16_SimDurationMin(0)
   , mf32_SimPowerKWh(0.0f)
   , mf32_SimChargingSpeedKW(0.0f)
@@ -139,32 +184,47 @@ void WorkerTask::loop()
 
 void WorkerTask::updateSimulation(uint32_t u32_CurrentTimeMs)
 {
-  // Advance SoC by 1 % every second (demo speed)
+  // Porsche Taycan Gen 1 DC fast-charging simulation
+  // 1 real second ≙ SIM_STEP_MIN simulated minutes (demo speed)
   static uint32_t u32_LastSimUpdateMs = 0;
-  static const uint32_t SIM_INTERVAL_MS = 1000UL;
+  static float    f32_DurationAccMin  = 0.0f; // fractional minute accumulator
+  static const uint32_t SIM_INTERVAL_MS = 250UL;
 
   if (u32_CurrentTimeMs - u32_LastSimUpdateMs < SIM_INTERVAL_MS)
     return;
 
   u32_LastSimUpdateMs = u32_CurrentTimeMs;
 
-  mf32_SimSoc += 1.0f; // Increase simulated SoC by 1% every second
-  if (mf32_SimSoc > 100)
+  // Determine charging power from SoC-dependent profile
+  mf32_SimChargingSpeedKW = taycanPowerKW(mf32_SimSoc);
+
+  // Each real second represents SIM_STEP_MIN simulated minutes
+  static const float SIM_STEP_MIN = 0.25f;
+  static const float SIM_STEP_H   = SIM_STEP_MIN / 60.0f;
+
+  // Advance SoC: deltaSOC [%] = P [kW] / C [kWh] * dt [h] * 100
+  float f32_DeltaSoc = (mf32_SimChargingSpeedKW / TAYCAN_BATTERY_KWH) * SIM_STEP_H * 100.0f;
+  mf32_SimSoc += f32_DeltaSoc;
+
+  if (mf32_SimSoc > 100.0f)
   {
-    mf32_SimSoc = 0; // Wrap around for continuous demo
-    mf32_SimPowerKWh = 0.0f; // Reset energy counter on wrap
+    // Restart from 5 % for a continuous demo loop
+    mf32_SimSoc         = 5.0f;
+    mf32_SimPowerKWh    = 0.0f;
+    f32_DurationAccMin  = 0.0f;
   }
 
-  // Current tapers from ~8 A (empty) down to ~2 A (full)
-  mf32_SimCurrentA = 2.0f + (MAX_CHARGING_CURRENT_A - 2.0f) * (1.0f - mf32_SimSoc / 100.0f);
+  // DC current at 800 V HV bus
+  mf32_SimCurrentA = (mf32_SimChargingSpeedKW * 1000.0f) / TAYCAN_BUS_VOLTAGE_V;
 
-  // Each simulation step advances 2 simulated minutes (SoC increases 1% per step, ~2 min per %)
-  static const float SIM_STEP_H = 2.0f / 60.0f; // 2 simulated minutes in hours
-  mu16_SimDurationMin    = static_cast<uint16_t>(mf32_SimSoc * 2);
-  mf32_SimChargingSpeedKW = mf32_SimCurrentA * 0.230f;
-  mf32_SimPowerKWh       += mf32_SimChargingSpeedKW * SIM_STEP_H; // Integrate P·dt
+  // Integrate transferred energy
+  mf32_SimPowerKWh += mf32_SimChargingSpeedKW * SIM_STEP_H;
 
-  m_SystemData.setSocPercent(static_cast<uint8_t>(mf32_SimSoc));
+  // Physical charging time for this SoC step: t = (ΔSoC/100 · C_kWh / P_kW) · 60 min
+  f32_DurationAccMin += (f32_DeltaSoc / 100.0f * TAYCAN_BATTERY_KWH / mf32_SimChargingSpeedKW) * 60.0f;
+  mu16_SimDurationMin  = static_cast<uint16_t>(f32_DurationAccMin);
+
+  m_SystemData.setSocPercent(mf32_SimSoc);
   m_SystemData.setChargingCurrentA(mf32_SimCurrentA);
   m_SystemData.setDurationMin(mu16_SimDurationMin);
   m_SystemData.setPowerConsumptionKWh(mf32_SimPowerKWh);
