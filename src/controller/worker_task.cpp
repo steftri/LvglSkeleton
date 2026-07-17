@@ -7,29 +7,23 @@ static const size_t LIGHTSTRIPE_NUM_PIXELS = 8; // Number of pixels in the light
 static const uint8_t LIGHTSTRIPE_PIN = 38; // GPIO pin connected to the light stripe data line
 
 
-// Porsche Taycan (Gen 1, 2019) DC fast-charging profile
-// Source: real-world measurements (ADAC, Bjørn Nyland et al.)
-// 800 V architecture, 93.4 kWh gross / 83.7 kWh usable battery
-static const float TAYCAN_BUS_VOLTAGE_V = 800.0f;   ///< Nominal HV bus voltage in V
-static const float TAYCAN_BATTERY_KWH   = 83.7f;    ///< Usable battery capacity in kWh
+// Porsche Taycan (Gen 1, 2019) AC charging via Porsche Mobile Charger Connect
+// 3-phase 400 V / 32 A, max 22 kW, 93.4 kWh gross / 83.7 kWh usable battery
+static const float PMC_AC_PHASE_VOLTAGE_V = 400.0f;     ///< Three-phase line voltage in V
+static const float PMC_AC_SQRT3           = 1.7320508f;  ///< sqrt(3) for three-phase power
+static const float TAYCAN_BATTERY_KWH     = 83.7f;      ///< Usable battery capacity in kWh
 
 struct TaycanProfilePoint { float soc; float powerKW; };
 
-/// Piecewise-linear DC fast-charging power curve (SoC % → kW)
+/// Piecewise-linear AC charging power curve via Porsche Mobile Charger Connect (SoC % → kW)
 static const TaycanProfilePoint TAYCAN_PROFILE[] =
 {
-  {  0.0f, 250.0f },
-  {  5.0f, 270.0f },
-  { 28.0f, 270.0f },
-  { 35.0f, 220.0f },
-  { 50.0f, 170.0f },
-  { 65.0f, 120.0f },
-  { 75.0f,  80.0f },
-  { 80.0f,  50.0f },
-  { 85.0f,  32.0f },
-  { 90.0f,  20.0f },
-  { 95.0f,  13.0f },
-  {100.0f,   7.0f },
+  {  0.0f, 22.0f },
+  { 80.0f, 22.0f },
+  { 85.0f, 18.0f },
+  { 90.0f, 13.0f },
+  { 95.0f,  8.0f },
+  {100.0f,  3.0f },
 };
 static const size_t TAYCAN_PROFILE_LEN = sizeof(TAYCAN_PROFILE) / sizeof(TAYCAN_PROFILE[0]);
 
@@ -229,7 +223,7 @@ void WorkerTask::updateSimulation(uint32_t u32_CurrentTimeMs)
   mf32_SimChargingSpeedKW = taycanPowerKW(mf32_SimSoc);
 
   // Each real second represents SIM_STEP_MIN simulated minutes
-  static const float SIM_STEP_MIN = 0.25f;
+  static const float SIM_STEP_MIN = 1.0f;
   static const float SIM_STEP_H   = SIM_STEP_MIN / 60.0f;
 
   // Advance SoC: deltaSOC [%] = P [kW] / C [kWh] * dt [h] * 100
@@ -252,8 +246,8 @@ void WorkerTask::updateSimulation(uint32_t u32_CurrentTimeMs)
     return;
   }
 
-  // DC current at 800 V HV bus
-  mf32_SimCurrentA = (mf32_SimChargingSpeedKW * 1000.0f) / TAYCAN_BUS_VOLTAGE_V;
+  // AC current per phase: I = P / (sqrt(3) * U_L)
+  mf32_SimCurrentA = (mf32_SimChargingSpeedKW * 1000.0f) / (PMC_AC_SQRT3 * PMC_AC_PHASE_VOLTAGE_V);
 
   // Integrate transferred energy
   mf32_SimPowerKWh += mf32_SimChargingSpeedKW * SIM_STEP_H;

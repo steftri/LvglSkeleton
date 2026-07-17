@@ -19,8 +19,6 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
     lv_obj_remove_style_all(p_PorschePanel);
     lv_obj_set_size(p_PorschePanel, lv_pct(100), LV_SIZE_CONTENT);
 
-    //lv_obj_t *p_FreeRTOSHead = lv_label_create(p_FreeRTOSPanel);
-    //lv_label_set_text(p_FreeRTOSHead, "FreeRTOS");
     LV_IMAGE_DECLARE(porsche_logo_i4);
     lv_obj_t * img1 = lv_image_create(p_PorschePanel);
     lv_image_set_src(img1, &porsche_logo_i4);
@@ -30,6 +28,7 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
   lv_obj_t *p_PorscheInfoPanel = lv_obj_create(p_ParentTab);
   {
     lv_obj_set_size(p_PorscheInfoPanel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_clear_flag(p_PorscheInfoPanel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_flex_flow(p_PorscheInfoPanel, LV_FLEX_FLOW_COLUMN);
 
     lv_obj_t * p_InfoLabel = lv_label_create(p_PorscheInfoPanel);
@@ -44,6 +43,7 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
   lv_obj_t *p_Imx6InfoPanel = lv_obj_create(p_ParentTab);
   {
     lv_obj_set_size(p_Imx6InfoPanel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_clear_flag(p_Imx6InfoPanel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_flex_flow(p_Imx6InfoPanel, LV_FLEX_FLOW_COLUMN);
 
     LV_IMAGE_DECLARE(imx6_logo);
@@ -58,19 +58,16 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
   lv_obj_t *p_YoctoInfoPanel = lv_obj_create(p_ParentTab);
   {
     lv_obj_set_size(p_YoctoInfoPanel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_clear_flag(p_YoctoInfoPanel, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_flex_flow(p_YoctoInfoPanel, LV_FLEX_FLOW_COLUMN);
-    //lv_obj_set_style_pad_all(p_LVGLPanel, 10, LV_PART
-
-    //lv_obj_t *p_LVGLHead = lv_label_create(p_LVGLPanel);
 
     LV_IMAGE_DECLARE(yocto_logo);
-    //lv_label_set_text(p_LVGLHead, "LVGL");
     lv_obj_t * img1 = lv_image_create(p_YoctoInfoPanel);
     lv_image_set_src(img1, &yocto_logo);    
 
     lv_obj_t * p_InfoLabel = lv_label_create(p_YoctoInfoPanel);
-    lv_label_set_text(p_InfoLabel, "The project focused on bringing up an\n"
-                                   "Embedded Linux platform for the charger's\n"
-                                   "touchscreen user interface.");    
+    lv_label_set_text(p_InfoLabel, "The task was to port an embedded Linux\n"
+                                   "system to the target device to control\n"
+                                   "the touchscreen.");
   }
 }
