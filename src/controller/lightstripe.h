@@ -32,6 +32,8 @@ private:
   LightstripeHal m_LightstripeHal; // Instance of the Lightstripe HAL
   uint16_t mu16_NumPixels;
 
+  bool mb_Enabled;
+
   EValueTarget me_ValueTarget;
   EWaveForm me_WaveForm;
   EColorMode me_ColorMode;

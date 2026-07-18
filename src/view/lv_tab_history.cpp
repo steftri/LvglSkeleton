@@ -32,22 +32,22 @@ void LvTabHistory::setup(lv_obj_t *p_ParentTab)
   lv_obj_set_size(mp_BatteryArc, 280, 280);
   lv_arc_set_rotation(mp_BatteryArc, 135);
   lv_arc_set_bg_angles(mp_BatteryArc, 0, 270);
-  lv_arc_set_range(mp_BatteryArc, 0, 100);
+  lv_arc_set_range(mp_BatteryArc, 0, 1000);
   lv_arc_set_value(mp_BatteryArc, 0);
   lv_obj_remove_flag(mp_BatteryArc, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_set_style_bg_opa(mp_BatteryArc, LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_set_style_arc_color(mp_BatteryArc, lv_color_hex(0x2ECC71), LV_PART_INDICATOR);
-  lv_obj_set_style_arc_width(mp_BatteryArc, 20, LV_PART_INDICATOR);
+  lv_obj_set_style_arc_width(mp_BatteryArc, 28, LV_PART_INDICATOR);
   lv_obj_set_style_arc_color(mp_BatteryArc, lv_color_hex(0x2C3E50), LV_PART_MAIN);
-  lv_obj_set_style_arc_width(mp_BatteryArc, 20, LV_PART_MAIN);
+  lv_obj_set_style_arc_width(mp_BatteryArc, 28, LV_PART_MAIN);
   lv_obj_set_style_bg_opa(mp_BatteryArc, LV_OPA_TRANSP, LV_PART_KNOB);
   lv_obj_set_style_shadow_opa(mp_BatteryArc, LV_OPA_TRANSP, LV_PART_KNOB);
 
   // Labels as children of the arc so they stay centered inside it
   mp_SocLabel = lv_label_create(mp_BatteryArc);
   lv_label_set_text(mp_SocLabel, "-- %");
-  lv_obj_set_style_text_font(mp_SocLabel, &lv_font_montserrat_32, 0);
-  lv_obj_align(mp_SocLabel, LV_ALIGN_CENTER, 0, -10);
+  lv_obj_set_style_text_font(mp_SocLabel, &lv_font_montserrat_48, 0);
+  lv_obj_align(mp_SocLabel, LV_ALIGN_CENTER, 0, -16);
 
   lv_obj_t *p_SocSubLabel = lv_label_create(mp_BatteryArc);
   lv_label_set_text(p_SocSubLabel, "State of charge");
@@ -143,7 +143,7 @@ void LvTabHistory::updateChargingState(float f32_SocPercent)
   if (f32_SocPercent < 0.0f)   f32_SocPercent = 0.0f;
   if (f32_SocPercent > 100.0f) f32_SocPercent = 100.0f;
 
-  lv_arc_set_value(mp_BatteryArc, static_cast<int>(f32_SocPercent+0.5f));
+  lv_arc_set_value(mp_BatteryArc, static_cast<int>(f32_SocPercent*10.0f+0.5f));
 
   lv_color_t arcColor;
   if (f32_SocPercent <= 20.0f)
@@ -167,7 +167,10 @@ void LvTabHistory::updateChargingCurrent(float f32_ChargingCurrentA)
     return;
 
   char ac_Buf[16];
-  snprintf(ac_Buf, sizeof(ac_Buf), "%.1f A", f32_ChargingCurrentA);
+  if(f32_ChargingCurrentA >= 99.95f)
+    snprintf(ac_Buf, sizeof(ac_Buf), "%.0f A", f32_ChargingCurrentA);
+  else
+    snprintf(ac_Buf, sizeof(ac_Buf), "%.1f A", f32_ChargingCurrentA);
   lv_label_set_text(mp_CurrentValueLabel, ac_Buf);
 }
 
@@ -196,7 +199,7 @@ void LvTabHistory::updatePowerConsumption(float f32_PowerConsumptionKWh)
     return;
 
   char ac_Buf[16];
-  snprintf(ac_Buf, sizeof(ac_Buf), "%.2f kWh", f32_PowerConsumptionKWh);
+  snprintf(ac_Buf, sizeof(ac_Buf), "%.1f kWh", f32_PowerConsumptionKWh);
   lv_label_set_text(mp_PowerConsumptionLabel, ac_Buf);
 }
 
@@ -206,6 +209,6 @@ void LvTabHistory::updateChargingSpeed(float f32_ChargingSpeedKW)
     return;
 
   char ac_Buf[16];
-  snprintf(ac_Buf, sizeof(ac_Buf), "%.2f kW", f32_ChargingSpeedKW);
+  snprintf(ac_Buf, sizeof(ac_Buf), "%.1f kW", f32_ChargingSpeedKW);
   lv_label_set_text(mp_ChargingSpeedLabel, ac_Buf);
 }

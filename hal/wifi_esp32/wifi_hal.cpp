@@ -27,7 +27,7 @@ void WifiHal::setup()
   WiFi.useStaticBuffers(true);
   WiFi.disconnect(true); // Disconnect and erase credentials
   WiFi.mode(WIFI_STA); // Optional
-  WiFi.setHostname(APPLICATION_NAME);
+  WiFi.setHostname("porsche-charger"); // Optional: Set a hostname for the device
 
   WiFi.onEvent(WifiHal::onEvent);
 }

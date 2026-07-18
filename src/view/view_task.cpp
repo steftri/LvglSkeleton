@@ -347,13 +347,11 @@ void ViewTask::onUpdateSettingsIPAddress()
 
 void ViewTask::onUpdateInfoSurveillanceStats()
 {
-  g_ViewLvMain.getTabInfo()->updateFreeRTOSInfo(); // Update the Surveillance stats in the info tab
 }
 
 
 void ViewTask::onUpdateInfoLVGLStats()
 {
-  g_ViewLvMain.getTabInfo()->updateLVGLInfo(); // Update the LVGL stats in the info tab
 }
 
 
@@ -365,7 +363,6 @@ void ViewTask::onUpdateInfoMQTTConnectionState()
 
 void ViewTask::onUpdateInfoMQTTStats()
 {
-  g_ViewLvMain.getTabInfo()->updateMQTTInfo(); // Update the MQTT stats in the info tab
 }
 
 

@@ -13,7 +13,7 @@
 #include "lightstripe.h"
 
 
-static const size_t WORKER_TASK_STACK_SIZE = 4096; // Stack size for the task
+static const size_t WORKER_TASK_STACK_SIZE = 5*1024; // Stack size for the task
 
 
 class WorkerTask : public DataObserverInterface
@@ -44,7 +44,7 @@ public:
   // DataObserver implementation
   void onDataChanged(Data &r_Data, EDataField e_Field) override;
   void onSettingsChanged(EDataField e_Field);
-  void onDataChanged(EDataField e_Field);
+  void onChargingDataChanged(EDataField e_Field);
 
 private:  
   void setup();

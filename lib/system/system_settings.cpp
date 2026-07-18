@@ -40,7 +40,7 @@ void SystemSettings::init(void)
   std::lock_guard<std::mutex> lock(m_DataMutex);
 
   me_SplashScreen = ESplashScreen::None;
-  strncpy(mac_HostName, APPLICATION_NAME, MAX_HOSTNAME_LENGTH);
+  strncpy(mac_HostName, "porsche-charger", MAX_HOSTNAME_LENGTH);
   mac_HostName[MAX_HOSTNAME_LENGTH] = '\0'; // Ensure null-termination
 }
 
