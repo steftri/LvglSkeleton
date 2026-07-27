@@ -315,7 +315,11 @@ void LvTabSettings::onInputEvent(lv_event_t *p_Event)
 
   if(code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) 
   {
-    g_ViewLvMain.getKeyboard()->show(lv_event_get_target_obj(p_Event));
+    lv_obj_t *p_Target = lv_event_get_target_obj(p_Event);
+    lv_keyboard_mode_t e_Mode = (p_Target == p_This->m_Mqtt.mp_Port)
+        ? LV_KEYBOARD_MODE_NUMBER
+        : LV_KEYBOARD_MODE_TEXT_LOWER;
+    g_ViewLvMain.getKeyboard()->show(p_Target, e_Mode);
   }
   else if(code == LV_EVENT_DEFOCUSED) 
   {
