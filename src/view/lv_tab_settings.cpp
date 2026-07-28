@@ -93,24 +93,35 @@ void LvTabSettings::setup(lv_obj_t *p_ParentTab)
       lv_obj_set_size(m_Wlan.mp_StatePanel, lv_pct(100), LV_SIZE_CONTENT);
       lv_obj_set_flex_flow(m_Wlan.mp_StatePanel, LV_FLEX_FLOW_COLUMN);
 
-      m_Wlan.mp_CurrentWlan = lv_label_create(m_Wlan.mp_StatePanel); 
-      lv_label_set_text(m_Wlan.mp_CurrentWlan, "");
-      m_Wlan.mp_CurrentIp = lv_label_create(m_Wlan.mp_StatePanel); 
-      lv_label_set_text(m_Wlan.mp_CurrentIp, "");
-
-      lv_obj_t *p_ButtonPanel = lv_obj_create(m_Wlan.mp_StatePanel);
+      lv_obj_t *p_CurrentWlanPanel = lv_obj_create(m_Wlan.mp_StatePanel);
       {
-        lv_obj_remove_style_all(p_ButtonPanel);
-        lv_obj_set_size(p_ButtonPanel, lv_pct(100), LV_SIZE_CONTENT);
+        lv_obj_remove_style_all(p_CurrentWlanPanel);
+        lv_obj_set_size(p_CurrentWlanPanel, lv_pct(100), LV_SIZE_CONTENT);
+        lv_obj_set_flex_flow(p_CurrentWlanPanel, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(p_CurrentWlanPanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+        lv_obj_t *p_CurrentWlanInfoPanel = lv_obj_create(p_CurrentWlanPanel);
+        {
+          lv_obj_remove_style_all(p_CurrentWlanInfoPanel);
+          lv_obj_set_size(p_CurrentWlanInfoPanel, lv_pct(100), LV_SIZE_CONTENT);
+          lv_obj_set_flex_flow(p_CurrentWlanInfoPanel, LV_FLEX_FLOW_COLUMN);
+          lv_obj_set_flex_grow(p_CurrentWlanInfoPanel, 1);
+
+          m_Wlan.mp_CurrentWlan = lv_label_create(p_CurrentWlanInfoPanel); 
+          lv_label_set_text(m_Wlan.mp_CurrentWlan, "");
+          m_Wlan.mp_CurrentIp = lv_label_create(p_CurrentWlanInfoPanel); 
+          lv_label_set_text(m_Wlan.mp_CurrentIp, "");
+        }
 
         // Create the disconnect button
-        m_Wlan.mp_DisconnectButton = lv_btn_create(p_ButtonPanel);
+        m_Wlan.mp_DisconnectButton = lv_btn_create(p_CurrentWlanPanel);
         {
           lv_obj_align(m_Wlan.mp_DisconnectButton, LV_ALIGN_RIGHT_MID, 0, 0);
           lv_obj_t *p_Label = lv_label_create(m_Wlan.mp_DisconnectButton);
           lv_label_set_text(p_Label, "Disconnect");
           lv_obj_add_event_cb(m_Wlan.mp_DisconnectButton, onWlanDisconnectButtonCallback, LV_EVENT_CLICKED, NULL);
-        }
+        }        
+
       }
     }
 
@@ -304,7 +315,11 @@ void LvTabSettings::onInputEvent(lv_event_t *p_Event)
 
   if(code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) 
   {
-    g_ViewLvMain.getKeyboard()->show(lv_event_get_target_obj(p_Event));
+    lv_obj_t *p_Target = lv_event_get_target_obj(p_Event);
+    lv_keyboard_mode_t e_Mode = (p_Target == p_This->m_Mqtt.mp_Port)
+        ? LV_KEYBOARD_MODE_NUMBER
+        : LV_KEYBOARD_MODE_TEXT_LOWER;
+    g_ViewLvMain.getKeyboard()->show(p_Target, e_Mode);
   }
   else if(code == LV_EVENT_DEFOCUSED) 
   {
