@@ -281,8 +281,13 @@ void MqttTask::connect()
   uint8_t au8_lastWillMessage[MAX_MQTT_LAST_WILL_MESSAGE_LENGTH + 1];
 
   snprintf(ac_lastWillTopic, sizeof(ac_lastWillTopic), MQTT_TOPIC_PREFIX "%s/NDEATH/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
-  snprintf((char*)au8_lastWillMessage, sizeof(au8_lastWillMessage), "I am dead, Jim.");
-  m_MqttHal.setLastWill(ac_lastWillTopic, au8_lastWillMessage, strlen((char*)au8_lastWillMessage), 0, false); 
+
+  JsonDocument doc;
+  doc["device"]["id"] = m_SystemSettings.getHostName();
+  doc["reason"] = "Unexpected disconnect";
+  size_t messageSize = serializeJson(doc, au8_lastWillMessage, sizeof(au8_lastWillMessage));
+  
+  m_MqttHal.setLastWill(ac_lastWillTopic, au8_lastWillMessage, messageSize, 0, false); 
 
   m_MqttHal.connect(m_MqttSettings.getBrokerAddr(), m_MqttSettings.getBrokerPort());
 }
@@ -385,6 +390,8 @@ void MqttTask::onConnected()
   JsonDocument doc;
 
   doc["timestamp"] = time(nullptr);
+  doc["application"] = APPLICATION_NAME;
+  doc["version"] = APPLICATION_VERSION;
   doc["device"]["id"] = m_SystemSettings.getHostName();
   doc["dataModel"]["measurements"][0]["name"] = "StateOfCharge";
   doc["dataModel"]["measurements"][0]["type"] = "float";
