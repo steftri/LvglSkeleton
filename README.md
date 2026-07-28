@@ -1,11 +1,11 @@
-# LvglSkeleton
+# PorscheMobileCharger
 
 [![Native Unit Tests](https://github.com/steftri/LvglSkeleton/actions/workflows/native-unit-tests.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/native-unit-tests.yml)
 [![Crowpanel Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/crowpanel-binary-build.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/crowpanel-binary-build.yml)
 [![Posix Binary Build](https://github.com/steftri/LvglSkeleton/actions/workflows/posix-binary-build.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/posix-binary-build.yml)
 [![CMake Unit Tests](https://github.com/steftri/LvglSkeleton/actions/workflows/cmake-unit-tests.yml/badge.svg?event=push)](https://github.com/steftri/LvglSkeleton/actions/workflows/cmake-unit-tests.yml)
 
-LvglSkeleton is a cross-platform LVGL application skeleton with a shared application core and platform-specific hardware abstraction layers for desktop and ESP32 targets.
+PorscheMobileCharger is a cross-platform LVGL application with a shared application core and platform-specific hardware abstraction layers for desktop and ESP32 targets.
 
 ## Overview
 
