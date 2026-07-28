@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
+
 
 #include "controller.h"
 
@@ -99,6 +101,7 @@ void ModelTask::setup(void)
 void ModelTask::loop(void)
 {
   static uint32_t lastUpdateTime = 0;
+  static uint32_t lastPublishTime = 0;
   uint32_t currentTime = millis();
   uint32_t u32_NotifiedValue = 0;
 
@@ -111,6 +114,27 @@ void ModelTask::loop(void)
   {
     actionClear();
   }
+
+  if (currentTime - lastPublishTime >= 5*1000UL) // Publish every 5 seconds
+  { 
+    lastPublishTime = currentTime;
+
+    JsonDocument doc;
+    doc["Timestamp"] = time(nullptr);
+    doc["StateOfCharge"] = m_Data.getSystemData().getSocPercent();
+    doc["ChargingCurrent"] = m_Data.getSystemData().getChargingCurrentA();
+    doc["ChargingPower"] = m_Data.getSystemData().getChargingSpeedKW();
+    doc["ChargedEnergy"] = m_Data.getSystemData().getPowerConsumptionKWh();
+    doc["ChargingDuration"] = m_Data.getSystemData().getDurationMin()*60; // convert minutes to seconds
+
+    char ac_MessageBuffer[256];
+    size_t messageSize = serializeJson(doc, ac_MessageBuffer, sizeof(ac_MessageBuffer));
+
+    g_controller.getMqtt().publishNodeData(reinterpret_cast<uint8_t*>(ac_MessageBuffer), messageSize);
+  }
+
+
+
 
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds
   {
