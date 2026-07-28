@@ -12,7 +12,7 @@ public:
     
   void setup(void);
     
-  void show(lv_obj_t *p_TargetObj);
+  void show(lv_obj_t *p_TargetObj, lv_keyboard_mode_t e_Mode = LV_KEYBOARD_MODE_TEXT_LOWER);
   void hide(void);
 };
 
