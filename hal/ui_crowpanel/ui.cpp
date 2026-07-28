@@ -94,7 +94,7 @@ void Ui::setup()
 
   lv_timer_handler();
 
-  m_DisplayLGFX.setBrightness(255); 
+  // m_DisplayLGFX.setBrightness(255); 
 }
 
 
