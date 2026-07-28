@@ -1,0 +1,71 @@
+#include <Arduino.h>
+
+#include "controller.h"
+
+
+Controller::Controller(Model &model, View &view)
+  : m_model(model)
+  , m_view(view)
+  , m_surveillanceTask(model.getData().getSurveillanceData())
+  , m_wifiTask(model.getSettings().getSystemSettings(), model.getSettings().getWifiSettings(), model.getData().getWifiData())
+  , m_mqttTask(model.getSettings().getSystemSettings(), model.getSettings().getMqttSettings(), model.getData().getMqttData(), model.getData().getWifiData())
+  , m_workerTask(model.getSettings().getLightstripeSettings(), model.getData().getLightstripeData(), model.getData().getSystemData())
+{
+}
+
+
+void Controller::setup(void)
+{
+  // Initialize the model and view
+  m_model.setup();
+  m_view.setup();
+}
+
+
+void Controller::begin(void)
+{
+  m_surveillanceTask.begin(); // Start the surveillance task
+  m_wifiTask.begin(); // Start the Wi-Fi task
+  m_mqttTask.begin(); // Start the MQTT task
+  m_workerTask.begin(); // Start the worker task
+  m_model.begin(); // Start any model-related threads
+  m_view.begin(); // Start any view-related threads
+}
+
+
+
+void Controller::loop(void)
+{
+  delay(10); // Yield CPU time; keep Arduino loop responsive without busy spinning
+}
+
+
+Model &Controller::getModel(void) const
+{
+  return m_model;
+}
+
+
+View &Controller::getView(void) const
+{
+  return m_view;
+}
+
+
+
+WifiTask &Controller::getWifi(void)
+{
+  return m_wifiTask;
+}
+
+
+MqttTask &Controller::getMqtt(void)
+{
+  return m_mqttTask;
+}
+
+
+WorkerTask &Controller::getWorker(void)
+{
+  return m_workerTask;
+}

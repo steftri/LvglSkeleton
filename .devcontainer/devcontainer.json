@@ -1,0 +1,17 @@
+{
+  "name": "SDL Development Ubuntu-24.04",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "remoteUser": "ubuntu",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "platformio.platformio-ide",
+        "ms-vscode.cmake-tools"
+      ]
+    }
+  }
+}

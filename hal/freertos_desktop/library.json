@@ -1,0 +1,18 @@
+{
+  "name": "freertos_windows",
+  "version": "11.1.0",
+  "description": "FreeRTOS Windows (MSVC-MingW) port for desktop simulation",
+  "build": {
+    "srcFilter": [
+      "+<kernel/tasks.c>",
+      "+<kernel/queue.c>",
+      "+<kernel/list.c>",
+      "+<kernel/timers.c>",
+      "+<kernel/event_groups.c>",
+      "+<kernel/stream_buffer.c>",
+      "+<kernel/portable/MemMang/heap_4.c>",
+      "+<kernel/portable/MSVC-MingW/port.c>"
+    ],
+    "includeDir": "include"
+  }
+}

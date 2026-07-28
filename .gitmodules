@@ -1,4 +1,3 @@
-[submodule "lib/ArduinoLibrarySkeleton"]
-	path = lib/ArduinoLibrarySkeleton
-	url = https://github.com/steftri/ArduinoLibrarySkeleton
-	branch = develop
+[submodule "hal/freertos_desktop/kernel"]
+	path = hal/freertos_desktop/kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git

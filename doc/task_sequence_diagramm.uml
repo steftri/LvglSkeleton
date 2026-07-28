@@ -1,0 +1,73 @@
+@startuml
+!pragma teoz true
+
+box "Controller" #Pink
+  participant main <<core 1>>
+  participant Controller
+  participant SurveillanceTask <<core 0>>
+end box
+
+box "Model" #LightBlue
+  participant Model
+  participant ModelTask <<core 0>>
+end box
+
+box "View" #LightGreen
+  participant View
+  participant ViewTask <<core 1>>
+end box
+
+-> main ++ : setup()
+
+== setup ==
+
+main -> Controller ++ : setup()
+
+  Controller -> Model ++ : setup() 
+    Model --
+
+  Controller -> View ++ : setup()
+    View --
+  Controller --
+
+== begin ==
+
+
+main -> Controller ++ : begin()
+
+  Controller -> SurveillanceTask ++ : begin()
+      SurveillanceTask -> SurveillanceTask ++ : setup()
+        SurveillanceTask --
+      SurveillanceTask -> SurveillanceTask ++ : loop()
+
+
+  Controller -> Model ++ : begin() 
+    Model -> ModelTask ++ : begin()
+
+    Model --    
+      ModelTask -> ModelTask ++ : setup()
+        ModelTask --
+      ModelTask -> ModelTask ++ : loop()  
+
+  Controller -> View ++ : begin()
+    View -> ViewTask ++ : begin()
+    View --
+  Controller --
+main --
+
+     ViewTask -> ViewTask ++ : setup()
+       ViewTask --
+     ViewTask -> ViewTask ++ : loop()  
+
+
+
+
+
+
+
+-> main ++ : loop()
+main -> Controller ++ : loop()
+
+Controller --
+
+@enduml
