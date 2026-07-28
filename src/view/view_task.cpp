@@ -85,6 +85,8 @@ void ViewTask::setup()
   lv_init();  
   m_ui.setup(); // Initialize the UI components (display hardware + LVGL display)
   g_ViewLvMain.setup(); // Build LVGL widget tree (display must exist first)
+  m_ui.loop(); // Update the UI components
+  m_ui.setBrightness(255);
   Serial.println("LVGL UI setup complete");
 
   g_ViewLvMain.getTabSettings()->updateSystemSettingsPanel();
@@ -257,15 +259,12 @@ void ViewTask::onMQTTDataChanged(EDataField e_Field)
   switch (static_cast<MqttData::EField>(e_Field))
   {
     case MqttData::EField::ConnectionState:
-      Serial.println("ViewTask: MQTT connection state changed");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::MQTTConnectionState), eSetBits);
       break;
     case MqttData::EField::MessageCount:
-      Serial.println("ViewTask: MQTT message count updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::MQTTStats), eSetBits);
       break;
     case MqttData::EField::LastError:
-      Serial.println("ViewTask: MQTT last error updated");
       xTaskNotify(mp_TaskHandle, static_cast<uint32_t>(ENotificationBits::MQTTError), eSetBits);
       break;
     default:

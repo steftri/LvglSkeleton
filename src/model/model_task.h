@@ -10,7 +10,7 @@
 #include "data_observer.h"
 
 
-static const size_t MODEL_TASK_STACK_SIZE = (4*1024); // Stack size for the task
+static const size_t MODEL_TASK_STACK_SIZE = 5*1024; // Stack size for the task
 
 
 class ModelTask : public DataObserverInterface

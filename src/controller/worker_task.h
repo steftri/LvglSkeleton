@@ -8,6 +8,7 @@
 
 #include "lightstripe_settings.h"
 #include "lightstripe_data.h"
+#include "system_data.h"
 
 #include "lightstripe.h"
 
@@ -25,11 +26,12 @@ private:
 
   LightstripeSettings &m_Settings;
   LightstripeData &m_Data;
+  SystemData &m_SystemData;
 
   Lightstripe m_Lightstripe; // Instance of the Lightstripe HAL
 
 public:
-  WorkerTask(LightstripeSettings &settings, LightstripeData &data);
+  WorkerTask(LightstripeSettings &settings, LightstripeData &data, SystemData &systemData);
   void begin(void);
 
   // DataObserver implementation

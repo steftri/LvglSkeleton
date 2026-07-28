@@ -13,7 +13,7 @@
 #include "wifi_data.h"
 
 
-static const size_t WIFI_TASK_STACK_SIZE = 4096; // Stack size for the task
+static const size_t WIFI_TASK_STACK_SIZE = 3*1024; // Stack size for the task
 
 
 class WifiTask : public WifiActionInterface

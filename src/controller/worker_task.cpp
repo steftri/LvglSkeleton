@@ -17,10 +17,11 @@ enum class ENotificationBits : uint32_t
 WorkerTask *WorkerTask::mp_thisInstance = nullptr; // Initialize static instance pointer
 
 
-WorkerTask::WorkerTask(LightstripeSettings &settings, LightstripeData &data)
+WorkerTask::WorkerTask(LightstripeSettings &settings, LightstripeData &data, SystemData &systemData)
   : mp_TaskHandle(nullptr)
   , m_Settings(settings)
   , m_Data(data)
+  , m_SystemData(systemData)
   , m_Lightstripe(LIGHTSTRIPE_PIN, LIGHTSTRIPE_NUM_PIXELS) 
 {
     mp_thisInstance = this;

@@ -14,7 +14,9 @@
 #include "mqtt_data.h"
 #include "wifi_data.h"
 
-static const size_t MAX_MQTT_MESSAGE_SIZE = 128; // Maximum supported MQTT payload size in bytes
+
+static const size_t MQTT_TASK_STACK_SIZE = 6*1024;
+static const size_t MAX_MQTT_MESSAGE_SIZE = 512; // Maximum supported MQTT payload size in bytes
 static const size_t MQTT_TASK_MESSAGE_QUEUE_SIZE = 4; // Size of the message queue for inter-task communication
 
 
@@ -22,7 +24,6 @@ class MqttTask : public MqttActionInterface, public DataObserverInterface
 {
 private:
   TaskHandle_t mp_TaskHandle;
-  static const size_t MQTT_TASK_STACK_SIZE = 4096;
 
   static void task(void *pvParameters);  
   static MqttTask *mp_thisInstance; 

@@ -1,8 +1,12 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 #include "mqtt_task.h"
 
 #include "controller.h"
+
+#define MQTT_TOPIC_PREFIX "" // No prefix for now, can be set to "spBv1.0/" if needed
+
 
 extern Controller g_controller; // Declare the external Controller instance
 
@@ -11,13 +15,12 @@ static const size_t MAX_NODE_ID_LENGTH = SystemSettings::MAX_HOSTNAME_LENGTH;
 static const size_t MAX_DEVICE_ID_LENGTH = 64;
 
 static const size_t MAX_MQTT_BIRTH_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + MAX_NODE_ID_LENGTH;
-static const size_t MAX_MQTT_BIRTH_MESSAGE_LENGTH = 80;
+static const size_t MAX_MQTT_BIRTH_MESSAGE_LENGTH = 256;
 static const size_t MAX_MQTT_LAST_WILL_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + MAX_NODE_ID_LENGTH;
 static const size_t MAX_MQTT_LAST_WILL_MESSAGE_LENGTH = 80;
 
 static const size_t MAX_MQTT_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 1 + 7 + 1 + MAX_NODE_ID_LENGTH + 1 + MAX_DEVICE_ID_LENGTH;
 static const size_t MAX_MQTT_SUBSCRIBE_TOPIC_LENGTH = 8 + MqttSettings::MAX_GROUP_ID_LENGTH + 8 + 1 + 1;
-
 
 
 MqttTask *MqttTask::mp_thisInstance = nullptr; // Initialize static instance pointer
@@ -277,7 +280,7 @@ void MqttTask::connect()
   char ac_lastWillTopic[MAX_MQTT_LAST_WILL_TOPIC_LENGTH + 1];
   uint8_t au8_lastWillMessage[MAX_MQTT_LAST_WILL_MESSAGE_LENGTH + 1];
 
-  snprintf(ac_lastWillTopic, sizeof(ac_lastWillTopic), "spBv1.0/%s/NDEATH/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
+  snprintf(ac_lastWillTopic, sizeof(ac_lastWillTopic), MQTT_TOPIC_PREFIX "%s/NDEATH/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
   snprintf((char*)au8_lastWillMessage, sizeof(au8_lastWillMessage), "I am dead, Jim.");
   m_MqttHal.setLastWill(ac_lastWillTopic, au8_lastWillMessage, strlen((char*)au8_lastWillMessage), 0, false); 
 
@@ -349,7 +352,7 @@ void MqttTask::actionPublishNodeData(uint8_t *pu8_MessageBuffer, const size_t Me
 {
   char ac_Topic[MAX_MQTT_TOPIC_LENGTH + 1];
 
-  snprintf(ac_Topic, sizeof(ac_Topic), "spBv1.0/%s/NDATA/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
+  snprintf(ac_Topic, sizeof(ac_Topic), MQTT_TOPIC_PREFIX "%s/NDATA/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
   m_MqttHal.publish(ac_Topic, pu8_MessageBuffer, MessageSize, u8_QoS, b_Retain);
 
   m_MqttData.incrementSentMessageCount();
@@ -361,26 +364,31 @@ void MqttTask::onConnected()
 {
   char ac_SubscribeTopic[MAX_MQTT_SUBSCRIBE_TOPIC_LENGTH + 1];
   char ac_birthTopic[MAX_MQTT_BIRTH_TOPIC_LENGTH + 1];
-  uint8_t au8_birthMessage[MAX_MQTT_BIRTH_MESSAGE_LENGTH + 1];
+  char ac_birthMessage[MAX_MQTT_MESSAGE_SIZE];
 
   m_MqttData.setState(MqttData::EState::Connected); // Update the MQTT connection state in the data
   Serial.println("Connected to MQTT broker");
 
   // subscribe to the common Sparkplug-B toppics
-  snprintf(ac_SubscribeTopic, sizeof(ac_SubscribeTopic), "spBv1.0/%s/NBIRTH/+", m_MqttSettings.getGroupId());
+  snprintf(ac_SubscribeTopic, sizeof(ac_SubscribeTopic), MQTT_TOPIC_PREFIX "%s/NBIRTH/+", m_MqttSettings.getGroupId());
   m_MqttHal.subscribe(ac_SubscribeTopic); // Subscribe to all Sparkplug-B node topics for the group "ERNI"
 
-  snprintf(ac_SubscribeTopic, sizeof(ac_SubscribeTopic), "spBv1.0/%s/NDEATH/+", m_MqttSettings.getGroupId());
+  snprintf(ac_SubscribeTopic, sizeof(ac_SubscribeTopic), MQTT_TOPIC_PREFIX "%s/NDEATH/+", m_MqttSettings.getGroupId());
   m_MqttHal.subscribe(ac_SubscribeTopic); // Subscribe to all Sparkplug-B node death topics for the group "ERNI"  
 
-  snprintf(ac_SubscribeTopic, sizeof(ac_SubscribeTopic), "spBv1.0/%s/NCMD/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
+  snprintf(ac_SubscribeTopic, sizeof(ac_SubscribeTopic), MQTT_TOPIC_PREFIX "%s/NCMD/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
   m_MqttHal.subscribe(ac_SubscribeTopic); // Subscribe to all Sparkplug-B command topics for the group "ERNI"
 
   // send Spartkplug-B birth message
-  snprintf(ac_birthTopic, sizeof(ac_birthTopic), "spBv1.0/%s/NBIRTH/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
-  snprintf((char*)au8_birthMessage, sizeof(au8_birthMessage), "Hello from ESP32!");
+  snprintf(ac_birthTopic, sizeof(ac_birthTopic), MQTT_TOPIC_PREFIX "%s/NBIRTH/%s", m_MqttSettings.getGroupId(), m_SystemSettings.getHostName());
 
-  m_MqttHal.publish(ac_birthTopic, au8_birthMessage, strlen((char*)au8_birthMessage), 0, false); // Publish a test message to verify connection
+  JsonDocument doc;
+
+  doc["timestamp"] = time(nullptr);
+  doc["device"]["id"] = m_SystemSettings.getHostName();
+
+  size_t messageSize = serializeJson(doc, ac_birthMessage, sizeof(ac_birthMessage));
+  m_MqttHal.publish(ac_birthTopic, reinterpret_cast<uint8_t*>(ac_birthMessage), messageSize, 0, false); // Publish a test message to verify connection
 }
 
 
@@ -427,7 +435,7 @@ void MqttTask::onMessageReceived(const char *pc_Topic, const uint8_t *pu8_Messag
   strncpy(ac_TopicCopy, pc_Topic, sizeof(ac_TopicCopy) - 1);
   ac_TopicCopy[sizeof(ac_TopicCopy) - 1] = '\0';
 
-  const char *pc_Prefix = "spBv1.0/";
+  const char *pc_Prefix = MQTT_TOPIC_PREFIX;
   const size_t PrefixLen = strlen(pc_Prefix);  
   if(strncmp(ac_TopicCopy, pc_Prefix, PrefixLen) == 0)
   {
