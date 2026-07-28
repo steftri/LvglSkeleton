@@ -85,12 +85,12 @@ void SurveillanceTask::loop()
   m_Data.setTasks(u32_NumberOfTasks);
   m_Data.setFreeHeapSize(u32_FreeHeapTotal, u32_MinimumEverFreeHeap, u32_FreeHeapInternal, u32_FreePSRAM);
 
-  if(currentTime - lastPublishTime >= 15*1000UL) // Publish every 15 seconds
+  if(currentTime - lastPublishTime >= 5*1000UL) // Publish every 5 seconds
   { 
     lastPublishTime = currentTime;
     // TODO: publish something usefull
-    uint8_t au8_Data[]={0x01, 0x02, 0x03, 0x04}; // Example data
-    g_controller.getMqtt().publishNodeData(au8_Data, sizeof(au8_Data)); 
+    // uint8_t au8_Data[]={0x01, 0x02, 0x03, 0x04}; // Example data
+    // g_controller.getMqtt().publishNodeData(au8_Data, sizeof(au8_Data)); 
   }   
 
   if (currentTime - lastUpdateTime >= 60*1000UL) // Update every 60 seconds

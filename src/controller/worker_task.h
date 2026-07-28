@@ -13,7 +13,7 @@
 #include "lightstripe.h"
 
 
-static const size_t WORKER_TASK_STACK_SIZE = 5*1024; // Stack size for the task
+static const size_t WORKER_TASK_STACK_SIZE = 3*1024; // Stack size for the task
 
 
 class WorkerTask : public DataObserverInterface
