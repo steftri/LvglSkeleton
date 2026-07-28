@@ -61,9 +61,9 @@ void Ui::initDisplay(void)
 }
 
 
-void Ui::setBrightness(uint8_t brightness)
+void Ui::setBrightness(uint8_t u8_Brightness)
 {
-  m_DisplayLGFX.setBrightness(brightness);
+  m_DisplayLGFX.setBrightness(u8_Brightness);
 }
 
 

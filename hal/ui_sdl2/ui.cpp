@@ -77,3 +77,11 @@ void Ui::loop()
   lv_timer_handler(); // Update the UI
 }
 
+
+
+void Ui::setBrightness(uint8_t u8_Brightness)
+{
+  (void)u8_Brightness;
+  // SDL2 does not support backlight control, so this function is a no-op.
+  // In a real hardware implementation, you would adjust the backlight here.
+}

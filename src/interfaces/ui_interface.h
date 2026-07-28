@@ -11,6 +11,8 @@ public:
 
     // Update the display
     virtual void loop() = 0;
+
+    virtual void setBrightness(uint8_t u8_Brightness) = 0;
 };
 
 
