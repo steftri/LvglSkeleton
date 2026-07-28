@@ -50,7 +50,7 @@ void LvMain::setup(void)
       lv_obj_set_flex_align(p_TitleBar, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
       lv_obj_t *p_Title = lv_label_create(p_TitleBar);
-      lv_label_set_text(p_Title, APPLICATION_NAME);
+      lv_label_set_text(p_Title, APPLICATION_NAME " " APPLICATION_VERSION);
       lv_obj_set_flex_grow(p_Title, 1); 
 
       LV_IMAGE_DECLARE(cloud_22x17);
