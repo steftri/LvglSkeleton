@@ -22,6 +22,8 @@ public:
 
     // Update the display
     void loop() override;
+
+    void setBrightness(uint8_t u8_Brightness) override;
 };
 
 

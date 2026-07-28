@@ -61,9 +61,9 @@ void Ui::initDisplay(void)
 }
 
 
-void Ui::setBrightness(uint8_t brightness)
+void Ui::setBrightness(uint8_t u8_Brightness)
 {
-  m_DisplayLGFX.setBrightness(brightness);
+  m_DisplayLGFX.setBrightness(u8_Brightness);
 }
 
 
@@ -94,7 +94,7 @@ void Ui::setup()
 
   lv_timer_handler();
 
-  m_DisplayLGFX.setBrightness(255); 
+  // m_DisplayLGFX.setBrightness(255); 
 }
 
 

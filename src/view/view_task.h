@@ -13,7 +13,7 @@
 #include "data_observer.h"
 
 
-static const size_t VIEW_TASK_STACK_SIZE = 8192; // Stack size for the task
+static const size_t VIEW_TASK_STACK_SIZE = 9*1024; // Stack size for the task
 static const size_t VIEW_TASK_MESSAGE_QUEUE_SIZE = 10; // Size of the message queue for inter-task communication
 
 static constexpr uint32_t UITASK_NOTIFY_NETWORKS_UPDATED = (1UL << 0); // Notification bit for available networks update
