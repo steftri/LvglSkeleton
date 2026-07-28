@@ -32,10 +32,9 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
     lv_obj_set_flex_flow(p_PorscheInfoPanel, LV_FLEX_FLOW_COLUMN);
 
     lv_obj_t * p_InfoLabel = lv_label_create(p_PorscheInfoPanel);
-    lv_label_set_text(p_InfoLabel, "The development project for the Porsche\n"
-                                   "mobile charger was carried out by BPS GmbH\n"
-                                   "in Schorndorf, which was later acquired by\n"
-                                   "ERNI (Germany) GmbH.");
+    lv_obj_set_size(p_InfoLabel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_label_set_long_mode(p_InfoLabel, LV_LABEL_LONG_MODE_WRAP);
+    lv_label_set_text(p_InfoLabel, "ERNI supported Porsche's Mobile Charger Connect project by porting and integrating Linux on an Embedded Artists board responsible for controlling the charger.");
   }  
 
 
@@ -51,6 +50,8 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
     lv_image_set_src(img1, &imx6_logo);
 
     lv_obj_t * p_InfoLabel = lv_label_create(p_Imx6InfoPanel);
+    //lv_obj_set_size(p_InfoLabel, lv_pct(100), LV_SIZE_CONTENT);
+    //lv_label_set_long_mode(p_InfoLabel, LV_LABEL_LONG_MODE_WRAP);
     lv_label_set_text(p_InfoLabel, "Embedded Artists iMX6 SoloX COM\n"
                                    "Cortex-A9 @ 1 GHz and Cortex-M4 @ 227 MHz");
   }
@@ -66,8 +67,8 @@ void LvTabInfo::setup(lv_obj_t *p_ParentTab)
     lv_image_set_src(img1, &yocto_logo);    
 
     lv_obj_t * p_InfoLabel = lv_label_create(p_YoctoInfoPanel);
-    lv_label_set_text(p_InfoLabel, "The task was to port an embedded Linux\n"
-                                   "system to the target device to control\n"
-                                   "the touchscreen.");
+    lv_obj_set_size(p_InfoLabel, lv_pct(100), LV_SIZE_CONTENT);
+    lv_label_set_long_mode(p_InfoLabel, LV_LABEL_LONG_MODE_WRAP);
+    lv_label_set_text(p_InfoLabel, "The task was to port an embedded Linux system to the target device to control the touchscreen.");
   }
 }
